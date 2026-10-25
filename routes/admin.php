@@ -16,6 +16,8 @@ Route::middleware(['auth', 'role:super-admin|admin-opd|reviewer'])
             'innovations.index' => 'Etalase Inovasi',
             'innovations.archive.create' => 'Input Arsip Inovasi Lama',
             'innovation-categories.index' => 'Kategori Inovasi',
+            'risets.index' => 'Daftar Riset',
+            'risets.archive.create' => 'Input Arsip Riset Lama',
             'competitions.index' => 'Daftar Kompetisi',
             'competition-submissions.index' => 'Submission Kompetisi',
             'ideas.index' => 'Ide Inovasi',

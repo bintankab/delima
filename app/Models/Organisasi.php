@@ -35,6 +35,11 @@ class Organisasi extends Model implements HasMedia
         return $this->hasMany(Innovation::class);
     }
 
+    public function risets(): HasMany
+    {
+        return $this->hasMany(Riset::class);
+    }
+
     public function competitionSubmissions(): HasMany
     {
         return $this->hasMany(CompetitionSubmission::class);

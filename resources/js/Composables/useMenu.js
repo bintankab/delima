@@ -16,6 +16,13 @@ const MENU = {
             ],
         },
         {
+            label: 'Riset',
+            items: [
+                { label: 'Daftar Riset', icon: 'pi pi-book', route: 'admin.risets.index' },
+                { label: 'Input Arsip Riset Lama', icon: 'pi pi-box', route: 'admin.risets.archive.create' },
+            ],
+        },
+        {
             label: 'Kompetisi',
             items: [
                 { label: 'Daftar Kompetisi', icon: 'pi pi-trophy', route: 'admin.competitions.index' },
@@ -57,6 +64,10 @@ const MENU = {
             items: [{ label: 'Inovasi OPD', icon: 'pi pi-lightbulb', route: 'admin.innovations.index' }],
         },
         {
+            label: 'Riset Kami',
+            items: [{ label: 'Riset OPD', icon: 'pi pi-book', route: 'admin.risets.index' }],
+        },
+        {
             label: 'Kompetisi',
             items: [{ label: 'Ikuti Kompetisi', icon: 'pi pi-trophy', route: 'admin.competition-submissions.index' }],
         },
@@ -77,6 +88,7 @@ const MENU = {
             label: 'Review',
             items: [
                 { label: 'Review Inovasi', icon: 'pi pi-check-square', route: 'admin.innovations.index' },
+                { label: 'Review Riset', icon: 'pi pi-check-square', route: 'admin.risets.index' },
                 { label: 'Review Kompetisi', icon: 'pi pi-trophy', route: 'admin.competition-submissions.index' },
             ],
         },

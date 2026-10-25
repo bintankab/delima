@@ -1,0 +1,27 @@
+<?php
+
+namespace Database\Seeders;
+
+use App\Models\InnovationCategory;
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
+
+class InnovationCategorySeeder extends Seeder
+{
+    public const CATEGORIES = [
+        'Masyarakat / Umum',
+        'Pelayanan Publik',
+        'Tata Kelola Pemerintahan',
+        'Urusan Penyelenggaraan Daerah',
+    ];
+
+    public function run(): void
+    {
+        foreach (self::CATEGORIES as $name) {
+            InnovationCategory::firstOrCreate(
+                ['slug' => Str::slug($name)],
+                ['name' => $name],
+            );
+        }
+    }
+}

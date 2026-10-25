@@ -32,4 +32,9 @@ class InnovationCategory extends Model
     {
         return $this->hasMany(Idea::class, 'category_id');
     }
+
+    public function risets(): HasMany
+    {
+        return $this->hasMany(Riset::class, 'category_id');
+    }
 }
