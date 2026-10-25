@@ -1,0 +1,141 @@
+@layer tailwind-base, primevue, tailwind-utilities;
+
+@import 'tailwindcss/theme.css' layer(tailwind-base);
+@import 'tailwindcss/preflight.css' layer(tailwind-base);
+@import 'tailwindcss/utilities.css' layer(tailwind-utilities);
+@plugin 'tailwindcss-primeui';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+
+@custom-variant dark (&:where(.app-dark, .app-dark *));
+
+@theme {
+    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji';
+}
+
+/* ===== Admin shell (topbar + sidebar), gaya Ultima/Sakai ===== */
+.app-shell {
+    --topbar-height: 4rem;
+    --sidebar-width: 17rem;
+    min-height: 100vh;
+    background: var(--p-surface-100, #f1f5f9);
+}
+
+.app-topbar {
+    position: fixed;
+    inset-inline: 0;
+    top: 0;
+    height: var(--topbar-height);
+    z-index: 40;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-inline: 1rem;
+    background: linear-gradient(90deg, #312e81, #4338ca);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.topbar-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 9999px;
+    color: white;
+    transition: background-color 0.15s;
+}
+.topbar-icon-btn:hover {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.app-sidebar {
+    position: fixed;
+    top: var(--topbar-height);
+    bottom: 0;
+    left: 0;
+    width: var(--sidebar-width);
+    background: white;
+    border-right: 1px solid var(--p-surface-200, #e2e8f0);
+    overflow-y: auto;
+    z-index: 30;
+    transition: transform 0.2s ease;
+}
+
+.app-menu {
+    padding: 1rem 0.75rem;
+}
+.app-menu-section {
+    margin-bottom: 1.25rem;
+}
+.app-menu-section-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--p-surface-400, #94a3b8);
+    padding: 0 0.75rem;
+    margin-bottom: 0.4rem;
+}
+.app-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.55rem 0.75rem;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    color: var(--p-surface-700, #334155);
+    transition: background-color 0.15s, color 0.15s;
+}
+.app-menu-item:hover {
+    background: var(--p-surface-100, #f1f5f9);
+}
+.app-menu-item-active {
+    background: var(--p-primary-50, #eef2ff);
+    color: var(--p-primary-700, #4338ca);
+    font-weight: 600;
+}
+
+.app-content {
+    margin-top: var(--topbar-height);
+    margin-left: var(--sidebar-width);
+    padding: 1.5rem;
+    transition: margin-left 0.2s ease;
+}
+
+.app-sidebar-mask {
+    display: none;
+}
+
+/* Desktop: collapse sidebar */
+@media (min-width: 992px) {
+    .layout-sidebar-collapsed .app-sidebar {
+        transform: translateX(-100%);
+    }
+    .layout-sidebar-collapsed .app-content {
+        margin-left: 0;
+    }
+}
+
+/* Mobile: sidebar as overlay drawer */
+@media (max-width: 991px) {
+    .app-sidebar {
+        transform: translateX(-100%);
+        box-shadow: 0 0 24px rgba(0, 0, 0, 0.15);
+    }
+    .app-content {
+        margin-left: 0;
+    }
+    .layout-sidebar-active .app-sidebar {
+        transform: translateX(0);
+    }
+    .layout-sidebar-active .app-sidebar-mask {
+        display: block;
+        position: fixed;
+        inset: var(--topbar-height) 0 0 0;
+        background: rgba(0, 0, 0, 0.4);
+        z-index: 20;
+    }
+}
