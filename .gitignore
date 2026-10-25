@@ -24,6 +24,7 @@ Homestead.json
 /.phpunit.cache
 
 /public/build
+/public/fonts-manifest.dev.json
 /storage/pail
 .env.backup
 .env.production

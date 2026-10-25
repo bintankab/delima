@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 #[Fillable([
     'organisasi_id', 'user_id', 'category_id', 'assigned_reviewer_id',
@@ -61,8 +62,29 @@ class Innovation extends Model implements HasMedia
 
     public function registerMediaCollections(): void
     {
-        $this->addMediaCollection('cover')->singleFile();
-        $this->addMediaCollection('gallery');
+        $this->addMediaCollection('cover')
+            ->singleFile()
+            ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp']);
+
+        $this->addMediaCollection('gallery')
+            ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp']);
+
         $this->addMediaCollection('documents');
+    }
+
+    public function registerMediaConversions(?Media $media = null): void
+    {
+        $this->addMediaConversion('thumb')
+            ->width(400)
+            ->height(300)
+            ->sharpen(10)
+            ->nonQueued()
+            ->performOnCollections('cover', 'gallery');
+
+        $this->addMediaConversion('medium')
+            ->width(800)
+            ->height(600)
+            ->nonQueued()
+            ->performOnCollections('cover', 'gallery');
     }
 }

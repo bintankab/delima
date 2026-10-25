@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 #[Fillable(['title', 'slug', 'description', 'registration_start', 'registration_end', 'tahun', 'status'])]
 class Competition extends Model implements HasMedia
@@ -29,6 +30,24 @@ class Competition extends Model implements HasMedia
 
     public function registerMediaCollections(): void
     {
-        $this->addMediaCollection('banner')->singleFile();
+        $this->addMediaCollection('banner')
+            ->singleFile()
+            ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp']);
+    }
+
+    public function registerMediaConversions(?Media $media = null): void
+    {
+        $this->addMediaConversion('thumb')
+            ->width(400)
+            ->height(225)
+            ->sharpen(10)
+            ->nonQueued()
+            ->performOnCollections('banner');
+
+        $this->addMediaConversion('medium')
+            ->width(1200)
+            ->height(630)
+            ->nonQueued()
+            ->performOnCollections('banner');
     }
 }
