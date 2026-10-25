@@ -11,9 +11,11 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 #[Fillable(['title', 'slug', 'description', 'registration_start', 'registration_end', 'tahun', 'status'])]
-class Competition extends Model implements HasMedia
+class CompetitionModel extends Model implements HasMedia
 {
     use HasFactory, InteractsWithMedia;
+
+    protected $table = 'competitions';
 
     protected function casts(): array
     {
@@ -25,7 +27,7 @@ class Competition extends Model implements HasMedia
 
     public function submissions(): HasMany
     {
-        return $this->hasMany(CompetitionSubmission::class);
+        return $this->hasMany(CompetitionSubmissionModel::class, 'competition_id');
     }
 
     public function registerMediaCollections(): void

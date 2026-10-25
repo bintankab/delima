@@ -4,7 +4,17 @@ import { useMenu } from '@/Composables/useMenu';
 
 const { sections } = useMenu();
 
-const isActive = (routeName) => route().current(routeName) || route().current(`${routeName}.*`);
+const isActive = (routeName) => {
+    if (route().current(routeName)) {
+        return true;
+    }
+
+    if (!routeName.endsWith('.index')) {
+        return false;
+    }
+
+    return route().current(`${routeName.slice(0, -'.index'.length)}.*`);
+};
 </script>
 
 <template>

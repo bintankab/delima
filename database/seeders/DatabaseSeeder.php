@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
+use App\Models\UserModel;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -20,9 +20,10 @@ class DatabaseSeeder extends Seeder
             InnovationCategorySeeder::class,
         ]);
 
-        $superAdmin = User::factory()->create([
+        $superAdmin = UserModel::factory()->create([
             'name' => 'Super Admin',
-            'email' => 'superadmin@delima.test',
+            'email' => 'delima@bintankab.go.id',
+            'password' => '12345678',
         ]);
         $superAdmin->assignRole('super-admin');
     }

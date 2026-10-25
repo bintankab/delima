@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\CompetitionSubmission;
-use App\Models\Consultation;
-use App\Models\Idea;
-use App\Models\Innovation;
+use App\Models\CompetitionSubmissionModel;
+use App\Models\ConsultationModel;
+use App\Models\IdeaModel;
+use App\Models\InnovationModel;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -18,7 +18,7 @@ class DashboardController extends Controller
         $user = $request->user();
         $isSuperAdmin = $user->hasRole('super-admin');
 
-        $innovationQuery = Innovation::query();
+        $innovationQuery = InnovationModel::query();
         if (! $isSuperAdmin && $user->hasRole('admin-opd')) {
             $innovationQuery->whereIn('organisasi_id', $user->organisasis()->pluck('organisasis.id'));
         }
@@ -35,9 +35,9 @@ class DashboardController extends Controller
             'stats' => [
                 'total_innovations' => (clone $innovationQuery)->count(),
                 'published_innovations' => (clone $innovationQuery)->where('status', 'published')->count(),
-                'open_ideas' => Idea::where('status', 'new')->count(),
-                'active_consultations' => Consultation::whereIn('status', ['open', 'in_progress'])->count(),
-                'competition_submissions' => CompetitionSubmission::count(),
+                'open_ideas' => IdeaModel::where('status', 'new')->count(),
+                'active_consultations' => ConsultationModel::whereIn('status', ['open', 'in_progress'])->count(),
+                'competition_submissions' => CompetitionSubmissionModel::count(),
             ],
             'innovationsByStatus' => [
                 'labels' => array_map(fn ($s) => ucwords(str_replace('_', ' ', $s)), $statuses),

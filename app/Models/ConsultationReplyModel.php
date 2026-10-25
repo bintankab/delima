@@ -8,17 +8,19 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 #[Fillable(['consultation_id', 'user_id', 'message'])]
-class ConsultationReply extends Model
+class ConsultationReplyModel extends Model
 {
     use HasFactory;
 
+    protected $table = 'consultation_replies';
+
     public function consultation(): BelongsTo
     {
-        return $this->belongsTo(Consultation::class);
+        return $this->belongsTo(ConsultationModel::class, 'consultation_id');
     }
 
     public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(UserModel::class, 'user_id');
     }
 }

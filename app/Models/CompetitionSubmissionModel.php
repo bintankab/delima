@@ -15,38 +15,40 @@ use Spatie\MediaLibrary\InteractsWithMedia;
     'competition_id', 'organisasi_id', 'submitted_by', 'innovation_id',
     'assigned_reviewer_id', 'title', 'description', 'status',
 ])]
-class CompetitionSubmission extends Model implements HasMedia
+class CompetitionSubmissionModel extends Model implements HasMedia
 {
     use HasFactory, InteractsWithMedia, SoftDeletes;
 
+    protected $table = 'competition_submissions';
+
     public function competition(): BelongsTo
     {
-        return $this->belongsTo(Competition::class);
+        return $this->belongsTo(CompetitionModel::class, 'competition_id');
     }
 
     public function organisasi(): BelongsTo
     {
-        return $this->belongsTo(Organisasi::class);
+        return $this->belongsTo(OrganisasiModel::class, 'organisasi_id');
     }
 
     public function submittedBy(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'submitted_by');
+        return $this->belongsTo(UserModel::class, 'submitted_by');
     }
 
     public function innovation(): BelongsTo
     {
-        return $this->belongsTo(Innovation::class);
+        return $this->belongsTo(InnovationModel::class, 'innovation_id');
     }
 
     public function assignedReviewer(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'assigned_reviewer_id');
+        return $this->belongsTo(UserModel::class, 'assigned_reviewer_id');
     }
 
     public function reviews(): MorphMany
     {
-        return $this->morphMany(Review::class, 'reviewable');
+        return $this->morphMany(ReviewModel::class, 'reviewable');
     }
 
     public function registerMediaCollections(): void

@@ -10,9 +10,11 @@ use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 
 #[Fillable(['user_id', 'title', 'slug', 'content', 'is_pinned', 'published_at'])]
-class Announcement extends Model implements HasMedia
+class AnnouncementModel extends Model implements HasMedia
 {
     use HasFactory, InteractsWithMedia;
+
+    protected $table = 'announcements';
 
     protected function casts(): array
     {
@@ -24,7 +26,7 @@ class Announcement extends Model implements HasMedia
 
     public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(UserModel::class, 'user_id');
     }
 
     public function registerMediaCollections(): void

@@ -2,12 +2,14 @@
 
 namespace Database\Factories;
 
-use App\Models\Organisasi;
+use App\Models\OrganisasiModel;
+use Illuminate\Database\Eloquent\Factories\Attributes\UseModel;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends Factory<Organisasi>
+ * @extends Factory<OrganisasiModel>
  */
+#[UseModel(OrganisasiModel::class)]
 class OrganisasiFactory extends Factory
 {
     /**

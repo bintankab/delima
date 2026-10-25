@@ -20,6 +20,7 @@ const MENU = {
             items: [
                 { label: 'Daftar Riset', icon: 'pi pi-book', route: 'admin.risets.index' },
                 { label: 'Input Arsip Riset Lama', icon: 'pi pi-box', route: 'admin.risets.archive.create' },
+                { label: 'Kategori', icon: 'pi pi-tags', route: 'admin.riset-categories.index' },
             ],
         },
         {

@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Innovation;
-use App\Models\News;
+use App\Models\InnovationModel;
+use App\Models\NewsModel;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -11,12 +11,12 @@ class PublicController extends Controller
 {
     public function home(): Response
     {
-        $latestNews = News::where('status', 'published')
+        $latestNews = NewsModel::where('status', 'published')
             ->latest('published_at')
             ->take(3)
             ->get(['id', 'title', 'slug', 'excerpt', 'published_at']);
 
-        $topInnovations = Innovation::where('status', 'published')
+        $topInnovations = InnovationModel::where('status', 'published')
             ->where('is_featured', true)
             ->latest('published_at')
             ->take(6)

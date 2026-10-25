@@ -9,9 +9,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 #[Fillable(['reviewer_id', 'score', 'catatan', 'status', 'reviewed_at'])]
-class Review extends Model
+class ReviewModel extends Model
 {
     use HasFactory;
+
+    protected $table = 'reviews';
 
     protected function casts(): array
     {
@@ -27,6 +29,6 @@ class Review extends Model
 
     public function reviewer(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'reviewer_id');
+        return $this->belongsTo(UserModel::class, 'reviewer_id');
     }
 }

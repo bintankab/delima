@@ -2,14 +2,16 @@
 
 namespace Database\Factories;
 
-use App\Models\User;
+use App\Models\UserModel;
+use Illuminate\Database\Eloquent\Factories\Attributes\UseModel;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
 /**
- * @extends Factory<User>
+ * @extends Factory<UserModel>
  */
+#[UseModel(UserModel::class)]
 class UserFactory extends Factory
 {
     /**

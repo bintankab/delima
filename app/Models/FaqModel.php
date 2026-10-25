@@ -7,7 +7,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 #[Fillable(['question', 'answer', 'category', 'order'])]
-class Faq extends Model
+class FaqModel extends Model
 {
     use HasFactory;
+
+    protected $table = 'faqs';
 }

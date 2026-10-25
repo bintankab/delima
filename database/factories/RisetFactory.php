@@ -2,13 +2,15 @@
 
 namespace Database\Factories;
 
-use App\Models\Organisasi;
-use App\Models\Riset;
+use App\Models\OrganisasiModel;
+use App\Models\RisetModel;
+use Illuminate\Database\Eloquent\Factories\Attributes\UseModel;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends Factory<Riset>
+ * @extends Factory<RisetModel>
  */
+#[UseModel(RisetModel::class)]
 class RisetFactory extends Factory
 {
     /**
@@ -19,7 +21,7 @@ class RisetFactory extends Factory
     public function definition(): array
     {
         return [
-            'organisasi_id' => Organisasi::factory(),
+            'organisasi_id' => OrganisasiModel::factory(),
             'title' => fake()->sentence(6),
             'slug' => fake()->unique()->slug(4),
             'peneliti' => fake()->name(),

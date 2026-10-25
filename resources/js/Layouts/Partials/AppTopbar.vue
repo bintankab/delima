@@ -26,14 +26,7 @@ const userMenuItems = [
 
 <template>
     <div class="app-topbar">
-        <div class="flex items-center gap-3">
-            <button
-                type="button"
-                class="topbar-icon-btn lg:hidden"
-                @click="toggleSidebar"
-            >
-                <i class="pi pi-bars" />
-            </button>
+        <div class="flex items-center gap-3">            
             <button
                 type="button"
                 class="topbar-icon-btn hidden lg:inline-flex"

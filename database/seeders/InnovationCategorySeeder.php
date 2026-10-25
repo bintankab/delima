@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\InnovationCategory;
+use App\Models\InnovationCategoryModel;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 
@@ -18,7 +18,7 @@ class InnovationCategorySeeder extends Seeder
     public function run(): void
     {
         foreach (self::CATEGORIES as $name) {
-            InnovationCategory::firstOrCreate(
+            InnovationCategoryModel::firstOrCreate(
                 ['slug' => Str::slug($name)],
                 ['name' => $name],
             );

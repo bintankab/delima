@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
+use Database\Factories\OrganisasiFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -12,9 +14,12 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 #[Fillable(['name', 'type', 'code', 'address', 'contact_person', 'phone', 'email', 'is_active'])]
-class Organisasi extends Model implements HasMedia
+#[UseFactory(OrganisasiFactory::class)]
+class OrganisasiModel extends Model implements HasMedia
 {
     use HasFactory, InteractsWithMedia;
+
+    protected $table = 'organisasis';
 
     protected function casts(): array
     {
@@ -25,29 +30,29 @@ class Organisasi extends Model implements HasMedia
 
     public function users(): BelongsToMany
     {
-        return $this->belongsToMany(User::class)
+        return $this->belongsToMany(UserModel::class, 'organisasi_user', 'organisasi_id', 'user_id')
             ->withPivot(['jabatan', 'is_primary'])
             ->withTimestamps();
     }
 
     public function innovations(): HasMany
     {
-        return $this->hasMany(Innovation::class);
+        return $this->hasMany(InnovationModel::class, 'organisasi_id');
     }
 
     public function risets(): HasMany
     {
-        return $this->hasMany(Riset::class);
+        return $this->hasMany(RisetModel::class, 'organisasi_id');
     }
 
     public function competitionSubmissions(): HasMany
     {
-        return $this->hasMany(CompetitionSubmission::class);
+        return $this->hasMany(CompetitionSubmissionModel::class, 'organisasi_id');
     }
 
     public function libraryDocuments(): HasMany
     {
-        return $this->hasMany(LibraryDocument::class);
+        return $this->hasMany(LibraryDocumentModel::class, 'organisasi_id');
     }
 
     public function registerMediaCollections(): void

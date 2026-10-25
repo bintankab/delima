@@ -1,7 +1,9 @@
 <?php
 
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\InnovationCategoryController;
 use App\Http\Controllers\Admin\PlaceholderController;
+use App\Http\Controllers\Admin\RisetCategoryController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'role:super-admin|admin-opd|reviewer'])
@@ -10,12 +12,19 @@ Route::middleware(['auth', 'role:super-admin|admin-opd|reviewer'])
     ->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
+        Route::resource('innovation-categories', InnovationCategoryController::class)
+            ->except(['show'])
+            ->middleware('role:super-admin');
+
+        Route::resource('riset-categories', RisetCategoryController::class)
+            ->except(['show'])
+            ->middleware('role:super-admin');
+
         // Placeholder routes — kerangka navigasi untuk fitur yang akan
         // dibangun bertahap (CRUD penuh menyusul per modul).
         $placeholders = [
             'innovations.index' => 'Etalase Inovasi',
             'innovations.archive.create' => 'Input Arsip Inovasi Lama',
-            'innovation-categories.index' => 'Kategori Inovasi',
             'risets.index' => 'Daftar Riset',
             'risets.archive.create' => 'Input Arsip Riset Lama',
             'competitions.index' => 'Daftar Kompetisi',

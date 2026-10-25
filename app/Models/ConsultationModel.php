@@ -9,27 +9,29 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable(['user_id', 'organisasi_id', 'assigned_to', 'subject', 'status'])]
-class Consultation extends Model
+class ConsultationModel extends Model
 {
     use HasFactory;
 
+    protected $table = 'consultations';
+
     public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(UserModel::class, 'user_id');
     }
 
     public function organisasi(): BelongsTo
     {
-        return $this->belongsTo(Organisasi::class);
+        return $this->belongsTo(OrganisasiModel::class, 'organisasi_id');
     }
 
     public function assignedTo(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'assigned_to');
+        return $this->belongsTo(UserModel::class, 'assigned_to');
     }
 
     public function replies(): HasMany
     {
-        return $this->hasMany(ConsultationReply::class);
+        return $this->hasMany(ConsultationReplyModel::class, 'consultation_id');
     }
 }

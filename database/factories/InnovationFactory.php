@@ -2,13 +2,15 @@
 
 namespace Database\Factories;
 
-use App\Models\Innovation;
-use App\Models\Organisasi;
+use App\Models\InnovationModel;
+use App\Models\OrganisasiModel;
+use Illuminate\Database\Eloquent\Factories\Attributes\UseModel;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends Factory<Innovation>
+ * @extends Factory<InnovationModel>
  */
+#[UseModel(InnovationModel::class)]
 class InnovationFactory extends Factory
 {
     /**
@@ -19,7 +21,7 @@ class InnovationFactory extends Factory
     public function definition(): array
     {
         return [
-            'organisasi_id' => Organisasi::factory(),
+            'organisasi_id' => OrganisasiModel::factory(),
             'title' => fake()->sentence(6),
             'slug' => fake()->unique()->slug(4),
             'description' => fake()->paragraphs(3, true),

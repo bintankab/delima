@@ -2,11 +2,12 @@
 
 namespace App\Models;
 
+use Database\Factories\RisetFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\MediaLibrary\HasMedia;
@@ -15,12 +16,15 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 #[Fillable([
     'organisasi_id', 'user_id', 'category_id', 'assigned_reviewer_id',
-    'title', 'slug', 'description', 'latar_belakang', 'jenis_inovasi',
+    'title', 'slug', 'peneliti', 'abstrak', 'latar_belakang', 'metodologi',
     'tahun', 'status', 'origin', 'is_featured', 'published_at',
 ])]
-class Innovation extends Model implements HasMedia
+#[UseFactory(RisetFactory::class)]
+class RisetModel extends Model implements HasMedia
 {
     use HasFactory, InteractsWithMedia, SoftDeletes;
+
+    protected $table = 'risets';
 
     protected function casts(): array
     {
@@ -32,41 +36,33 @@ class Innovation extends Model implements HasMedia
 
     public function organisasi(): BelongsTo
     {
-        return $this->belongsTo(Organisasi::class);
+        return $this->belongsTo(OrganisasiModel::class, 'organisasi_id');
     }
 
     public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(UserModel::class, 'user_id');
     }
 
     public function category(): BelongsTo
     {
-        return $this->belongsTo(InnovationCategory::class, 'category_id');
+        return $this->belongsTo(RisetCategoryModel::class, 'category_id');
     }
 
     public function assignedReviewer(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'assigned_reviewer_id');
+        return $this->belongsTo(UserModel::class, 'assigned_reviewer_id');
     }
 
     public function reviews(): MorphMany
     {
-        return $this->morphMany(Review::class, 'reviewable');
-    }
-
-    public function competitionSubmissions(): HasMany
-    {
-        return $this->hasMany(CompetitionSubmission::class);
+        return $this->morphMany(ReviewModel::class, 'reviewable');
     }
 
     public function registerMediaCollections(): void
     {
         $this->addMediaCollection('cover')
             ->singleFile()
-            ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp']);
-
-        $this->addMediaCollection('gallery')
             ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp']);
 
         $this->addMediaCollection('documents');
@@ -79,12 +75,12 @@ class Innovation extends Model implements HasMedia
             ->height(300)
             ->sharpen(10)
             ->nonQueued()
-            ->performOnCollections('cover', 'gallery');
+            ->performOnCollections('cover');
 
         $this->addMediaConversion('medium')
             ->width(800)
             ->height(600)
             ->nonQueued()
-            ->performOnCollections('cover', 'gallery');
+            ->performOnCollections('cover');
     }
 }
