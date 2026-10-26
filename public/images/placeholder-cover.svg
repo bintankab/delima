@@ -1,0 +1,10 @@
+<svg width="800" height="600" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Tidak ada gambar">
+  <rect width="800" height="600" fill="#eef2ff"/>
+  <g transform="translate(400,300)" fill="none" stroke="#a5b4fc" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M -70 -90 L -70 90 L 70 90 L 70 -50 L 30 -90 Z" fill="#ffffff"/>
+    <path d="M 30 -90 L 30 -50 L 70 -50" fill="none"/>
+    <line x1="-40" y1="-10" x2="40" y2="-10"/>
+    <line x1="-40" y1="20" x2="40" y2="20"/>
+    <line x1="-40" y1="50" x2="10" y2="50"/>
+  </g>
+</svg>

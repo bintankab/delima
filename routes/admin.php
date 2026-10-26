@@ -3,7 +3,9 @@
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\InnovationCategoryController;
 use App\Http\Controllers\Admin\PlaceholderController;
+use App\Http\Controllers\Admin\RisetArchiveController;
 use App\Http\Controllers\Admin\RisetCategoryController;
+use App\Http\Controllers\Admin\RisetController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'role:super-admin|admin-opd|reviewer'])
@@ -20,13 +22,14 @@ Route::middleware(['auth', 'role:super-admin|admin-opd|reviewer'])
             ->except(['show'])
             ->middleware('role:super-admin');
 
+        Route::get('risets', [RisetController::class, 'index'])->name('risets.index');
+        Route::get('risets/{riset}', [RisetController::class, 'show'])->name('risets.show');
+
         // Placeholder routes — kerangka navigasi untuk fitur yang akan
         // dibangun bertahap (CRUD penuh menyusul per modul).
         $placeholders = [
             'innovations.index' => 'Etalase Inovasi',
             'innovations.archive.create' => 'Input Arsip Inovasi Lama',
-            'risets.index' => 'Daftar Riset',
-            'risets.archive.create' => 'Input Arsip Riset Lama',
             'competitions.index' => 'Daftar Kompetisi',
             'competition-submissions.index' => 'Submission Kompetisi',
             'ideas.index' => 'Ide Inovasi',
@@ -46,4 +49,21 @@ Route::middleware(['auth', 'role:super-admin|admin-opd|reviewer'])
                 fn () => app(PlaceholderController::class)->show($title)
             )->name($name);
         }
+    });
+
+Route::middleware(['auth', 'role:super-admin'])
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function () {
+        Route::get('risets/archive/create', [RisetArchiveController::class, 'create'])
+            ->name('risets.archive.create');
+        Route::post('risets/archive', [RisetArchiveController::class, 'store'])
+            ->name('risets.archive.store');
+
+        Route::get('risets/{riset}/edit', [RisetController::class, 'edit'])->name('risets.edit');
+        Route::put('risets/{riset}', [RisetController::class, 'update'])->name('risets.update');
+        Route::delete('risets/{riset}', [RisetController::class, 'destroy'])->name('risets.destroy');
+        Route::delete('risets/{riset}/force', [RisetController::class, 'forceDestroy'])
+            ->name('risets.force-destroy')
+            ->withTrashed();
     });

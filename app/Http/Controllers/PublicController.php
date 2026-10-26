@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\InnovationModel;
 use App\Models\NewsModel;
+use App\Models\RisetModel;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -29,6 +31,34 @@ class PublicController extends Controller
             ],
             'latestNews' => $latestNews,
             'topInnovations' => $topInnovations,
+        ]);
+    }
+
+    public function riset(): Response
+    {
+        $risets = RisetModel::query()
+            ->where('status', 'published')
+            ->with(['organisasi:id,name', 'category:id,name'])
+            ->latest('published_at')
+            ->paginate(9)
+            ->withQueryString()
+            ->through(fn (RisetModel $riset): array => [
+                'id' => $riset->id,
+                'title' => $riset->title,
+                'slug' => $riset->slug,
+                'abstrak' => Str::words($riset->abstrak, 50),
+                'tahun' => $riset->tahun,
+                'organisasi' => $riset->organisasi?->name,
+                'category' => $riset->category?->name,
+                'cover' => $riset->getFirstMedia('cover')?->getUrl('thumb'),
+            ]);
+
+        return Inertia::render('Public/Riset/Index', [
+            'meta' => [
+                'title' => 'Riset',
+                'description' => 'Daftar riset daerah Kabupaten Bintan — dokumentasi hasil penelitian dan kajian.',
+            ],
+            'risets' => $risets,
         ]);
     }
 }
