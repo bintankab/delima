@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', [PublicController::class, 'home'])->name('home');
 Route::get('/riset', [PublicController::class, 'riset'])->name('riset');
+Route::get('/inovasi', [PublicController::class, 'inovasi'])->name('inovasi');
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthenticatedSessionController::class, 'create'])->name('login');

@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
@@ -63,6 +64,27 @@ class InnovationModel extends Model implements HasMedia
     public function competitionSubmissions(): HasMany
     {
         return $this->hasMany(CompetitionSubmissionModel::class, 'innovation_id');
+    }
+
+    public static function uniqueSlug(string $title, ?int $ignoreId = null): string
+    {
+        $base = Str::slug($title);
+        if ($base === '') {
+            $base = 'inovasi';
+        }
+
+        $slug = $base;
+        $suffix = 2;
+
+        while (static::withTrashed()
+            ->when($ignoreId !== null, fn ($query) => $query->whereKeyNot($ignoreId))
+            ->where('slug', $slug)
+            ->exists()) {
+            $slug = $base.'-'.$suffix;
+            $suffix++;
+        }
+
+        return $slug;
     }
 
     public function registerMediaCollections(): void

@@ -1,18 +1,38 @@
 <script setup>
+import { computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import { useMenu } from '@/Composables/useMenu';
 
 const { sections } = useMenu();
 
+// Kalau salah satu item menu cocok PERSIS dengan route saat ini, hanya item
+// itu yang aktif — fallback wildcard di bawah tidak boleh ikut menyalakan
+// item lain (mis. "Input Arsip Lama" aktif tidak boleh ikut menyalakan
+// "Daftar Riset").
+const exactActiveRoute = computed(() => {
+    for (const section of sections.value) {
+        for (const item of section.items) {
+            if (route().current(item.route)) {
+                return item.route;
+            }
+        }
+    }
+
+    return null;
+});
+
 const isActive = (routeName) => {
-    if (route().current(routeName)) {
-        return true;
+    if (exactActiveRoute.value !== null) {
+        return exactActiveRoute.value === routeName;
     }
 
     if (!routeName.endsWith('.index')) {
         return false;
     }
 
+    // Tidak ada item menu yang cocok persis (mis. sedang di halaman Lihat/Ubah
+    // yang tidak punya entri menu sendiri) — nyalakan "Daftar X" terkait
+    // sebagai penanda posisi.
     return route().current(`${routeName.slice(0, -'.index'.length)}.*`);
 };
 </script>

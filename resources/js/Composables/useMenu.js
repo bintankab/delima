@@ -10,7 +10,7 @@ const MENU = {
         {
             label: 'Inovasi',
             items: [
-                { label: 'Etalase Inovasi', icon: 'pi pi-lightbulb', route: 'admin.innovations.index' },
+                { label: 'Daftar Inovasi', icon: 'pi pi-lightbulb', route: 'admin.innovations.index' },
                 { label: 'Input Arsip Lama', icon: 'pi pi-box', route: 'admin.innovations.archive.create' },
                 { label: 'Kategori', icon: 'pi pi-tags', route: 'admin.innovation-categories.index' },
             ],

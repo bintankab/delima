@@ -61,4 +61,33 @@ class PublicController extends Controller
             'risets' => $risets,
         ]);
     }
+
+    public function inovasi(): Response
+    {
+        $innovations = InnovationModel::query()
+            ->where('status', 'published')
+            ->with(['organisasi:id,name', 'category:id,name'])
+            ->latest('published_at')
+            ->paginate(9)
+            ->withQueryString()
+            ->through(fn (InnovationModel $innovation): array => [
+                'id' => $innovation->id,
+                'title' => $innovation->title,
+                'slug' => $innovation->slug,
+                'description' => Str::words($innovation->description, 50),
+                'jenis_inovasi' => $innovation->jenis_inovasi,
+                'tahun' => $innovation->tahun,
+                'organisasi' => $innovation->organisasi?->name,
+                'category' => $innovation->category?->name,
+                'cover' => $innovation->getFirstMedia('cover')?->getUrl('thumb'),
+            ]);
+
+        return Inertia::render('Public/Innovations/Index', [
+            'meta' => [
+                'title' => 'Inovasi',
+                'description' => 'Etalase inovasi daerah Kabupaten Bintan.',
+            ],
+            'innovations' => $innovations,
+        ]);
+    }
 }
