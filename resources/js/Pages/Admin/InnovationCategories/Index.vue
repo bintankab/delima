@@ -7,6 +7,7 @@ import Column from 'primevue/column';
 import DataTable from 'primevue/datatable';
 import InputText from 'primevue/inputtext';
 import Paginator from 'primevue/paginator';
+import ActionsMenu from '@/Components/ActionsMenu.vue';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 
 defineOptions({ layout: AdminLayout });
@@ -20,7 +21,12 @@ const confirm = useConfirm();
 const search = ref(props.filters.search ?? '');
 
 const applySearch = () => {
-    router.get(route('admin.innovation-categories.index'), { search: search.value }, {
+    router.get(route('admin.innovation-categories.index'), {
+        search: search.value,
+        per_page: props.filters.per_page,
+        sort: props.filters.sort,
+        direction: props.filters.direction,
+    }, {
         preserveState: true,
         replace: true,
     });
@@ -30,11 +36,40 @@ const onPage = (event) => {
     router.get(route('admin.innovation-categories.index'), {
         search: props.filters.search,
         page: event.page + 1,
+        per_page: event.rows,
+        sort: props.filters.sort,
+        direction: props.filters.direction,
     }, {
         preserveState: true,
         replace: true,
     });
 };
+
+const onSort = (event) => {
+    router.get(route('admin.innovation-categories.index'), {
+        search: props.filters.search,
+        per_page: props.filters.per_page,
+        sort: event.sortField,
+        direction: event.sortOrder === 1 ? 'asc' : 'desc',
+    }, {
+        preserveState: true,
+        replace: true,
+    });
+};
+
+const menuItems = (category) => [
+    {
+        label: 'Ubah',
+        icon: 'pi pi-pencil',
+        command: () => router.visit(route('admin.innovation-categories.edit', category.id)),
+    },
+    {
+        label: 'Hapus',
+        icon: 'pi pi-trash',
+        disabled: !category.can_delete,
+        command: () => remove(category),
+    },
+];
 
 const remove = (category) => {
     confirm.require({
@@ -69,12 +104,19 @@ const remove = (category) => {
                 <Button type="submit" label="Cari" severity="secondary" />
             </form>
 
-            <DataTable :value="categories.data" size="small">
-                <Column field="name" header="Nama" />
+            <DataTable
+                :value="categories.data"
+                size="small"
+                lazy
+                :sort-field="filters.sort"
+                :sort-order="filters.direction === 'desc' ? -1 : 1"
+                @sort="onSort"
+            >
+                <Column field="name" header="Nama" sortable />
                 <Column header="Induk">
                     <template #body="{ data }">{{ data.parent?.name ?? '—' }}</template>
                 </Column>
-                <Column header="Ikon">
+                <Column field="icon" header="Ikon" sortable>
                     <template #body="{ data }">
                         <span v-if="data.icon" class="inline-flex items-center gap-2 text-sm text-surface-700">
                             <i :class="data.icon" />
@@ -83,30 +125,11 @@ const remove = (category) => {
                         <span v-else class="text-surface-400">—</span>
                     </template>
                 </Column>
-                <Column field="children_count" header="Subkategori" />
-                <Column field="usage_count" header="Dipakai" />
-                <Column header="Aksi" style="width: 9rem">
+                <Column field="children_count" header="Subkategori" sortable />
+                <Column field="usage_count" header="Dipakai" sortable />
+                <Column header="Aksi" style="width: 5rem">
                     <template #body="{ data }">
-                        <div class="flex gap-1">
-                            <Button
-                                icon="pi pi-pencil"
-                                severity="secondary"
-                                text
-                                rounded
-                                aria-label="Ubah"
-                                @click="router.visit(route('admin.innovation-categories.edit', data.id))"
-                            />
-                            <Button
-                                icon="pi pi-trash"
-                                severity="danger"
-                                text
-                                rounded
-                                aria-label="Hapus"
-                                :disabled="!data.can_delete"
-                                :title="data.can_delete ? 'Hapus' : 'Kategori masih memiliki subkategori atau data terkait.'"
-                                @click="remove(data)"
-                            />
-                        </div>
+                        <ActionsMenu :items="menuItems(data)" />
                     </template>
                 </Column>
                 <template #empty>
@@ -115,9 +138,10 @@ const remove = (category) => {
             </DataTable>
 
             <Paginator
-                v-if="categories.last_page > 1"
+                v-if="categories.total > 0"
                 class="mt-4"
                 :rows="categories.per_page"
+                :rows-per-page-options="[5, 10, 20, 50, 100]"
                 :total-records="categories.total"
                 :first="(categories.current_page - 1) * categories.per_page"
                 @page="onPage"

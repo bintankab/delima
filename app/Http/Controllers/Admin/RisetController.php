@@ -19,6 +19,10 @@ class RisetController extends Controller
     {
         $search = mb_substr($request->string('search')->trim()->toString(), 0, 100);
         $trashed = $request->boolean('trashed');
+        $perPage = $this->perPage($request);
+        $sort = $this->resolveSort($request, [
+            'title', 'peneliti', 'tahun', 'published_at', 'status', 'origin', 'deleted_at',
+        ]);
 
         $risets = RisetModel::query()
             ->when($trashed, fn ($query) => $query->onlyTrashed())
@@ -31,8 +35,12 @@ class RisetController extends Controller
                         ->orWhere('peneliti', 'like', $escaped);
                 });
             })
-            ->latest()
-            ->paginate(15)
+            ->when(
+                $sort,
+                fn ($query) => $query->orderBy($sort[0], $sort[1]),
+                fn ($query) => $query->latest(),
+            )
+            ->paginate($perPage)
             ->withQueryString()
             ->through(fn (RisetModel $riset): array => [
                 'id' => $riset->id,
@@ -50,7 +58,13 @@ class RisetController extends Controller
         return Inertia::render('Admin/Risets/Index', [
             'meta' => ['title' => 'Daftar Riset'],
             'risets' => $risets,
-            'filters' => ['search' => $search, 'trashed' => $trashed],
+            'filters' => [
+                'search' => $search,
+                'trashed' => $trashed,
+                'per_page' => $perPage,
+                'sort' => $sort[0] ?? null,
+                'direction' => $sort[1] ?? null,
+            ],
         ]);
     }
 

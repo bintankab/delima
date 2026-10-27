@@ -1,12 +1,18 @@
 <script setup>
-import { router } from '@inertiajs/vue3';
+import { ref } from 'vue';
+import { Link, router } from '@inertiajs/vue3';
+import Button from 'primevue/button';
+import InputText from 'primevue/inputtext';
 import Paginator from 'primevue/paginator';
+import Select from 'primevue/select';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 
 defineOptions({ layout: PublicLayout });
 
-defineProps({
+const props = defineProps({
     innovations: { type: Object, required: true },
+    filters: { type: Object, required: true },
+    filterOptions: { type: Object, required: true },
 });
 
 const jenisLabel = (jenis) => ({
@@ -15,10 +21,44 @@ const jenisLabel = (jenis) => ({
     pelayanan: 'Pelayanan',
 }[jenis] ?? jenis);
 
-const onPage = (event) => {
-    router.get(route('inovasi'), { page: event.page + 1 }, {
+const search = ref(props.filters.search ?? '');
+const tahun = ref(props.filters.tahun ?? null);
+const organisasiId = ref(props.filters.organisasi_id ?? null);
+const loading = ref(false);
+
+const hasActiveFilters = () => search.value !== '' || tahun.value !== null || organisasiId.value !== null;
+
+const applyFilters = () => {
+    router.get(route('inovasi'), {
+        search: search.value,
+        tahun: tahun.value,
+        organisasi_id: organisasiId.value,
+    }, {
         preserveState: true,
         replace: true,
+        onStart: () => { loading.value = true; },
+        onFinish: () => { loading.value = false; },
+    });
+};
+
+const resetFilters = () => {
+    search.value = '';
+    tahun.value = null;
+    organisasiId.value = null;
+    applyFilters();
+};
+
+const onPage = (event) => {
+    router.get(route('inovasi'), {
+        search: props.filters.search,
+        tahun: props.filters.tahun,
+        organisasi_id: props.filters.organisasi_id,
+        page: event.page + 1,
+    }, {
+        preserveState: true,
+        replace: true,
+        onStart: () => { loading.value = true; },
+        onFinish: () => { loading.value = false; },
     });
 };
 </script>
@@ -34,11 +74,62 @@ const onPage = (event) => {
     </section>
 
     <section class="max-w-6xl mx-auto px-4 py-10">
+        <form
+            class="bg-white rounded-xl border border-surface-200 p-5 mb-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end"
+            @submit.prevent="applyFilters"
+        >
+            <div class="flex flex-col gap-1.5 lg:col-span-2">
+                <label for="search" class="text-sm font-medium text-surface-700">Judul</label>
+                <InputText id="search" v-model="search" placeholder="Cari judul inovasi" class="w-full" />
+            </div>
+
+            <div class="flex flex-col gap-1.5">
+                <label for="tahun" class="text-sm font-medium text-surface-700">Tahun</label>
+                <Select
+                    input-id="tahun"
+                    v-model="tahun"
+                    :options="filterOptions.years"
+                    placeholder="Semua tahun"
+                    show-clear
+                    class="w-full"
+                />
+            </div>
+
+            <div class="flex flex-col gap-1.5">
+                <label for="organisasi_id" class="text-sm font-medium text-surface-700">Organisasi</label>
+                <Select
+                    input-id="organisasi_id"
+                    v-model="organisasiId"
+                    :options="filterOptions.organisasis"
+                    option-label="name"
+                    option-value="id"
+                    placeholder="Semua organisasi"
+                    show-clear
+                    filter
+                    class="w-full"
+                />
+            </div>
+
+            <div class="flex gap-2 lg:col-span-4">
+                <Button type="submit" label="Terapkan Filter" icon="pi pi-filter" :loading="loading" />
+                <Button
+                    v-if="hasActiveFilters()"
+                    type="button"
+                    label="Reset"
+                    severity="secondary"
+                    outlined
+                    :disabled="loading"
+                    @click="resetFilters"
+                />
+            </div>
+        </form>
+
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            <article
+            <Link
                 v-for="innovation in innovations.data"
                 :key="innovation.id"
-                class="bg-white rounded-xl border border-surface-200 overflow-hidden flex flex-col"
+                :href="route('inovasi.show', innovation.slug)"
+                class="bg-white rounded-xl border border-surface-200 overflow-hidden flex flex-col hover:border-indigo-300 hover:shadow-md transition"
             >
                 <div class="aspect-[4/3] bg-surface-100 overflow-hidden">
                     <img
@@ -59,10 +150,12 @@ const onPage = (event) => {
                     <p class="text-sm text-surface-600 flex-1">{{ innovation.description }}</p>
                     <p v-if="innovation.organisasi" class="text-xs text-surface-400 mt-1">{{ innovation.organisasi }}</p>
                 </div>
-            </article>
+            </Link>
 
             <p v-if="!innovations.data.length" class="text-surface-400 text-sm col-span-full text-center py-10">
-                Belum ada inovasi yang dipublikasikan.
+                {{ hasActiveFilters()
+                    ? 'Tidak ada inovasi yang cocok dengan filter yang dipilih.'
+                    : 'Belum ada inovasi yang dipublikasikan.' }}
             </p>
         </div>
 

@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\InnovationModel;
 use App\Models\NewsModel;
+use App\Models\OrganisasiModel;
 use App\Models\RisetModel;
+use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -34,11 +36,20 @@ class PublicController extends Controller
         ]);
     }
 
-    public function riset(): Response
+    public function riset(Request $request): Response
     {
+        $search = mb_substr($request->string('search')->trim()->toString(), 0, 100);
+        $tahun = $request->integer('tahun') ?: null;
+        $organisasiId = $request->integer('organisasi_id') ?: null;
+
         $risets = RisetModel::query()
             ->where('status', 'published')
             ->with(['organisasi:id,name', 'category:id,name'])
+            ->when($search !== '', function ($query) use ($search): void {
+                $query->where('title', 'like', '%'.addcslashes($search, '%_\\').'%');
+            })
+            ->when($tahun !== null, fn ($query) => $query->where('tahun', $tahun))
+            ->when($organisasiId !== null, fn ($query) => $query->where('organisasi_id', $organisasiId))
             ->latest('published_at')
             ->paginate(9)
             ->withQueryString()
@@ -59,14 +70,77 @@ class PublicController extends Controller
                 'description' => 'Daftar riset daerah Kabupaten Bintan — dokumentasi hasil penelitian dan kajian.',
             ],
             'risets' => $risets,
+            'filters' => [
+                'search' => $search,
+                'tahun' => $tahun,
+                'organisasi_id' => $organisasiId,
+            ],
+            'filterOptions' => [
+                'years' => RisetModel::query()
+                    ->where('status', 'published')
+                    ->distinct()
+                    ->orderByDesc('tahun')
+                    ->pluck('tahun'),
+                'organisasis' => OrganisasiModel::query()
+                    ->whereHas('risets', fn ($query) => $query->where('status', 'published'))
+                    ->orderBy('name')
+                    ->get(['id', 'name']),
+            ],
         ]);
     }
 
-    public function inovasi(): Response
+    public function risetShow(RisetModel $riset): Response
     {
+        abort_unless($riset->status === 'published', 404);
+
+        $riset->load(['organisasi:id,name', 'category:id,name']);
+        $cover = $riset->getFirstMedia('cover');
+
+        return Inertia::render('Public/Riset/Show', [
+            'meta' => [
+                'title' => $riset->title,
+                'description' => Str::words($riset->abstrak, 30),
+            ],
+            'riset' => [
+                'id' => $riset->id,
+                'title' => $riset->title,
+                'slug' => $riset->slug,
+                'peneliti' => $riset->peneliti,
+                'abstrak' => $riset->abstrak,
+                'latar_belakang' => $riset->latar_belakang,
+                'metodologi' => $riset->metodologi,
+                'tahun' => $riset->tahun,
+                'published_at' => $riset->published_at?->toDateString(),
+                'organisasi' => $riset->organisasi?->name,
+                'category' => $riset->category?->name,
+                'cover' => $cover === null ? null : [
+                    'url' => $cover->getUrl(),
+                    'thumb' => $cover->getUrl('thumb'),
+                ],
+                'documents' => $riset->getMedia('documents')->map(fn ($media): array => [
+                    'id' => $media->id,
+                    'name' => $media->file_name,
+                    'size' => $media->human_readable_size,
+                    'url' => $media->getUrl(),
+                ])->values()->all(),
+            ],
+        ]);
+    }
+
+    public function inovasi(Request $request): Response
+    {
+        $search = mb_substr($request->string('search')->trim()->toString(), 0, 100);
+        $tahun = $request->integer('tahun') ?: null;
+        $organisasiId = $request->integer('organisasi_id') ?: null;
+
         $innovations = InnovationModel::query()
             ->where('status', 'published')
             ->with(['organisasi:id,name', 'category:id,name'])
+            ->when($search !== '', function ($query) use ($search): void {
+                $query->where('title', 'like', '%'.addcslashes($search, '%_\\').'%');
+            })
+            ->when($tahun !== null, fn ($query) => $query->where('tahun', $tahun))
+            ->when($organisasiId !== null, fn ($query) => $query->where('organisasi_id', $organisasiId))
             ->latest('published_at')
             ->paginate(9)
             ->withQueryString()
@@ -88,6 +162,59 @@ class PublicController extends Controller
                 'description' => 'Etalase inovasi daerah Kabupaten Bintan.',
             ],
             'innovations' => $innovations,
+            'filters' => [
+                'search' => $search,
+                'tahun' => $tahun,
+                'organisasi_id' => $organisasiId,
+            ],
+            'filterOptions' => [
+                'years' => InnovationModel::query()
+                    ->where('status', 'published')
+                    ->distinct()
+                    ->orderByDesc('tahun')
+                    ->pluck('tahun'),
+                'organisasis' => OrganisasiModel::query()
+                    ->whereHas('innovations', fn ($query) => $query->where('status', 'published'))
+                    ->orderBy('name')
+                    ->get(['id', 'name']),
+            ],
+        ]);
+    }
+
+    public function inovasiShow(InnovationModel $innovation): Response
+    {
+        abort_unless($innovation->status === 'published', 404);
+
+        $innovation->load(['organisasi:id,name', 'category:id,name']);
+        $cover = $innovation->getFirstMedia('cover');
+
+        return Inertia::render('Public/Innovations/Show', [
+            'meta' => [
+                'title' => $innovation->title,
+                'description' => Str::words($innovation->description, 30),
+            ],
+            'innovation' => [
+                'id' => $innovation->id,
+                'title' => $innovation->title,
+                'slug' => $innovation->slug,
+                'jenis_inovasi' => $innovation->jenis_inovasi,
+                'description' => $innovation->description,
+                'latar_belakang' => $innovation->latar_belakang,
+                'tahun' => $innovation->tahun,
+                'published_at' => $innovation->published_at?->toDateString(),
+                'organisasi' => $innovation->organisasi?->name,
+                'category' => $innovation->category?->name,
+                'cover' => $cover === null ? null : [
+                    'url' => $cover->getUrl(),
+                    'thumb' => $cover->getUrl('thumb'),
+                ],
+                'documents' => $innovation->getMedia('documents')->map(fn ($media): array => [
+                    'id' => $media->id,
+                    'name' => $media->file_name,
+                    'size' => $media->human_readable_size,
+                    'url' => $media->getUrl(),
+                ])->values()->all(),
+            ],
         ]);
     }
 }

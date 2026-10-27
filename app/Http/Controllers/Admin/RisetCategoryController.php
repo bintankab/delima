@@ -15,6 +15,8 @@ class RisetCategoryController extends Controller
     public function index(Request $request): Response
     {
         $search = mb_substr($request->string('search')->trim()->toString(), 0, 100);
+        $perPage = $this->perPage($request);
+        $sort = $this->resolveSort($request, ['name', 'icon', 'children_count', 'risets_count']);
 
         $categories = RisetCategoryModel::query()
             ->with('parent:id,name')
@@ -22,9 +24,12 @@ class RisetCategoryController extends Controller
             ->when($search !== '', function ($query) use ($search): void {
                 $query->where('name', 'like', '%'.addcslashes($search, '%_\\').'%');
             })
-            ->orderByRaw('parent_id is null desc')
-            ->orderBy('name')
-            ->paginate(15)
+            ->when(
+                $sort,
+                fn ($query) => $query->orderBy($sort[0], $sort[1]),
+                fn ($query) => $query->orderByRaw('parent_id is null desc')->orderBy('name'),
+            )
+            ->paginate($perPage)
             ->withQueryString()
             ->through(fn (RisetCategoryModel $category): array => [
                 'id' => $category->id,
@@ -43,7 +48,12 @@ class RisetCategoryController extends Controller
         return Inertia::render('Admin/RisetCategories/Index', [
             'meta' => ['title' => 'Kategori Riset'],
             'categories' => $categories,
-            'filters' => ['search' => $search],
+            'filters' => [
+                'search' => $search,
+                'per_page' => $perPage,
+                'sort' => $sort[0] ?? null,
+                'direction' => $sort[1] ?? null,
+            ],
         ]);
     }
 

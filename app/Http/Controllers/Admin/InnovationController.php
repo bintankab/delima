@@ -19,6 +19,10 @@ class InnovationController extends Controller
     {
         $search = mb_substr($request->string('search')->trim()->toString(), 0, 100);
         $trashed = $request->boolean('trashed');
+        $perPage = $this->perPage($request);
+        $sort = $this->resolveSort($request, [
+            'title', 'jenis_inovasi', 'tahun', 'published_at', 'status', 'origin', 'deleted_at',
+        ]);
 
         $innovations = InnovationModel::query()
             ->when($trashed, fn ($query) => $query->onlyTrashed())
@@ -28,8 +32,12 @@ class InnovationController extends Controller
 
                 $query->where('title', 'like', $escaped);
             })
-            ->latest()
-            ->paginate(15)
+            ->when(
+                $sort,
+                fn ($query) => $query->orderBy($sort[0], $sort[1]),
+                fn ($query) => $query->latest(),
+            )
+            ->paginate($perPage)
             ->withQueryString()
             ->through(fn (InnovationModel $innovation): array => [
                 'id' => $innovation->id,
@@ -47,7 +55,13 @@ class InnovationController extends Controller
         return Inertia::render('Admin/Innovations/Index', [
             'meta' => ['title' => 'Daftar Inovasi'],
             'innovations' => $innovations,
-            'filters' => ['search' => $search, 'trashed' => $trashed],
+            'filters' => [
+                'search' => $search,
+                'trashed' => $trashed,
+                'per_page' => $perPage,
+                'sort' => $sort[0] ?? null,
+                'direction' => $sort[1] ?? null,
+            ],
         ]);
     }
 

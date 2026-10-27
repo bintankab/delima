@@ -4,10 +4,12 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\InnovationArchiveController;
 use App\Http\Controllers\Admin\InnovationCategoryController;
 use App\Http\Controllers\Admin\InnovationController;
+use App\Http\Controllers\Admin\OrganisasiController;
 use App\Http\Controllers\Admin\PlaceholderController;
 use App\Http\Controllers\Admin\RisetArchiveController;
 use App\Http\Controllers\Admin\RisetCategoryController;
 use App\Http\Controllers\Admin\RisetController;
+use App\Http\Controllers\Admin\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'role:super-admin|admin-opd|reviewer'])
@@ -21,6 +23,14 @@ Route::middleware(['auth', 'role:super-admin|admin-opd|reviewer'])
             ->middleware('role:super-admin');
 
         Route::resource('riset-categories', RisetCategoryController::class)
+            ->except(['show'])
+            ->middleware('role:super-admin');
+
+        Route::resource('organisasis', OrganisasiController::class)
+            ->except(['show'])
+            ->middleware('role:super-admin');
+
+        Route::resource('users', UserController::class)
             ->except(['show'])
             ->middleware('role:super-admin');
 
@@ -42,8 +52,6 @@ Route::middleware(['auth', 'role:super-admin|admin-opd|reviewer'])
             'announcements.index' => 'Pengumuman',
             'library-documents.index' => 'Pustaka',
             'faqs.index' => 'FAQ',
-            'organisasis.index' => 'Organisasi/OPD',
-            'users.index' => 'Pengguna',
         ];
 
         foreach ($placeholders as $name => $title) {

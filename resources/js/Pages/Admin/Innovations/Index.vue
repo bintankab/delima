@@ -7,6 +7,7 @@ import Column from 'primevue/column';
 import DataTable from 'primevue/datatable';
 import InputText from 'primevue/inputtext';
 import Paginator from 'primevue/paginator';
+import ActionsMenu from '@/Components/ActionsMenu.vue';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 
 defineOptions({ layout: AdminLayout });
@@ -43,7 +44,13 @@ const statusLabel = (status) => ({
 }[status] ?? status);
 
 const applySearch = () => {
-    router.get(route('admin.innovations.index'), { search: search.value, trashed: isTrashed.value }, {
+    router.get(route('admin.innovations.index'), {
+        search: search.value,
+        trashed: isTrashed.value,
+        per_page: props.filters.per_page,
+        sort: props.filters.sort,
+        direction: props.filters.direction,
+    }, {
         preserveState: true,
         replace: true,
     });
@@ -54,6 +61,9 @@ const onPage = (event) => {
         search: props.filters.search,
         trashed: isTrashed.value,
         page: event.page + 1,
+        per_page: event.rows,
+        sort: props.filters.sort,
+        direction: props.filters.direction,
     }, {
         preserveState: true,
         replace: true,
@@ -61,10 +71,49 @@ const onPage = (event) => {
 };
 
 const toggleTrashed = () => {
-    router.get(route('admin.innovations.index'), { trashed: !isTrashed.value }, {
+    router.get(route('admin.innovations.index'), {
+        trashed: !isTrashed.value,
+        per_page: props.filters.per_page,
+        sort: props.filters.sort,
+        direction: props.filters.direction,
+    }, {
         preserveState: true,
         replace: true,
     });
+};
+
+const onSort = (event) => {
+    router.get(route('admin.innovations.index'), {
+        search: props.filters.search,
+        trashed: isTrashed.value,
+        per_page: props.filters.per_page,
+        sort: event.sortField,
+        direction: event.sortOrder === 1 ? 'asc' : 'desc',
+    }, {
+        preserveState: true,
+        replace: true,
+    });
+};
+
+const menuItems = (innovation) => {
+    if (isTrashed.value) {
+        return [
+            { label: 'Hapus Permanen', icon: 'pi pi-trash', command: () => purge(innovation) },
+        ];
+    }
+
+    const items = [
+        { label: 'Lihat', icon: 'pi pi-eye', command: () => router.visit(route('admin.innovations.show', innovation.id)) },
+    ];
+
+    if (isSuperAdmin.value) {
+        items.push(
+            { label: 'Ubah', icon: 'pi pi-pencil', command: () => router.visit(route('admin.innovations.edit', innovation.id)) },
+            { label: 'Hapus', icon: 'pi pi-trash', command: () => remove(innovation) },
+        );
+    }
+
+    return items;
 };
 
 const remove = (innovation) => {
@@ -121,9 +170,16 @@ const purge = (innovation) => {
                 <Button type="submit" label="Cari" severity="secondary" />
             </form>
 
-            <DataTable :value="innovations.data" size="small">
-                <Column field="title" header="Judul" />
-                <Column header="Jenis">
+            <DataTable
+                :value="innovations.data"
+                size="small"
+                lazy
+                :sort-field="filters.sort"
+                :sort-order="filters.direction === 'desc' ? -1 : 1"
+                @sort="onSort"
+            >
+                <Column field="title" header="Judul" sortable />
+                <Column field="jenis_inovasi" header="Jenis" sortable>
                     <template #body="{ data }">{{ jenisLabel(data.jenis_inovasi) }}</template>
                 </Column>
                 <Column header="OPD">
@@ -132,60 +188,22 @@ const purge = (innovation) => {
                 <Column header="Kategori">
                     <template #body="{ data }">{{ data.category ?? '—' }}</template>
                 </Column>
-                <Column field="tahun" header="Tahun" />
-                <Column header="Terbit">
+                <Column field="tahun" header="Tahun" sortable />
+                <Column field="published_at" header="Terbit" sortable>
                     <template #body="{ data }">{{ data.published_at ?? '—' }}</template>
                 </Column>
-                <Column header="Status">
+                <Column field="status" header="Status" sortable>
                     <template #body="{ data }">{{ statusLabel(data.status) }}</template>
                 </Column>
-                <Column header="Asal">
+                <Column field="origin" header="Asal" sortable>
                     <template #body="{ data }">{{ originLabel(data.origin) }}</template>
                 </Column>
-                <Column v-if="isTrashed" header="Dihapus pada">
+                <Column v-if="isTrashed" field="deleted_at" header="Dihapus pada" sortable>
                     <template #body="{ data }">{{ data.deleted_at ?? '—' }}</template>
                 </Column>
-                <Column header="Aksi" style="width: 9rem">
+                <Column header="Aksi" style="width: 5rem">
                     <template #body="{ data }">
-                        <div v-if="isTrashed" class="flex gap-1">
-                            <Button
-                                icon="pi pi-trash"
-                                severity="danger"
-                                text
-                                rounded
-                                aria-label="Hapus Permanen"
-                                title="Hapus Permanen"
-                                @click="purge(data)"
-                            />
-                        </div>
-                        <div v-else class="flex gap-1">
-                            <Button
-                                icon="pi pi-eye"
-                                severity="secondary"
-                                text
-                                rounded
-                                aria-label="Lihat"
-                                @click="router.visit(route('admin.innovations.show', data.id))"
-                            />
-                            <template v-if="isSuperAdmin">
-                                <Button
-                                    icon="pi pi-pencil"
-                                    severity="secondary"
-                                    text
-                                    rounded
-                                    aria-label="Ubah"
-                                    @click="router.visit(route('admin.innovations.edit', data.id))"
-                                />
-                                <Button
-                                    icon="pi pi-trash"
-                                    severity="danger"
-                                    text
-                                    rounded
-                                    aria-label="Hapus"
-                                    @click="remove(data)"
-                                />
-                            </template>
-                        </div>
+                        <ActionsMenu :items="menuItems(data)" />
                     </template>
                 </Column>
                 <template #empty>
@@ -196,9 +214,10 @@ const purge = (innovation) => {
             </DataTable>
 
             <Paginator
-                v-if="innovations.last_page > 1"
+                v-if="innovations.total > 0"
                 class="mt-4"
                 :rows="innovations.per_page"
+                :rows-per-page-options="[5, 10, 20, 50, 100]"
                 :total-records="innovations.total"
                 :first="(innovations.current_page - 1) * innovations.per_page"
                 @page="onPage"

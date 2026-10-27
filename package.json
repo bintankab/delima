@@ -4,7 +4,8 @@
     "type": "module",
     "scripts": {
         "build": "vite build",
-        "dev": "vite"
+        "dev": "vite",
+        "postinstall": "node -e \"require('fs').copyFileSync('node_modules/pdfjs-dist/build/pdf.worker.min.mjs','public/pdf.worker.min.mjs')\""
     },
     "devDependencies": {
         "@tailwindcss/vite": "^4.0.0",
@@ -24,6 +25,8 @@
         "@vee-validate/zod": "^4.15.1",
         "axios": "^1.20.0",
         "chart.js": "^4.6.1",
+        "page-flip": "^2.0.7",
+        "pdfjs-dist": "^4.10.38",
         "primeicons": "^7.0.0",
         "primevue": "^4.5.5",
         "vee-validate": "^4.15.1",
