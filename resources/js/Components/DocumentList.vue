@@ -1,5 +1,6 @@
 <script setup>
 import { ref } from 'vue';
+import { Link } from '@inertiajs/vue3';
 import Dialog from 'primevue/dialog';
 import PdfFlipbook from '@/Components/PdfFlipbook.vue';
 
@@ -37,6 +38,9 @@ const openFlipbook = (document) => {
                 >
                     <i class="pi pi-book" /> Baca
                 </button>
+                <Link v-if="isPdf(document) && document.read_url" :href="document.read_url" class="text-indigo-600 font-medium">
+                    <i class="pi pi-window-maximize" /> Layar penuh
+                </Link>
                 <a :href="document.url" target="_blank" rel="noopener" class="text-indigo-600 font-medium">
                     <i class="pi pi-download" /> Unduh
                 </a>
@@ -47,10 +51,21 @@ const openFlipbook = (document) => {
     <Dialog
         :visible="activeDocument !== null"
         modal
-        :header="activeDocument?.name"
         :style="{ width: '48rem' }"
         @update:visible="activeDocument = null"
     >
+        <template #header>
+            <div class="flex items-center gap-3 min-w-0">
+                <span class="font-semibold truncate">{{ activeDocument?.name }}</span>
+                <Link
+                    v-if="activeDocument?.read_url"
+                    :href="activeDocument.read_url"
+                    class="text-indigo-600 text-sm font-medium shrink-0"
+                >
+                    <i class="pi pi-window-maximize" /> Layar penuh
+                </Link>
+            </div>
+        </template>
         <PdfFlipbook v-if="activeDocument" :url="activeDocument.url" />
     </Dialog>
 </template>

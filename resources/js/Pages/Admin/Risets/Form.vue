@@ -6,11 +6,15 @@ import DatePicker from 'primevue/datepicker';
 import FileUpload from 'primevue/fileupload';
 import InputNumber from 'primevue/inputnumber';
 import InputText from 'primevue/inputtext';
+import ProgressBar from 'primevue/progressbar';
 import Select from 'primevue/select';
 import Textarea from 'primevue/textarea';
+import { useConfirm } from 'primevue/useconfirm';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 
 defineOptions({ layout: AdminLayout });
+
+const confirm = useConfirm();
 
 const props = defineProps({
     riset: { type: Object, required: true },
@@ -68,9 +72,32 @@ const onDocumentsSelect = (event) => {
     form.documents = event.files ?? [];
 };
 
+const formatFileSize = (bytes) => {
+    const units = ['B', 'KB', 'MB', 'GB'];
+    let value = bytes;
+    let unitIndex = 0;
+
+    while (value >= 1024 && unitIndex < units.length - 1) {
+        value /= 1024;
+        unitIndex += 1;
+    }
+
+    return `${value.toFixed(value >= 10 || unitIndex === 0 ? 0 : 1)} ${units[unitIndex]}`;
+};
+
 const removeExistingDocument = (document) => {
-    existingDocuments.value = existingDocuments.value.filter((item) => item.id !== document.id);
-    form.remove_document_ids.push(document.id);
+    confirm.require({
+        message: `Hapus dokumen "${document.name}"?`,
+        header: 'Hapus Dokumen',
+        icon: 'pi pi-exclamation-triangle',
+        rejectLabel: 'Tidak',
+        acceptLabel: 'Ya',
+        acceptClass: 'p-button-danger',
+        accept: () => {
+            existingDocuments.value = existingDocuments.value.filter((item) => item.id !== document.id);
+            form.remove_document_ids.push(document.id);
+        },
+    });
 };
 
 const documentErrors = computed(() => Object.entries(form.errors)
@@ -244,11 +271,41 @@ const submit = () => {
                     @remove="onDocumentsSelect"
                     @clear="onDocumentsSelect({ files: [] })"
                 >
+                    <template #content="{ files, removeFileCallback }">
+                        <ul v-if="files.length" class="flex flex-col gap-2 mt-2">
+                            <li
+                                v-for="(file, index) in files"
+                                :key="file.name + file.size"
+                                class="flex items-center justify-between gap-2 text-sm bg-surface-50 rounded-lg px-3 py-2"
+                            >
+                                <span class="flex items-center gap-2 text-surface-700 min-w-0">
+                                    <i class="pi pi-file" />
+                                    <span class="truncate">{{ file.name }}</span>
+                                    <span class="text-surface-400 shrink-0">({{ formatFileSize(file.size) }})</span>
+                                </span>
+                                <Button
+                                    type="button"
+                                    icon="pi pi-trash"
+                                    severity="danger"
+                                    text
+                                    rounded
+                                    size="small"
+                                    aria-label="Hapus dokumen"
+                                    @click="removeFileCallback(index)"
+                                />
+                            </li>
+                        </ul>
+                    </template>
                     <template #empty>
                         <span class="text-sm text-surface-400">Seret dokumen PDF, DOC, atau DOCX ke sini.</span>
                     </template>
                 </FileUpload>
                 <small v-for="(message, index) in documentErrors" :key="index" class="text-rose-600">{{ message }}</small>
+            </div>
+
+            <div v-if="form.progress" class="flex flex-col gap-1.5">
+                <span class="text-sm font-medium text-surface-700">Mengunggah berkas... {{ form.progress.percentage }}%</span>
+                <ProgressBar :value="form.progress.percentage" :show-value="false" />
             </div>
 
             <div class="flex gap-2">

@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class PublicController extends Controller
 {
@@ -122,7 +123,33 @@ class PublicController extends Controller
                     'name' => $media->file_name,
                     'size' => $media->human_readable_size,
                     'url' => $media->getUrl(),
+                    'read_url' => route('riset.document', [$riset, $media]),
                 ])->values()->all(),
+            ],
+        ]);
+    }
+
+    public function risetDocument(RisetModel $riset, Media $media): Response
+    {
+        abort_unless($riset->status === 'published', 404);
+        abort_unless(
+            $media->model_type === RisetModel::class
+            && $media->model_id === $riset->id
+            && $media->collection_name === 'documents',
+            404,
+        );
+
+        return Inertia::render('Public/DocumentReader', [
+            'meta' => [
+                'title' => $media->file_name,
+            ],
+            'document' => [
+                'name' => $media->file_name,
+                'url' => $media->getUrl(),
+            ],
+            'back' => [
+                'url' => route('riset.show', $riset),
+                'label' => $riset->title,
             ],
         ]);
     }
@@ -213,7 +240,33 @@ class PublicController extends Controller
                     'name' => $media->file_name,
                     'size' => $media->human_readable_size,
                     'url' => $media->getUrl(),
+                    'read_url' => route('inovasi.document', [$innovation, $media]),
                 ])->values()->all(),
+            ],
+        ]);
+    }
+
+    public function inovasiDocument(InnovationModel $innovation, Media $media): Response
+    {
+        abort_unless($innovation->status === 'published', 404);
+        abort_unless(
+            $media->model_type === InnovationModel::class
+            && $media->model_id === $innovation->id
+            && $media->collection_name === 'documents',
+            404,
+        );
+
+        return Inertia::render('Public/DocumentReader', [
+            'meta' => [
+                'title' => $media->file_name,
+            ],
+            'document' => [
+                'name' => $media->file_name,
+                'url' => $media->getUrl(),
+            ],
+            'back' => [
+                'url' => route('inovasi.show', $innovation),
+                'label' => $innovation->title,
             ],
         ]);
     }

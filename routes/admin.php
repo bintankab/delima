@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\InnovationArchiveController;
 use App\Http\Controllers\Admin\InnovationCategoryController;
 use App\Http\Controllers\Admin\InnovationController;
+use App\Http\Controllers\Admin\LibraryDocumentController;
 use App\Http\Controllers\Admin\OrganisasiController;
 use App\Http\Controllers\Admin\PlaceholderController;
 use App\Http\Controllers\Admin\RisetArchiveController;
@@ -34,6 +35,10 @@ Route::middleware(['auth', 'role:super-admin|admin-opd|reviewer'])
             ->except(['show'])
             ->middleware('role:super-admin');
 
+        Route::resource('library-documents', LibraryDocumentController::class)
+            ->except(['show'])
+            ->middleware('role:super-admin|admin-opd');
+
         Route::get('risets', [RisetController::class, 'index'])->name('risets.index');
         Route::get('risets/{riset}', [RisetController::class, 'show'])->name('risets.show');
 
@@ -50,7 +55,6 @@ Route::middleware(['auth', 'role:super-admin|admin-opd|reviewer'])
             'news.index' => 'Berita',
             'events.index' => 'Agenda',
             'announcements.index' => 'Pengumuman',
-            'library-documents.index' => 'Pustaka',
             'faqs.index' => 'FAQ',
         ];
 
