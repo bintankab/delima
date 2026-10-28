@@ -118,6 +118,8 @@ class PublicController extends Controller
                 'published_at' => $riset->published_at?->toDateString(),
                 'organisasi' => $riset->organisasi?->name,
                 'category' => $riset->category?->name,
+                'views_count' => $riset->views_count,
+                'read_minutes' => $this->readMinutes($riset->abstrak),
                 'cover' => $cover === null ? null : [
                     'url' => $cover->getUrl(),
                     'thumb' => $cover->getUrl('thumb'),
@@ -130,6 +132,7 @@ class PublicController extends Controller
                     'read_url' => route('riset.document', [$riset, $media]),
                 ])->values()->all(),
             ],
+            'relatedRisets' => $this->relatedRisets($riset),
         ]);
     }
 
@@ -240,6 +243,8 @@ class PublicController extends Controller
                 'implementation_at' => $innovation->implementation_at?->toDateString(),
                 'organisasi' => $innovation->organisasi?->name,
                 'category' => $innovation->category?->name,
+                'views_count' => $innovation->views_count,
+                'read_minutes' => $this->readMinutes($innovation->description),
                 'cover' => $cover === null ? null : [
                     'url' => $cover->getUrl(),
                     'thumb' => $cover->getUrl('thumb'),
@@ -252,6 +257,7 @@ class PublicController extends Controller
                     'read_url' => route('inovasi.document', [$innovation, $media]),
                 ])->values()->all(),
             ],
+            'relatedInnovations' => $this->relatedInnovations($innovation),
         ]);
     }
 
@@ -289,6 +295,72 @@ class PublicController extends Controller
         $text = str_replace("\u{00A0}", ' ', $text);
 
         return Str::words(trim($text), $words);
+    }
+
+    /**
+     * Estimate reading time (minutes) for Quill-authored HTML content.
+     */
+    private function readMinutes(?string $html): int
+    {
+        $words = str_word_count(strip_tags((string) $html));
+
+        return max(1, (int) ceil($words / 200));
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    private function relatedInnovations(InnovationModel $innovation): array
+    {
+        return InnovationModel::query()
+            ->where('status', 'published')
+            ->whereKeyNot($innovation->id)
+            ->when(
+                $innovation->category_id,
+                fn ($query) => $query->where('category_id', $innovation->category_id),
+            )
+            ->with('organisasi:id,name')
+            ->latest('implementation_at')
+            ->take(2)
+            ->get()
+            ->map(fn (InnovationModel $related): array => [
+                'id' => $related->id,
+                'title' => $related->title,
+                'slug' => $related->slug,
+                'cover' => $related->getFirstMedia('cover')?->getUrl('thumb'),
+                'organisasi' => $related->organisasi?->name,
+                'implementation_at' => $related->implementation_at?->toDateString(),
+                'read_minutes' => $this->readMinutes($related->description),
+            ])
+            ->all();
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    private function relatedRisets(RisetModel $riset): array
+    {
+        return RisetModel::query()
+            ->where('status', 'published')
+            ->whereKeyNot($riset->id)
+            ->when(
+                $riset->category_id,
+                fn ($query) => $query->where('category_id', $riset->category_id),
+            )
+            ->with('organisasi:id,name')
+            ->latest('published_at')
+            ->take(2)
+            ->get()
+            ->map(fn (RisetModel $related): array => [
+                'id' => $related->id,
+                'title' => $related->title,
+                'slug' => $related->slug,
+                'cover' => $related->getFirstMedia('cover')?->getUrl('thumb'),
+                'organisasi' => $related->organisasi?->name,
+                'published_at' => $related->published_at?->toDateString(),
+                'read_minutes' => $this->readMinutes($related->abstrak),
+            ])
+            ->all();
     }
 
     /**

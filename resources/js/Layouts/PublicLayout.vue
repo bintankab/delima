@@ -1,5 +1,6 @@
 <script setup>
 import { Link, usePage } from '@inertiajs/vue3';
+import Toast from 'primevue/toast';
 
 const page = usePage();
 const user = page.props.auth.user;
@@ -18,6 +19,8 @@ const navItems = [
 
 <template>
     <div class="min-h-screen bg-surface-50 flex flex-col">
+        <Toast />
+
         <header class="bg-indigo-800 text-white">
             <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
                 <Link href="/" class="font-bold text-lg flex items-center gap-2">

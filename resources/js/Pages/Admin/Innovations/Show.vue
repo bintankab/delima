@@ -54,8 +54,12 @@ const initials = (name) => (name ?? '')
     .join('') || '—';
 
 const copyLink = async () => {
-    await navigator.clipboard.writeText(window.location.href);
-    toast.add({ severity: 'success', summary: 'Tersalin', detail: 'Tautan berhasil disalin.', life: 2500 });
+    try {
+        await navigator.clipboard.writeText(window.location.href);
+        toast.add({ severity: 'success', summary: 'Tersalin', detail: 'Tautan berhasil disalin.', life: 2500 });
+    } catch {
+        toast.add({ severity: 'error', summary: 'Gagal', detail: 'Tidak bisa menyalin tautan. Salin manual dari address bar.', life: 4000 });
+    }
 };
 </script>
 
