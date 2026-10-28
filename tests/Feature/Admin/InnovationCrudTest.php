@@ -2,6 +2,8 @@
 
 namespace Tests\Feature\Admin;
 
+use App\Enums\JenisInovasi;
+use App\Enums\TahapanInovasi;
 use App\Models\InnovationCategoryModel;
 use App\Models\InnovationModel;
 use App\Models\OrganisasiModel;
@@ -76,10 +78,12 @@ class InnovationCrudTest extends TestCase
                 'organisasi_id' => $organisasi->id,
                 'category_id' => $category->id,
                 'title' => 'Judul Baru',
-                'jenis_inovasi' => 'proses',
+                'jenis_inovasi' => JenisInovasi::NonDigital->value,
+                'tahapan' => TahapanInovasi::UjiCoba->value,
                 'description' => 'Deskripsi baru.',
                 'tahun' => 2022,
-                'published_at' => '2022-01-10',
+                'testing_at' => '2021-11-01',
+                'implementation_at' => '2022-01-10',
             ])
             ->assertRedirect(route('admin.innovations.show', $innovation))
             ->assertSessionHas('success', 'Inovasi berhasil diperbarui.');
@@ -88,7 +92,8 @@ class InnovationCrudTest extends TestCase
 
         $this->assertSame('Judul Baru', $innovation->title);
         $this->assertSame('judul-baru', $innovation->slug);
-        $this->assertSame('proses', $innovation->jenis_inovasi);
+        $this->assertSame(JenisInovasi::NonDigital, $innovation->jenis_inovasi);
+        $this->assertSame(TahapanInovasi::UjiCoba, $innovation->tahapan);
         $this->assertSame($organisasi->id, $innovation->organisasi_id);
         $this->assertSame($category->id, $innovation->category_id);
     }
@@ -99,7 +104,7 @@ class InnovationCrudTest extends TestCase
 
         $innovation = InnovationModel::factory()->create([
             'category_id' => InnovationCategoryModel::factory()->create()->id,
-            'published_at' => '2021-06-01',
+            'implementation_at' => '2021-06-01',
         ]);
         $innovation->addMedia(UploadedFile::fake()->image('old-cover.jpg'))->toMediaCollection('cover');
         $innovation->addMedia(UploadedFile::fake()->createWithContent(
@@ -114,10 +119,11 @@ class InnovationCrudTest extends TestCase
                 'organisasi_id' => $innovation->organisasi_id,
                 'category_id' => $innovation->category_id,
                 'title' => $innovation->title,
-                'jenis_inovasi' => $innovation->jenis_inovasi,
+                'jenis_inovasi' => $innovation->jenis_inovasi->value,
+                'tahapan' => $innovation->tahapan->value,
                 'description' => $innovation->description,
                 'tahun' => $innovation->tahun,
-                'published_at' => $innovation->published_at->toDateString(),
+                'implementation_at' => $innovation->implementation_at->toDateString(),
                 'cover' => UploadedFile::fake()->image('new-cover.jpg'),
                 'remove_document_ids' => [$oldDocumentId],
                 'documents' => [

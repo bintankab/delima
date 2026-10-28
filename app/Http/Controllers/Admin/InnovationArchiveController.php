@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\JenisInovasi;
+use App\Enums\TahapanInovasi;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\InnovationArchiveRequest;
 use App\Models\InnovationCategoryModel;
@@ -28,6 +30,8 @@ class InnovationArchiveController extends Controller
                 ])
                 ->all(),
             'categories' => $this->categoryOptions(),
+            'jenisOptions' => JenisInovasi::options(),
+            'tahapanOptions' => TahapanInovasi::options(),
             'maxYear' => now()->year,
         ]);
     }
@@ -39,10 +43,14 @@ class InnovationArchiveController extends Controller
             'category_id',
             'title',
             'jenis_inovasi',
+            'tahapan',
             'description',
             'latar_belakang',
+            'manfaat',
+            'link_video',
             'tahun',
-            'published_at',
+            'testing_at',
+            'implementation_at',
         ]);
 
         $innovation = InnovationModel::query()->create([

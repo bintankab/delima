@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Enums\JenisInovasi;
+use App\Enums\TahapanInovasi;
 use Database\Factories\InnovationFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
@@ -18,8 +20,8 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 #[Fillable([
     'organisasi_id', 'user_id', 'category_id', 'assigned_reviewer_id',
-    'title', 'slug', 'description', 'latar_belakang', 'jenis_inovasi',
-    'tahun', 'status', 'origin', 'is_featured', 'published_at',
+    'title', 'slug', 'description', 'latar_belakang', 'manfaat', 'link_video', 'jenis_inovasi', 'tahapan',
+    'tahun', 'status', 'origin', 'is_featured', 'testing_at', 'implementation_at',
 ])]
 #[UseFactory(InnovationFactory::class)]
 class InnovationModel extends Model implements HasMedia
@@ -31,8 +33,11 @@ class InnovationModel extends Model implements HasMedia
     protected function casts(): array
     {
         return [
+            'jenis_inovasi' => JenisInovasi::class,
+            'tahapan' => TahapanInovasi::class,
             'is_featured' => 'boolean',
-            'published_at' => 'datetime',
+            'testing_at' => 'datetime',
+            'implementation_at' => 'datetime',
         ];
     }
 

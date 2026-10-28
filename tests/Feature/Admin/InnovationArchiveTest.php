@@ -2,6 +2,8 @@
 
 namespace Tests\Feature\Admin;
 
+use App\Enums\JenisInovasi;
+use App\Enums\TahapanInovasi;
 use App\Models\InnovationCategoryModel;
 use App\Models\InnovationModel;
 use App\Models\OrganisasiModel;
@@ -63,11 +65,12 @@ class InnovationArchiveTest extends TestCase
                 'organisasi_id' => $organisasi->id,
                 'category_id' => $category->id,
                 'title' => 'Aplikasi Layanan Terpadu 2021',
-                'jenis_inovasi' => 'pelayanan',
+                'jenis_inovasi' => JenisInovasi::Teknologi->value,
+                'tahapan' => TahapanInovasi::Implementasi->value,
                 'description' => 'Ringkasan arsip.',
                 'latar_belakang' => 'Konteks daerah.',
                 'tahun' => 2021,
-                'published_at' => '2021-06-15',
+                'implementation_at' => '2021-06-15',
                 'user_id' => $otherUser->id,
                 'status' => 'draft',
                 'origin' => 'submission',
@@ -81,7 +84,7 @@ class InnovationArchiveTest extends TestCase
             'organisasi_id' => $organisasi->id,
             'category_id' => $category->id,
             'user_id' => $admin->id,
-            'jenis_inovasi' => 'pelayanan',
+            'jenis_inovasi' => JenisInovasi::Teknologi->value,
             'tahun' => 2021,
             'status' => 'published',
             'origin' => 'archive',
@@ -90,7 +93,7 @@ class InnovationArchiveTest extends TestCase
         $innovation = InnovationModel::query()->where('title', 'Aplikasi Layanan Terpadu 2021')->first();
 
         $this->assertNotNull($innovation);
-        $this->assertSame('2021-06-15', $innovation->published_at?->toDateString());
+        $this->assertSame('2021-06-15', $innovation->implementation_at?->toDateString());
     }
 
     public function test_super_admin_can_attach_cover_and_documents(): void
@@ -105,10 +108,11 @@ class InnovationArchiveTest extends TestCase
                 'organisasi_id' => $organisasi->id,
                 'category_id' => $category->id,
                 'title' => 'Sistem Antrean Digital',
-                'jenis_inovasi' => 'produk',
+                'jenis_inovasi' => JenisInovasi::Digital->value,
+                'tahapan' => TahapanInovasi::Implementasi->value,
                 'description' => 'Ringkasan berkas.',
                 'tahun' => 2022,
-                'published_at' => '2022-03-01',
+                'implementation_at' => '2022-03-01',
                 'cover' => UploadedFile::fake()->image('cover.jpg'),
                 'documents' => [
                     UploadedFile::fake()->createWithContent('laporan.pdf', "%PDF-1.4\n1 0 obj<</Type/Catalog>>endobj\ntrailer<</Root 1 0 R>>\n%%EOF"),
@@ -135,9 +139,10 @@ class InnovationArchiveTest extends TestCase
                 'category_id' => 'Kategori wajib dipilih.',
                 'title' => 'Judul wajib diisi.',
                 'jenis_inovasi' => 'Jenis inovasi wajib dipilih.',
+                'tahapan' => 'Tahapan inovasi wajib dipilih.',
                 'description' => 'Deskripsi wajib diisi.',
                 'tahun' => 'Tahun wajib diisi.',
-                'published_at' => 'Tanggal terbit wajib diisi.',
+                'implementation_at' => 'Tanggal implementasi wajib diisi.',
             ]);
 
         $this->assertDatabaseCount('innovations', 0);
@@ -154,10 +159,11 @@ class InnovationArchiveTest extends TestCase
                 'organisasi_id' => $organisasi->id,
                 'category_id' => $category->id,
                 'title' => 'Inovasi Lama',
-                'jenis_inovasi' => 'proses',
+                'jenis_inovasi' => JenisInovasi::NonDigital->value,
+                'tahapan' => TahapanInovasi::Inisiasi->value,
                 'description' => 'Ringkasan.',
                 'tahun' => 2020,
-                'published_at' => '2021-06-15',
+                'implementation_at' => '2021-06-15',
             ])
             ->assertRedirect(route('admin.innovations.archive.create'))
             ->assertSessionHasErrors([

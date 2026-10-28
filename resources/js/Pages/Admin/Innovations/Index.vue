@@ -3,10 +3,10 @@ import { computed, ref } from 'vue';
 import { router, usePage } from '@inertiajs/vue3';
 import { useConfirm } from 'primevue/useconfirm';
 import Button from 'primevue/button';
-import Column from 'primevue/column';
-import DataTable from 'primevue/datatable';
+import DataView from 'primevue/dataview';
 import InputText from 'primevue/inputtext';
 import Paginator from 'primevue/paginator';
+import Tag from 'primevue/tag';
 import ActionsMenu from '@/Components/ActionsMenu.vue';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 
@@ -26,12 +26,6 @@ const search = ref(props.filters.search ?? '');
 
 const originLabel = (origin) => (origin === 'archive' ? 'Arsip' : 'Pengajuan');
 
-const jenisLabel = (jenis) => ({
-    produk: 'Produk',
-    proses: 'Proses',
-    pelayanan: 'Pelayanan',
-}[jenis] ?? jenis ?? '—');
-
 const statusLabel = (status) => ({
     draft: 'Draf',
     submitted: 'Diajukan',
@@ -42,6 +36,17 @@ const statusLabel = (status) => ({
     rejected: 'Ditolak',
     archived: 'Diarsipkan',
 }[status] ?? status);
+
+const statusSeverity = {
+    draft: 'secondary',
+    submitted: 'info',
+    under_review: 'info',
+    reviewed: 'warn',
+    revision_needed: 'warn',
+    published: 'success',
+    rejected: 'danger',
+    archived: 'contrast',
+};
 
 const applySearch = () => {
     router.get(route('admin.innovations.index'), {
@@ -82,19 +87,6 @@ const toggleTrashed = () => {
     });
 };
 
-const onSort = (event) => {
-    router.get(route('admin.innovations.index'), {
-        search: props.filters.search,
-        trashed: isTrashed.value,
-        per_page: props.filters.per_page,
-        sort: event.sortField,
-        direction: event.sortOrder === 1 ? 'asc' : 'desc',
-    }, {
-        preserveState: true,
-        replace: true,
-    });
-};
-
 const menuItems = (innovation) => {
     if (isTrashed.value) {
         return [
@@ -102,18 +94,14 @@ const menuItems = (innovation) => {
         ];
     }
 
-    const items = [
-        { label: 'Lihat', icon: 'pi pi-eye', command: () => router.visit(route('admin.innovations.show', innovation.id)) },
-    ];
-
-    if (isSuperAdmin.value) {
-        items.push(
-            { label: 'Ubah', icon: 'pi pi-pencil', command: () => router.visit(route('admin.innovations.edit', innovation.id)) },
-            { label: 'Hapus', icon: 'pi pi-trash', command: () => remove(innovation) },
-        );
+    if (!isSuperAdmin.value) {
+        return [];
     }
 
-    return items;
+    return [
+        { label: 'Ubah', icon: 'pi pi-pencil', command: () => router.visit(route('admin.innovations.edit', innovation.id)) },
+        { label: 'Hapus', icon: 'pi pi-trash', command: () => remove(innovation) },
+    ];
 };
 
 const remove = (innovation) => {
@@ -146,7 +134,7 @@ const purge = (innovation) => {
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
                 <h1 class="text-xl font-semibold text-surface-900">
-                    {{ isTrashed ? 'Sampah Inovasi' : 'Daftar Inovasi' }}
+                    {{ isTrashed ? 'Sampah Inovasi' : 'Data Inovasi' }}
                 </h1>
                 <p class="text-sm text-surface-500">
                     {{ isTrashed
@@ -156,7 +144,7 @@ const purge = (innovation) => {
             </div>
             <Button
                 v-if="isSuperAdmin"
-                :label="isTrashed ? 'Kembali ke Daftar' : 'Tampilkan Sampah'"
+                :label="isTrashed ? 'Kembali' : 'Tampilkan Sampah'"
                 :icon="isTrashed ? 'pi pi-arrow-left' : 'pi pi-trash'"
                 severity="secondary"
                 outlined
@@ -170,48 +158,66 @@ const purge = (innovation) => {
                 <Button type="submit" label="Cari" severity="secondary" />
             </form>
 
-            <DataTable
-                :value="innovations.data"
-                size="small"
-                lazy
-                :sort-field="filters.sort"
-                :sort-order="filters.direction === 'desc' ? -1 : 1"
-                @sort="onSort"
-            >
-                <Column field="title" header="Judul" sortable />
-                <Column field="jenis_inovasi" header="Jenis" sortable>
-                    <template #body="{ data }">{{ jenisLabel(data.jenis_inovasi) }}</template>
-                </Column>
-                <Column header="OPD">
-                    <template #body="{ data }">{{ data.organisasi ?? '—' }}</template>
-                </Column>
-                <Column header="Kategori">
-                    <template #body="{ data }">{{ data.category ?? '—' }}</template>
-                </Column>
-                <Column field="tahun" header="Tahun" sortable />
-                <Column field="published_at" header="Terbit" sortable>
-                    <template #body="{ data }">{{ data.published_at ?? '—' }}</template>
-                </Column>
-                <Column field="status" header="Status" sortable>
-                    <template #body="{ data }">{{ statusLabel(data.status) }}</template>
-                </Column>
-                <Column field="origin" header="Asal" sortable>
-                    <template #body="{ data }">{{ originLabel(data.origin) }}</template>
-                </Column>
-                <Column v-if="isTrashed" field="deleted_at" header="Dihapus pada" sortable>
-                    <template #body="{ data }">{{ data.deleted_at ?? '—' }}</template>
-                </Column>
-                <Column header="Aksi" style="width: 5rem">
-                    <template #body="{ data }">
-                        <ActionsMenu :items="menuItems(data)" />
-                    </template>
-                </Column>
+            <DataView :value="innovations.data" layout="list" data-key="id">
+                <template #list="{ items }">
+                    <div
+                        v-for="(item, index) in items"
+                        :key="item.id"
+                        class="flex flex-col sm:flex-row gap-4 py-5 sm:items-center"
+                        :class="{ 'border-t border-surface-200': index > 0 }"
+                    >
+                        <div class="relative w-full sm:w-32 h-40 sm:h-24 shrink-0 rounded-lg overflow-hidden bg-surface-100">
+                            <span class="absolute top-2 left-2 z-10">
+                                <Tag
+                                    :value="statusLabel(item.status)"
+                                    :severity="statusSeverity[item.status] ?? 'secondary'"
+                                    class="uppercase text-xs"
+                                />
+                            </span>
+                            <img
+                                :src="item.cover || '/images/placeholder-cover.svg'"
+                                :alt="item.title"
+                                class="w-full h-full object-cover"
+                            />
+                        </div>
+
+                        <div class="flex-1 min-w-0">
+                            <div class="text-sm text-surface-500">{{ item.category ?? '—' }}</div>
+                            <div class="text-lg font-semibold text-surface-900 truncate">{{ item.title }}</div>
+                            <div class="flex flex-wrap items-center gap-2 mt-1 text-xs text-surface-500">
+                                <span>{{ item.jenis_inovasi_label ?? '—' }}</span>
+                                <span>&middot;</span>
+                                <span>{{ item.tahapan_label }}</span>
+                                <span>&middot;</span>
+                                <span>{{ originLabel(item.origin) }}</span>
+                            </div>
+                            <div class="inline-flex items-center gap-1.5 bg-surface-100 rounded-full px-2.5 py-1 mt-2 text-xs text-surface-600">
+                                <i class="pi pi-eye" />
+                                <span>{{ item.views_count }}</span>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between sm:flex-col sm:items-end gap-2 sm:gap-3 shrink-0">
+                            <span class="text-xl font-bold text-surface-900">{{ item.tahun }}</span>
+                            <div class="flex items-center gap-2">
+                                <Button
+                                    v-if="!isTrashed"
+                                    label="Lihat"
+                                    icon="pi pi-eye"
+                                    size="small"
+                                    @click="router.visit(route('admin.innovations.show', item.id))"
+                                />
+                                <ActionsMenu v-if="menuItems(item).length" :items="menuItems(item)" />
+                            </div>
+                        </div>
+                    </div>
+                </template>
                 <template #empty>
                     <span class="text-sm text-surface-400">
                         {{ isTrashed ? 'Tidak ada inovasi di sampah.' : 'Belum ada inovasi.' }}
                     </span>
                 </template>
-            </DataTable>
+            </DataView>
 
             <Paginator
                 v-if="innovations.total > 0"

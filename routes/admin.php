@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\InnovationArchiveController;
 use App\Http\Controllers\Admin\InnovationCategoryController;
 use App\Http\Controllers\Admin\InnovationController;
 use App\Http\Controllers\Admin\LibraryDocumentController;
+use App\Http\Controllers\Admin\MediaLibraryController;
 use App\Http\Controllers\Admin\OrganisasiController;
 use App\Http\Controllers\Admin\PlaceholderController;
 use App\Http\Controllers\Admin\RisetArchiveController;
@@ -81,6 +82,9 @@ Route::middleware(['auth', 'role:super-admin'])
         Route::delete('risets/{riset}/force', [RisetController::class, 'forceDestroy'])
             ->name('risets.force-destroy')
             ->withTrashed();
+
+        Route::get('media-library', [MediaLibraryController::class, 'index'])->name('media-library.index');
+        Route::post('media-library', [MediaLibraryController::class, 'store'])->name('media-library.store');
 
         Route::get('innovations/archive/create', [InnovationArchiveController::class, 'create'])
             ->name('innovations.archive.create');

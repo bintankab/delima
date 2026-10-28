@@ -15,12 +15,6 @@ const props = defineProps({
     filterOptions: { type: Object, required: true },
 });
 
-const jenisLabel = (jenis) => ({
-    produk: 'Produk',
-    proses: 'Proses',
-    pelayanan: 'Pelayanan',
-}[jenis] ?? jenis);
-
 const search = ref(props.filters.search ?? '');
 const tahun = ref(props.filters.tahun ?? null);
 const organisasiId = ref(props.filters.organisasi_id ?? null);
@@ -142,7 +136,7 @@ const onPage = (event) => {
                     <div class="flex items-center gap-2 text-xs text-surface-500">
                         <span v-if="innovation.category">{{ innovation.category }}</span>
                         <span v-if="innovation.category">&middot;</span>
-                        <span>{{ jenisLabel(innovation.jenis_inovasi) }}</span>
+                        <span>{{ innovation.jenis_inovasi_label ?? '—' }}</span>
                         <span>&middot;</span>
                         <span>{{ innovation.tahun }}</span>
                     </div>

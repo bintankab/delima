@@ -41,6 +41,25 @@ class RisetShowTest extends TestCase
             ->assertNotFound();
     }
 
+    public function test_viewing_a_riset_increments_its_views_count(): void
+    {
+        $riset = RisetModel::factory()->create(['status' => 'published', 'views_count' => 0]);
+
+        $this->get(route('riset.show', $riset->slug))->assertOk();
+
+        $this->assertSame(1, $riset->fresh()->views_count);
+    }
+
+    public function test_repeated_views_from_the_same_visitor_are_not_counted_twice(): void
+    {
+        $riset = RisetModel::factory()->create(['status' => 'published', 'views_count' => 0]);
+
+        $this->get(route('riset.show', $riset->slug))->assertOk();
+        $this->get(route('riset.show', $riset->slug))->assertOk();
+
+        $this->assertSame(1, $riset->fresh()->views_count);
+    }
+
     public function test_documents_can_be_downloaded(): void
     {
         Storage::fake('public');

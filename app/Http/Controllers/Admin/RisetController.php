@@ -26,7 +26,7 @@ class RisetController extends Controller
 
         $risets = RisetModel::query()
             ->when($trashed, fn ($query) => $query->onlyTrashed())
-            ->with(['organisasi:id,name', 'category:id,name'])
+            ->with(['organisasi:id,name', 'category:id,name', 'media'])
             ->when($search !== '', function ($query) use ($search): void {
                 $escaped = '%'.addcslashes($search, '%_\\').'%';
 
@@ -45,6 +45,8 @@ class RisetController extends Controller
             ->through(fn (RisetModel $riset): array => [
                 'id' => $riset->id,
                 'title' => $riset->title,
+                'cover' => $riset->getFirstMedia('cover')?->getUrl('thumb'),
+                'views_count' => $riset->views_count,
                 'peneliti' => $riset->peneliti,
                 'tahun' => $riset->tahun,
                 'status' => $riset->status,
@@ -74,7 +76,12 @@ class RisetController extends Controller
 
         return Inertia::render('Admin/Risets/Show', [
             'meta' => ['title' => $riset->title],
-            'riset' => $this->detail($riset),
+            'riset' => [
+                ...$this->detail($riset),
+                'views_count' => $riset->views_count,
+                'read_minutes' => $this->readMinutes($riset->abstrak),
+            ],
+            'relatedRisets' => $this->relatedRisets($riset),
         ]);
     }
 
@@ -192,6 +199,43 @@ class RisetController extends Controller
                 'url' => $media->getUrl(),
             ])->values()->all(),
         ];
+    }
+
+    /**
+     * Estimate reading time (minutes) for Quill-authored HTML content.
+     */
+    private function readMinutes(?string $html): int
+    {
+        $words = str_word_count(strip_tags((string) $html));
+
+        return max(1, (int) ceil($words / 200));
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    private function relatedRisets(RisetModel $riset): array
+    {
+        return RisetModel::query()
+            ->whereKeyNot($riset->id)
+            ->when(
+                $riset->category_id,
+                fn ($query) => $query->where('category_id', $riset->category_id),
+            )
+            ->with('organisasi:id,name')
+            ->latest()
+            ->take(2)
+            ->get()
+            ->map(fn (RisetModel $related): array => [
+                'id' => $related->id,
+                'title' => $related->title,
+                'slug' => $related->slug,
+                'cover' => $related->getFirstMedia('cover')?->getUrl('thumb'),
+                'organisasi' => $related->organisasi?->name,
+                'published_at' => $related->published_at?->toDateString(),
+                'read_minutes' => $this->readMinutes($related->abstrak),
+            ])
+            ->all();
     }
 
     /**

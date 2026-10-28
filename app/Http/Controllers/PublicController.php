@@ -6,7 +6,9 @@ use App\Models\InnovationModel;
 use App\Models\NewsModel;
 use App\Models\OrganisasiModel;
 use App\Models\RisetModel;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -23,7 +25,7 @@ class PublicController extends Controller
 
         $topInnovations = InnovationModel::where('status', 'published')
             ->where('is_featured', true)
-            ->latest('published_at')
+            ->latest('implementation_at')
             ->take(6)
             ->get(['id', 'title', 'slug', 'tahun']);
 
@@ -58,7 +60,7 @@ class PublicController extends Controller
                 'id' => $riset->id,
                 'title' => $riset->title,
                 'slug' => $riset->slug,
-                'abstrak' => Str::words($riset->abstrak, 50),
+                'abstrak' => $this->excerpt($riset->abstrak, 50),
                 'tahun' => $riset->tahun,
                 'organisasi' => $riset->organisasi?->name,
                 'category' => $riset->category?->name,
@@ -94,13 +96,15 @@ class PublicController extends Controller
     {
         abort_unless($riset->status === 'published', 404);
 
+        $this->recordView($riset, 'riset');
+
         $riset->load(['organisasi:id,name', 'category:id,name']);
         $cover = $riset->getFirstMedia('cover');
 
         return Inertia::render('Public/Riset/Show', [
             'meta' => [
                 'title' => $riset->title,
-                'description' => Str::words($riset->abstrak, 30),
+                'description' => $this->excerpt($riset->abstrak, 30),
             ],
             'riset' => [
                 'id' => $riset->id,
@@ -168,15 +172,15 @@ class PublicController extends Controller
             })
             ->when($tahun !== null, fn ($query) => $query->where('tahun', $tahun))
             ->when($organisasiId !== null, fn ($query) => $query->where('organisasi_id', $organisasiId))
-            ->latest('published_at')
+            ->latest('implementation_at')
             ->paginate(9)
             ->withQueryString()
             ->through(fn (InnovationModel $innovation): array => [
                 'id' => $innovation->id,
                 'title' => $innovation->title,
                 'slug' => $innovation->slug,
-                'description' => Str::words($innovation->description, 50),
-                'jenis_inovasi' => $innovation->jenis_inovasi,
+                'description' => $this->excerpt($innovation->description, 50),
+                'jenis_inovasi_label' => $innovation->jenis_inovasi?->label(),
                 'tahun' => $innovation->tahun,
                 'organisasi' => $innovation->organisasi?->name,
                 'category' => $innovation->category?->name,
@@ -212,23 +216,28 @@ class PublicController extends Controller
     {
         abort_unless($innovation->status === 'published', 404);
 
+        $this->recordView($innovation, 'innovation');
+
         $innovation->load(['organisasi:id,name', 'category:id,name']);
         $cover = $innovation->getFirstMedia('cover');
 
         return Inertia::render('Public/Innovations/Show', [
             'meta' => [
                 'title' => $innovation->title,
-                'description' => Str::words($innovation->description, 30),
+                'description' => $this->excerpt($innovation->description, 30),
             ],
             'innovation' => [
                 'id' => $innovation->id,
                 'title' => $innovation->title,
                 'slug' => $innovation->slug,
-                'jenis_inovasi' => $innovation->jenis_inovasi,
+                'jenis_inovasi_label' => $innovation->jenis_inovasi?->label(),
                 'description' => $innovation->description,
                 'latar_belakang' => $innovation->latar_belakang,
+                'manfaat' => $innovation->manfaat,
+                'link_video' => $innovation->link_video,
                 'tahun' => $innovation->tahun,
-                'published_at' => $innovation->published_at?->toDateString(),
+                'testing_at' => $innovation->testing_at?->toDateString(),
+                'implementation_at' => $innovation->implementation_at?->toDateString(),
                 'organisasi' => $innovation->organisasi?->name,
                 'category' => $innovation->category?->name,
                 'cover' => $cover === null ? null : [
@@ -269,5 +278,29 @@ class PublicController extends Controller
                 'label' => $innovation->title,
             ],
         ]);
+    }
+
+    /**
+     * Plain-text excerpt of Quill-authored HTML content, truncated to the given word count.
+     */
+    private function excerpt(?string $html, int $words): string
+    {
+        $text = html_entity_decode(strip_tags((string) $html), ENT_QUOTES, 'UTF-8');
+        $text = str_replace("\u{00A0}", ' ', $text);
+
+        return Str::words(trim($text), $words);
+    }
+
+    /**
+     * Count one public view for the model, deduplicated per visitor (IP + user agent) for 24 hours.
+     */
+    private function recordView(Model $model, string $type): void
+    {
+        $fingerprint = sha1(request()->ip().'|'.request()->userAgent());
+        $key = "public-view:{$type}:{$model->getKey()}:{$fingerprint}";
+
+        if (Cache::add($key, true, now()->addDay())) {
+            $model->increment('views_count');
+        }
     }
 }

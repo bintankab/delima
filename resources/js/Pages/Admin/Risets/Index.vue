@@ -3,10 +3,10 @@ import { computed, ref } from 'vue';
 import { router, usePage } from '@inertiajs/vue3';
 import { useConfirm } from 'primevue/useconfirm';
 import Button from 'primevue/button';
-import Column from 'primevue/column';
-import DataTable from 'primevue/datatable';
+import DataView from 'primevue/dataview';
 import InputText from 'primevue/inputtext';
 import Paginator from 'primevue/paginator';
+import Tag from 'primevue/tag';
 import ActionsMenu from '@/Components/ActionsMenu.vue';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 
@@ -36,6 +36,17 @@ const statusLabel = (status) => ({
     rejected: 'Ditolak',
     archived: 'Diarsipkan',
 }[status] ?? status);
+
+const statusSeverity = {
+    draft: 'secondary',
+    submitted: 'info',
+    under_review: 'info',
+    reviewed: 'warn',
+    revision_needed: 'warn',
+    published: 'success',
+    rejected: 'danger',
+    archived: 'contrast',
+};
 
 const applySearch = () => {
     router.get(route('admin.risets.index'), {
@@ -76,19 +87,6 @@ const toggleTrashed = () => {
     });
 };
 
-const onSort = (event) => {
-    router.get(route('admin.risets.index'), {
-        search: props.filters.search,
-        trashed: isTrashed.value,
-        per_page: props.filters.per_page,
-        sort: event.sortField,
-        direction: event.sortOrder === 1 ? 'asc' : 'desc',
-    }, {
-        preserveState: true,
-        replace: true,
-    });
-};
-
 const menuItems = (riset) => {
     if (isTrashed.value) {
         return [
@@ -96,18 +94,14 @@ const menuItems = (riset) => {
         ];
     }
 
-    const items = [
-        { label: 'Lihat', icon: 'pi pi-eye', command: () => router.visit(route('admin.risets.show', riset.id)) },
-    ];
-
-    if (isSuperAdmin.value) {
-        items.push(
-            { label: 'Ubah', icon: 'pi pi-pencil', command: () => router.visit(route('admin.risets.edit', riset.id)) },
-            { label: 'Hapus', icon: 'pi pi-trash', command: () => remove(riset) },
-        );
+    if (!isSuperAdmin.value) {
+        return [];
     }
 
-    return items;
+    return [
+        { label: 'Ubah', icon: 'pi pi-pencil', command: () => router.visit(route('admin.risets.edit', riset.id)) },
+        { label: 'Hapus', icon: 'pi pi-trash', command: () => remove(riset) },
+    ];
 };
 
 const remove = (riset) => {
@@ -164,48 +158,64 @@ const purge = (riset) => {
                 <Button type="submit" label="Cari" severity="secondary" />
             </form>
 
-            <DataTable
-                :value="risets.data"
-                size="small"
-                lazy
-                :sort-field="filters.sort"
-                :sort-order="filters.direction === 'desc' ? -1 : 1"
-                @sort="onSort"
-            >
-                <Column field="title" header="Judul" sortable />
-                <Column field="peneliti" header="Peneliti" sortable>
-                    <template #body="{ data }">{{ data.peneliti ?? '—' }}</template>
-                </Column>
-                <Column header="OPD">
-                    <template #body="{ data }">{{ data.organisasi ?? '—' }}</template>
-                </Column>
-                <Column header="Kategori">
-                    <template #body="{ data }">{{ data.category ?? '—' }}</template>
-                </Column>
-                <Column field="tahun" header="Tahun" sortable />
-                <Column field="published_at" header="Terbit" sortable>
-                    <template #body="{ data }">{{ data.published_at ?? '—' }}</template>
-                </Column>
-                <Column field="status" header="Status" sortable>
-                    <template #body="{ data }">{{ statusLabel(data.status) }}</template>
-                </Column>
-                <Column field="origin" header="Asal" sortable>
-                    <template #body="{ data }">{{ originLabel(data.origin) }}</template>
-                </Column>
-                <Column v-if="isTrashed" field="deleted_at" header="Dihapus pada" sortable>
-                    <template #body="{ data }">{{ data.deleted_at ?? '—' }}</template>
-                </Column>
-                <Column header="Aksi" style="width: 5rem">
-                    <template #body="{ data }">
-                        <ActionsMenu :items="menuItems(data)" />
-                    </template>
-                </Column>
+            <DataView :value="risets.data" layout="list" data-key="id">
+                <template #list="{ items }">
+                    <div
+                        v-for="(item, index) in items"
+                        :key="item.id"
+                        class="flex flex-col sm:flex-row gap-4 py-5 sm:items-center"
+                        :class="{ 'border-t border-surface-200': index > 0 }"
+                    >
+                        <div class="relative w-full sm:w-32 h-40 sm:h-24 shrink-0 rounded-lg overflow-hidden bg-surface-100">
+                            <span class="absolute top-2 left-2 z-10">
+                                <Tag
+                                    :value="statusLabel(item.status)"
+                                    :severity="statusSeverity[item.status] ?? 'secondary'"
+                                    class="uppercase text-xs"
+                                />
+                            </span>
+                            <img
+                                :src="item.cover || '/images/placeholder-cover.svg'"
+                                :alt="item.title"
+                                class="w-full h-full object-cover"
+                            />
+                        </div>
+
+                        <div class="flex-1 min-w-0">
+                            <div class="text-sm text-surface-500">{{ item.category ?? '—' }}</div>
+                            <div class="text-lg font-semibold text-surface-900 truncate">{{ item.title }}</div>
+                            <div class="flex flex-wrap items-center gap-2 mt-1 text-xs text-surface-500">
+                                <span>{{ item.peneliti ?? '—' }}</span>
+                                <span>&middot;</span>
+                                <span>{{ originLabel(item.origin) }}</span>
+                            </div>
+                            <div class="inline-flex items-center gap-1.5 bg-surface-100 rounded-full px-2.5 py-1 mt-2 text-xs text-surface-600">
+                                <i class="pi pi-eye" />
+                                <span>{{ item.views_count }}</span>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between sm:flex-col sm:items-end gap-2 sm:gap-3 shrink-0">
+                            <span class="text-xl font-bold text-surface-900">{{ item.tahun }}</span>
+                            <div class="flex items-center gap-2">
+                                <Button
+                                    v-if="!isTrashed"
+                                    label="Lihat"
+                                    icon="pi pi-eye"
+                                    size="small"
+                                    @click="router.visit(route('admin.risets.show', item.id))"
+                                />
+                                <ActionsMenu v-if="menuItems(item).length" :items="menuItems(item)" />
+                            </div>
+                        </div>
+                    </div>
+                </template>
                 <template #empty>
                     <span class="text-sm text-surface-400">
                         {{ isTrashed ? 'Tidak ada riset di sampah.' : 'Belum ada riset.' }}
                     </span>
                 </template>
-            </DataTable>
+            </DataView>
 
             <Paginator
                 v-if="risets.total > 0"

@@ -59,17 +59,17 @@ defineProps({
 
             <div>
                 <h2 class="text-sm font-semibold text-surface-900 mb-1">Abstrak</h2>
-                <p class="text-sm text-surface-600 whitespace-pre-line">{{ riset.abstrak }}</p>
+                <div class="rich-text" v-html="riset.abstrak" />
             </div>
 
             <div v-if="riset.latar_belakang">
                 <h2 class="text-sm font-semibold text-surface-900 mb-1">Latar Belakang</h2>
-                <p class="text-sm text-surface-600 whitespace-pre-line">{{ riset.latar_belakang }}</p>
+                <div class="rich-text" v-html="riset.latar_belakang" />
             </div>
 
             <div v-if="riset.metodologi">
                 <h2 class="text-sm font-semibold text-surface-900 mb-1">Metodologi</h2>
-                <p class="text-sm text-surface-600 whitespace-pre-line">{{ riset.metodologi }}</p>
+                <div class="rich-text" v-html="riset.metodologi" />
             </div>
 
             <div v-if="riset.documents.length">

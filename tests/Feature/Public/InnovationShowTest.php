@@ -41,6 +41,25 @@ class InnovationShowTest extends TestCase
             ->assertNotFound();
     }
 
+    public function test_viewing_an_innovation_increments_its_views_count(): void
+    {
+        $innovation = InnovationModel::factory()->create(['status' => 'published', 'views_count' => 0]);
+
+        $this->get(route('inovasi.show', $innovation->slug))->assertOk();
+
+        $this->assertSame(1, $innovation->fresh()->views_count);
+    }
+
+    public function test_repeated_views_from_the_same_visitor_are_not_counted_twice(): void
+    {
+        $innovation = InnovationModel::factory()->create(['status' => 'published', 'views_count' => 0]);
+
+        $this->get(route('inovasi.show', $innovation->slug))->assertOk();
+        $this->get(route('inovasi.show', $innovation->slug))->assertOk();
+
+        $this->assertSame(1, $innovation->fresh()->views_count);
+    }
+
     public function test_documents_can_be_downloaded(): void
     {
         Storage::fake('public');

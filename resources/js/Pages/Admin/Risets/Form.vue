@@ -8,9 +8,9 @@ import InputNumber from 'primevue/inputnumber';
 import InputText from 'primevue/inputtext';
 import ProgressBar from 'primevue/progressbar';
 import Select from 'primevue/select';
-import Textarea from 'primevue/textarea';
 import { useConfirm } from 'primevue/useconfirm';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
+import RichTextEditor from '@/Components/RichTextEditor.vue';
 
 defineOptions({ layout: AdminLayout });
 
@@ -198,19 +198,19 @@ const submit = () => {
 
             <div class="flex flex-col gap-1.5">
                 <label for="abstrak" class="text-sm font-medium text-surface-700">Abstrak</label>
-                <Textarea id="abstrak" v-model="form.abstrak" rows="4" class="w-full" auto-resize />
+                <RichTextEditor v-model="form.abstrak" placeholder="Tulis abstrak riset di sini..." height="220px" />
                 <small v-if="form.errors.abstrak" class="text-rose-600">{{ form.errors.abstrak }}</small>
             </div>
 
             <div class="flex flex-col gap-1.5">
                 <label for="latar_belakang" class="text-sm font-medium text-surface-700">Latar belakang</label>
-                <Textarea id="latar_belakang" v-model="form.latar_belakang" rows="3" class="w-full" auto-resize />
+                <RichTextEditor v-model="form.latar_belakang" placeholder="Tulis latar belakang di sini..." height="160px" />
                 <small v-if="form.errors.latar_belakang" class="text-rose-600">{{ form.errors.latar_belakang }}</small>
             </div>
 
             <div class="flex flex-col gap-1.5">
                 <label for="metodologi" class="text-sm font-medium text-surface-700">Metodologi</label>
-                <Textarea id="metodologi" v-model="form.metodologi" rows="3" class="w-full" auto-resize />
+                <RichTextEditor v-model="form.metodologi" placeholder="Tulis metodologi riset di sini..." height="160px" />
                 <small v-if="form.errors.metodologi" class="text-rose-600">{{ form.errors.metodologi }}</small>
             </div>
 

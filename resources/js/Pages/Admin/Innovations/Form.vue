@@ -8,9 +8,9 @@ import InputNumber from 'primevue/inputnumber';
 import InputText from 'primevue/inputtext';
 import ProgressBar from 'primevue/progressbar';
 import Select from 'primevue/select';
-import Textarea from 'primevue/textarea';
 import { useConfirm } from 'primevue/useconfirm';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
+import RichTextEditor from '@/Components/RichTextEditor.vue';
 
 defineOptions({ layout: AdminLayout });
 
@@ -20,14 +20,10 @@ const props = defineProps({
     innovation: { type: Object, required: true },
     organisasis: { type: Array, required: true },
     categories: { type: Array, required: true },
+    jenisOptions: { type: Array, required: true },
+    tahapanOptions: { type: Array, required: true },
     maxYear: { type: Number, required: true },
 });
-
-const jenisOptions = [
-    { id: 'produk', name: 'Produk' },
-    { id: 'proses', name: 'Proses' },
-    { id: 'pelayanan', name: 'Pelayanan' },
-];
 
 const minDate = new Date(2021, 0, 1);
 const maxDate = new Date();
@@ -39,10 +35,14 @@ const form = useForm({
     category_id: props.innovation.category_id,
     title: props.innovation.title,
     jenis_inovasi: props.innovation.jenis_inovasi,
+    tahapan: props.innovation.tahapan,
     description: props.innovation.description,
     latar_belakang: props.innovation.latar_belakang ?? '',
+    manfaat: props.innovation.manfaat ?? '',
+    link_video: props.innovation.link_video ?? '',
     tahun: props.innovation.tahun,
-    published_at: toDate(props.innovation.published_at),
+    testing_at: toDate(props.innovation.testing_at),
+    implementation_at: toDate(props.innovation.implementation_at),
     cover: null,
     documents: [],
     remove_document_ids: [],
@@ -112,7 +112,9 @@ const documentErrors = computed(() => Object.entries(form.errors)
 const submit = () => {
     form.transform((data) => ({
         ...data,
-        published_at: formatDate(data.published_at),
+        testing_at: formatDate(data.testing_at),
+        implementation_at: formatDate(data.implementation_at),
+        link_video: data.link_video || null,
         _method: 'put',
     })).post(route('admin.innovations.update', props.innovation.id), {
         forceFormData: true,
@@ -196,29 +198,78 @@ const submit = () => {
             </div>
 
             <div class="flex flex-col gap-1.5">
-                <label for="published_at" class="text-sm font-medium text-surface-700">Tanggal terbit</label>
-                <DatePicker
-                    input-id="published_at"
-                    v-model="form.published_at"
-                    date-format="yy-mm-dd"
-                    :min-date="minDate"
-                    :max-date="maxDate"
-                    show-icon
+                <label for="tahapan" class="text-sm font-medium text-surface-700">Tahapan Inovasi</label>
+                <Select
+                    input-id="tahapan"
+                    v-model="form.tahapan"
+                    :options="tahapanOptions"
+                    option-label="name"
+                    option-value="id"
+                    placeholder="- Pilih Tahapan Inovasi -"
                     class="w-full"
                 />
-                <small v-if="form.errors.published_at" class="text-rose-600">{{ form.errors.published_at }}</small>
+                <small v-if="form.errors.tahapan" class="text-rose-600">{{ form.errors.tahapan }}</small>
+            </div>
+
+            <div class="grid gap-4 sm:grid-cols-2">
+                <div class="flex flex-col gap-1.5">
+                    <label for="testing_at" class="text-sm font-medium text-surface-700">Tanggal Uji Coba</label>
+                    <DatePicker
+                        input-id="testing_at"
+                        v-model="form.testing_at"
+                        date-format="yy-mm-dd"
+                        :min-date="minDate"
+                        :max-date="maxDate"
+                        show-icon
+                        show-button-bar
+                        class="w-full"
+                    />
+                    <small v-if="form.errors.testing_at" class="text-rose-600">{{ form.errors.testing_at }}</small>
+                </div>
+
+                <div class="flex flex-col gap-1.5">
+                    <label for="implementation_at" class="text-sm font-medium text-surface-700">Tanggal Implementasi</label>
+                    <DatePicker
+                        input-id="implementation_at"
+                        v-model="form.implementation_at"
+                        date-format="yy-mm-dd"
+                        :min-date="minDate"
+                        :max-date="maxDate"
+                        show-icon
+                        class="w-full"
+                    />
+                    <small v-if="form.errors.implementation_at" class="text-rose-600">{{ form.errors.implementation_at }}</small>
+                </div>
             </div>
 
             <div class="flex flex-col gap-1.5">
                 <label for="description" class="text-sm font-medium text-surface-700">Deskripsi</label>
-                <Textarea id="description" v-model="form.description" rows="4" class="w-full" auto-resize />
+                <RichTextEditor v-model="form.description" placeholder="Tulis deskripsi inovasi di sini..." height="220px" />
                 <small v-if="form.errors.description" class="text-rose-600">{{ form.errors.description }}</small>
             </div>
 
             <div class="flex flex-col gap-1.5">
                 <label for="latar_belakang" class="text-sm font-medium text-surface-700">Latar belakang</label>
-                <Textarea id="latar_belakang" v-model="form.latar_belakang" rows="3" class="w-full" auto-resize />
+                <RichTextEditor v-model="form.latar_belakang" placeholder="Tulis latar belakang di sini..." height="160px" />
                 <small v-if="form.errors.latar_belakang" class="text-rose-600">{{ form.errors.latar_belakang }}</small>
+            </div>
+
+            <div class="flex flex-col gap-1.5">
+                <label for="manfaat" class="text-sm font-medium text-surface-700">Manfaat</label>
+                <RichTextEditor v-model="form.manfaat" placeholder="Tulis manfaat inovasi di sini..." height="160px" />
+                <small v-if="form.errors.manfaat" class="text-rose-600">{{ form.errors.manfaat }}</small>
+            </div>
+
+            <div class="flex flex-col gap-1.5">
+                <label for="link_video" class="text-sm font-medium text-surface-700">Link Video</label>
+                <InputText
+                    id="link_video"
+                    v-model="form.link_video"
+                    placeholder="https://youtube.com/watch?v=..."
+                    class="w-full"
+                />
+                <small class="text-surface-400">Tautan video eksternal (YouTube, Vimeo, Google Drive, atau sumber lain).</small>
+                <small v-if="form.errors.link_video" class="text-rose-600">{{ form.errors.link_video }}</small>
             </div>
 
             <div class="flex flex-col gap-1.5">

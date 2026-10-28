@@ -139,3 +139,56 @@
         z-index: 20;
     }
 }
+
+/* ===== Rich text content rendered from the Quill editor (Admin Form.vue pages) ===== */
+.rich-text {
+    color: var(--p-surface-700, #334155);
+    font-size: 0.875rem;
+    line-height: 1.6;
+}
+.rich-text p {
+    margin-bottom: 0.75rem;
+}
+.rich-text p:last-child {
+    margin-bottom: 0;
+}
+.rich-text h1,
+.rich-text h2,
+.rich-text h3 {
+    font-weight: 600;
+    color: var(--p-surface-900, #0f172a);
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+}
+.rich-text h1 {
+    font-size: 1.5rem;
+}
+.rich-text h2 {
+    font-size: 1.25rem;
+}
+.rich-text h3 {
+    font-size: 1.125rem;
+}
+.rich-text ul,
+.rich-text ol {
+    margin: 0 0 0.75rem 1.25rem;
+}
+.rich-text ul {
+    list-style: disc;
+}
+.rich-text ol {
+    list-style: decimal;
+}
+.rich-text li {
+    margin-bottom: 0.25rem;
+}
+.rich-text a {
+    color: var(--p-primary-600, #4f46e5);
+    text-decoration: underline;
+}
+.rich-text strong {
+    font-weight: 600;
+}
+.rich-text em {
+    font-style: italic;
+}
