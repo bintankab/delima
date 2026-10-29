@@ -1,19 +1,80 @@
 <script setup>
+import { ref } from 'vue';
 import { router } from '@inertiajs/vue3';
+import { useConfirm } from 'primevue/useconfirm';
 import Avatar from 'primevue/avatar';
 import Button from 'primevue/button';
+import Dialog from 'primevue/dialog';
 import Tag from 'primevue/tag';
+import Textarea from 'primevue/textarea';
 import { useToast } from 'primevue/usetoast';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 
 defineOptions({ layout: AdminLayout });
 
-defineProps({
+const props = defineProps({
     riset: { type: Object, required: true },
     relatedRisets: { type: Array, default: () => [] },
+    canManage: { type: Boolean, default: false },
 });
 
 const toast = useToast();
+const confirm = useConfirm();
+
+const rejectDialogVisible = ref(false);
+const rejectCatatan = ref('');
+const rejectError = ref('');
+const reviewing = ref(false);
+
+const approve = () => {
+    confirm.require({
+        message: 'Setujui dan terbitkan riset ini?',
+        header: 'Setujui Riset',
+        icon: 'pi pi-check-circle',
+        rejectLabel: 'Batal',
+        acceptLabel: 'Setujui',
+        accept: () => {
+            reviewing.value = true;
+            router.post(route('admin.risets.approve', props.riset.id), {}, {
+                onFinish: () => { reviewing.value = false; },
+            });
+        },
+    });
+};
+
+const removeRiset = () => {
+    confirm.require({
+        message: `Hapus riset "${props.riset.title}"?`,
+        header: 'Hapus Riset',
+        icon: 'pi pi-exclamation-triangle',
+        rejectLabel: 'Batal',
+        acceptLabel: 'Hapus',
+        acceptClass: 'p-button-danger',
+        accept: () => router.delete(route('admin.risets.destroy', props.riset.id)),
+    });
+};
+
+const openRejectDialog = () => {
+    rejectCatatan.value = '';
+    rejectError.value = '';
+    rejectDialogVisible.value = true;
+};
+
+const submitReject = () => {
+    if (!rejectCatatan.value.trim()) {
+        rejectError.value = 'Alasan penolakan wajib diisi.';
+        return;
+    }
+
+    reviewing.value = true;
+    router.post(route('admin.risets.reject', props.riset.id), {
+        catatan: rejectCatatan.value,
+    }, {
+        onSuccess: () => { rejectDialogVisible.value = false; },
+        onError: (errors) => { rejectError.value = errors.catatan ?? ''; },
+        onFinish: () => { reviewing.value = false; },
+    });
+};
 
 const statusLabel = (status) => ({
     draft: 'Draf',
@@ -66,12 +127,40 @@ const copyLink = async () => {
                 text
                 @click="router.visit(route('admin.risets.index'))"
             />
-            <Button
-                label="Ubah"
-                icon="pi pi-pencil"
-                severity="secondary"
-                @click="router.visit(route('admin.risets.edit', riset.id))"
-            />
+            <div class="flex gap-2">
+                <template v-if="riset.reviewable">
+                    <Button
+                        label="Tolak"
+                        icon="pi pi-times"
+                        severity="danger"
+                        outlined
+                        :disabled="reviewing"
+                        @click="openRejectDialog"
+                    />
+                    <Button
+                        label="Setujui"
+                        icon="pi pi-check"
+                        severity="success"
+                        :disabled="reviewing"
+                        @click="approve"
+                    />
+                </template>
+                <template v-if="canManage">
+                    <Button
+                        label="Ubah"
+                        icon="pi pi-pencil"
+                        severity="secondary"
+                        @click="router.visit(route('admin.risets.edit', riset.id))"
+                    />
+                    <Button
+                        label="Hapus"
+                        icon="pi pi-trash"
+                        severity="danger"
+                        outlined
+                        @click="removeRiset"
+                    />
+                </template>
+            </div>
         </div>
 
         <div class="relative rounded-2xl overflow-hidden min-h-[260px] sm:min-h-[420px] bg-surface-800 flex items-end">
@@ -181,9 +270,27 @@ const copyLink = async () => {
                     <h3 class="text-xs font-medium text-surface-500 uppercase">OPD</h3>
                     <p class="text-sm text-surface-800 mt-1">{{ riset.organisasi ?? '—' }}</p>
                 </div>
-                <div>
+                <div :class="{ 'pb-4 border-b border-surface-200': riset.reviews.length }">
                     <h3 class="text-xs font-medium text-surface-500 uppercase">Tahun</h3>
                     <p class="text-sm text-surface-800 mt-1">{{ riset.tahun }}</p>
+                </div>
+                <div v-if="riset.reviews.length" class="flex flex-col gap-3">
+                    <h3 class="text-xs font-medium text-surface-500 uppercase">Riwayat Review</h3>
+                    <div
+                        v-for="review in riset.reviews"
+                        :key="review.id"
+                        class="rounded-lg bg-surface-50 p-3 text-sm"
+                    >
+                        <div class="flex items-center justify-between gap-2">
+                            <Tag
+                                :value="review.status === 'approved' ? 'Disetujui' : 'Ditolak'"
+                                :severity="review.status === 'approved' ? 'success' : 'danger'"
+                            />
+                            <span class="text-xs text-surface-500">{{ review.reviewed_at }}</span>
+                        </div>
+                        <p class="text-surface-700 mt-2">{{ review.catatan ?? '—' }}</p>
+                        <p class="text-xs text-surface-500 mt-1">oleh {{ review.reviewer ?? '—' }}</p>
+                    </div>
                 </div>
             </aside>
         </div>
@@ -211,5 +318,21 @@ const copyLink = async () => {
                 </button>
             </div>
         </div>
+
+        <Dialog
+            v-model:visible="rejectDialogVisible"
+            header="Tolak Riset"
+            modal
+            dismissable-mask
+            :style="{ width: '32rem', maxWidth: '95vw' }"
+        >
+            <p class="text-sm text-surface-600 mb-3">Jelaskan alasan penolakan agar pengusul dapat memperbaikinya.</p>
+            <Textarea v-model="rejectCatatan" rows="4" class="w-full" autofocus />
+            <p v-if="rejectError" class="text-sm text-red-600 mt-1">{{ rejectError }}</p>
+            <template #footer>
+                <Button label="Batal" severity="secondary" text @click="rejectDialogVisible = false" />
+                <Button label="Tolak Riset" severity="danger" :loading="reviewing" @click="submitReject" />
+            </template>
+        </Dialog>
     </div>
 </template>

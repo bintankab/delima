@@ -140,6 +140,63 @@
     }
 }
 
+.app-rightpanel {
+    position: fixed;
+    top: var(--topbar-height);
+    bottom: 0;
+    right: 0;
+    width: 20rem;
+    max-width: 90vw;
+    background: white;
+    border-left: 1px solid var(--p-surface-200, #e2e8f0);
+    overflow-y: auto;
+    z-index: 35;
+    transform: translateX(100%);
+    transition: transform 0.2s ease;
+    box-shadow: -4px 0 24px rgba(0, 0, 0, 0.1);
+}
+.layout-rightpanel-active .app-rightpanel {
+    transform: translateX(0);
+}
+
+.app-rightpanel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--p-surface-200, #e2e8f0);
+}
+.app-rightpanel-close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 9999px;
+    color: var(--p-surface-500, #64748b);
+    transition: background-color 0.15s;
+}
+.app-rightpanel-close:hover {
+    background: var(--p-surface-100, #f1f5f9);
+}
+.app-rightpanel-body {
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.app-rightpanel-mask {
+    display: none;
+}
+.layout-rightpanel-active .app-rightpanel-mask {
+    display: block;
+    position: fixed;
+    inset: var(--topbar-height) 0 0 0;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 34;
+}
+
 /* ===== Rich text content rendered from the Quill editor (Admin Form.vue pages) ===== */
 .rich-text {
     color: var(--p-surface-700, #334155);

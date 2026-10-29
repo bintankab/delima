@@ -2,15 +2,30 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Models\RisetModel;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class RisetRequest extends FormRequest
 {
+    /**
+     * Super-admin may update any riset. Everyone else may only update their
+     * own, and only while it hasn't been approved yet.
+     */
     public function authorize(): bool
     {
-        return true;
+        $riset = $this->route('riset');
+
+        if (! $riset instanceof RisetModel) {
+            return true;
+        }
+
+        if ($this->user()?->hasRole('super-admin')) {
+            return true;
+        }
+
+        return $riset->user_id === $this->user()?->id && $riset->status !== 'published';
     }
 
     /**

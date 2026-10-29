@@ -65,6 +65,174 @@ class RisetCrudTest extends TestCase
         $this->assertNotNull(RisetModel::query()->find($riset->id));
     }
 
+    public function test_admin_opd_can_update_its_own_unapproved_riset(): void
+    {
+        $organisasi = OrganisasiModel::factory()->create();
+        $owner = $this->userWithRole('admin-opd');
+        $owner->organisasis()->sync([$organisasi->id => ['is_primary' => true]]);
+
+        $riset = RisetModel::factory()->create([
+            'organisasi_id' => $organisasi->id,
+            'user_id' => $owner->id,
+            'status' => 'submitted',
+            'title' => 'Judul Lama',
+        ]);
+        $category = RisetCategoryModel::factory()->create();
+
+        $this->actingAs($owner)
+            ->get(route('admin.risets.edit', $riset))
+            ->assertOk();
+
+        $this->actingAs($owner)
+            ->put(route('admin.risets.update', $riset), [
+                'organisasi_id' => $organisasi->id,
+                'category_id' => $category->id,
+                'title' => 'Judul Baru',
+                'peneliti' => 'Dr. Baru',
+                'abstrak' => 'Abstrak baru.',
+                'tahun' => 2022,
+                'published_at' => '2022-01-10',
+            ])
+            ->assertRedirect(route('admin.risets.show', $riset));
+
+        $riset->refresh();
+        $this->assertSame('Judul Baru', $riset->title);
+        $this->assertSame('submitted', $riset->status);
+    }
+
+    public function test_admin_opd_cannot_reassign_its_riset_to_another_organisasi(): void
+    {
+        $organisasi = OrganisasiModel::factory()->create();
+        $otherOrganisasi = OrganisasiModel::factory()->create();
+        $owner = $this->userWithRole('admin-opd');
+        $owner->organisasis()->sync([$organisasi->id => ['is_primary' => true]]);
+
+        $riset = RisetModel::factory()->create([
+            'organisasi_id' => $organisasi->id,
+            'user_id' => $owner->id,
+            'status' => 'submitted',
+        ]);
+        $category = RisetCategoryModel::factory()->create();
+
+        $this->actingAs($owner)
+            ->put(route('admin.risets.update', $riset), [
+                'organisasi_id' => $otherOrganisasi->id,
+                'category_id' => $category->id,
+                'title' => $riset->title,
+                'peneliti' => $riset->peneliti,
+                'abstrak' => $riset->abstrak,
+                'tahun' => $riset->tahun,
+                'published_at' => now()->toDateString(),
+            ])
+            ->assertRedirect(route('admin.risets.show', $riset));
+
+        $this->assertSame($organisasi->id, $riset->fresh()->organisasi_id);
+    }
+
+    public function test_admin_opd_cannot_update_an_already_approved_riset(): void
+    {
+        $organisasi = OrganisasiModel::factory()->create();
+        $owner = $this->userWithRole('admin-opd');
+        $owner->organisasis()->sync([$organisasi->id => ['is_primary' => true]]);
+
+        $riset = RisetModel::factory()->create([
+            'organisasi_id' => $organisasi->id,
+            'user_id' => $owner->id,
+            'status' => 'published',
+            'title' => 'Judul Tetap',
+        ]);
+        $category = RisetCategoryModel::factory()->create();
+
+        $this->actingAs($owner)
+            ->get(route('admin.risets.edit', $riset))
+            ->assertForbidden();
+
+        $this->actingAs($owner)
+            ->put(route('admin.risets.update', $riset), [
+                'organisasi_id' => $organisasi->id,
+                'category_id' => $category->id,
+                'title' => 'Judul Diubah Paksa',
+                'peneliti' => $riset->peneliti,
+                'abstrak' => $riset->abstrak,
+                'tahun' => $riset->tahun,
+                'published_at' => now()->toDateString(),
+            ])
+            ->assertForbidden();
+
+        $this->assertSame('Judul Tetap', $riset->fresh()->title);
+    }
+
+    public function test_admin_opd_cannot_update_someone_elses_riset(): void
+    {
+        $organisasi = OrganisasiModel::factory()->create();
+        $owner = $this->userWithRole('admin-opd');
+        $other = $this->userWithRole('admin-opd');
+        $owner->organisasis()->sync([$organisasi->id => ['is_primary' => true]]);
+        $other->organisasis()->sync([$organisasi->id => ['is_primary' => true]]);
+
+        $riset = RisetModel::factory()->create([
+            'organisasi_id' => $organisasi->id,
+            'user_id' => $other->id,
+            'status' => 'submitted',
+        ]);
+        $category = RisetCategoryModel::factory()->create();
+
+        $this->actingAs($owner)
+            ->get(route('admin.risets.edit', $riset))
+            ->assertForbidden();
+
+        $this->actingAs($owner)
+            ->put(route('admin.risets.update', $riset), [
+                'organisasi_id' => $organisasi->id,
+                'category_id' => $category->id,
+                'title' => 'Dicuri',
+                'peneliti' => $riset->peneliti,
+                'abstrak' => $riset->abstrak,
+                'tahun' => $riset->tahun,
+                'published_at' => now()->toDateString(),
+            ])
+            ->assertForbidden();
+    }
+
+    public function test_admin_opd_can_delete_its_own_unapproved_riset(): void
+    {
+        $organisasi = OrganisasiModel::factory()->create();
+        $owner = $this->userWithRole('admin-opd');
+        $owner->organisasis()->sync([$organisasi->id => ['is_primary' => true]]);
+
+        $riset = RisetModel::factory()->create([
+            'organisasi_id' => $organisasi->id,
+            'user_id' => $owner->id,
+            'status' => 'rejected',
+        ]);
+
+        $this->actingAs($owner)
+            ->delete(route('admin.risets.destroy', $riset))
+            ->assertRedirect(route('admin.risets.index'))
+            ->assertSessionHas('success', 'Riset berhasil dihapus.');
+
+        $this->assertSoftDeleted('risets', ['id' => $riset->id]);
+    }
+
+    public function test_admin_opd_cannot_delete_an_already_approved_riset(): void
+    {
+        $organisasi = OrganisasiModel::factory()->create();
+        $owner = $this->userWithRole('admin-opd');
+        $owner->organisasis()->sync([$organisasi->id => ['is_primary' => true]]);
+
+        $riset = RisetModel::factory()->create([
+            'organisasi_id' => $organisasi->id,
+            'user_id' => $owner->id,
+            'status' => 'published',
+        ]);
+
+        $this->actingAs($owner)
+            ->delete(route('admin.risets.destroy', $riset))
+            ->assertForbidden();
+
+        $this->assertDatabaseHas('risets', ['id' => $riset->id, 'deleted_at' => null]);
+    }
+
     public function test_super_admin_updates_riset_fields(): void
     {
         $riset = RisetModel::factory()->create(['title' => 'Judul Lama']);

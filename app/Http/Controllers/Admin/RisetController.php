@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\RisetArchiveRequest;
 use App\Http\Requests\Admin\RisetRequest;
 use App\Models\OrganisasiModel;
+use App\Models\ReviewModel;
 use App\Models\RisetCategoryModel;
 use App\Models\RisetModel;
 use Illuminate\Http\RedirectResponse;
@@ -15,16 +17,38 @@ use Inertia\Response;
 
 class RisetController extends Controller
 {
+    /**
+     * Statuses that are still awaiting a reviewer decision.
+     *
+     * @var list<string>
+     */
+    private const REVIEWABLE_STATUSES = ['submitted', 'under_review', 'revision_needed'];
+
+    /**
+     * The full lifecycle of a riset's status, in order.
+     *
+     * @var list<string>
+     */
+    private const STATUSES = ['draft', 'submitted', 'under_review', 'reviewed', 'revision_needed', 'published', 'rejected', 'archived'];
+
     public function index(Request $request): Response
     {
+        $actor = $request->user();
         $search = mb_substr($request->string('search')->trim()->toString(), 0, 100);
         $trashed = $request->boolean('trashed');
+        $status = $request->string('status')->trim()->toString();
+        $status = in_array($status, self::STATUSES, true) ? $status : null;
         $perPage = $this->perPage($request);
         $sort = $this->resolveSort($request, [
             'title', 'peneliti', 'tahun', 'published_at', 'status', 'origin', 'deleted_at',
         ]);
 
         $risets = RisetModel::query()
+            ->when(! $actor->hasRole('super-admin') && $actor->hasRole('admin-opd'), function ($query) use ($actor): void {
+                $ownOrganisasiIds = $actor->organisasis()->pluck('organisasis.id');
+
+                $query->whereIn('organisasi_id', $ownOrganisasiIds);
+            })
             ->when($trashed, fn ($query) => $query->onlyTrashed())
             ->with(['organisasi:id,name', 'category:id,name', 'media'])
             ->when($search !== '', function ($query) use ($search): void {
@@ -35,6 +59,7 @@ class RisetController extends Controller
                         ->orWhere('peneliti', 'like', $escaped);
                 });
             })
+            ->when($status !== null, fn ($query) => $query->where('status', $status))
             ->when(
                 $sort,
                 fn ($query) => $query->orderBy($sort[0], $sort[1]),
@@ -55,14 +80,20 @@ class RisetController extends Controller
                 'category' => $riset->category?->name,
                 'published_at' => $riset->published_at?->toDateString(),
                 'deleted_at' => $riset->deleted_at?->toDateTimeString(),
+                'editable' => $riset->user_id === $actor->id && $riset->status !== 'published',
             ]);
 
         return Inertia::render('Admin/Risets/Index', [
             'meta' => ['title' => 'Daftar Riset'],
             'risets' => $risets,
+            'statusOptions' => array_map(
+                fn (string $status): array => ['id' => $status, 'name' => $this->statusLabel($status)],
+                self::STATUSES,
+            ),
             'filters' => [
                 'search' => $search,
                 'trashed' => $trashed,
+                'status' => $status,
                 'per_page' => $perPage,
                 'sort' => $sort[0] ?? null,
                 'direction' => $sort[1] ?? null,
@@ -70,23 +101,103 @@ class RisetController extends Controller
         ]);
     }
 
-    public function show(RisetModel $riset): Response
+    public function create(Request $request): Response
     {
-        $riset->load(['organisasi:id,name', 'category:id,name', 'user:id,name']);
+        $organisasi = $request->user()->organisasis()->first();
+
+        return Inertia::render('Admin/Risets/ArchiveForm', [
+            'meta' => ['title' => 'Ajukan Riset'],
+            'organisasis' => $this->organisasiOptions(),
+            'categories' => $this->categoryOptions(),
+            'maxYear' => now()->year,
+            'heading' => 'Ajukan Riset',
+            'description' => 'Riset yang Anda ajukan akan ditinjau oleh reviewer sebelum tayang di halaman publik.',
+            'submitRoute' => 'admin.risets.store',
+            'submitLabel' => 'Ajukan',
+            'publishedAtHint' => 'Isi sesuai tanggal riset ini sebenarnya selesai atau diterbitkan.',
+            'organisasiLocked' => true,
+            'organisasiId' => $organisasi?->id,
+            'organisasiName' => $organisasi?->name,
+        ]);
+    }
+
+    public function store(RisetArchiveRequest $request): RedirectResponse
+    {
+        $user = $request->user();
+        $organisasi = $user->organisasis()->first();
+
+        abort_unless($organisasi !== null, 403, 'Akun Anda belum terhubung ke OPD manapun.');
+
+        $validated = $request->safe()->only([
+            'category_id',
+            'title',
+            'peneliti',
+            'abstrak',
+            'latar_belakang',
+            'metodologi',
+            'tahun',
+            'published_at',
+        ]);
+
+        $riset = RisetModel::query()->create([
+            ...$validated,
+            'organisasi_id' => $organisasi->id,
+            'slug' => RisetModel::uniqueSlug($validated['title']),
+            'user_id' => $user->id,
+            'status' => 'submitted',
+            'origin' => 'submission',
+        ]);
+
+        if ($request->hasFile('cover')) {
+            $riset->addMediaFromRequest('cover')->toMediaCollection('cover');
+        }
+
+        foreach ($this->documents($request) as $document) {
+            $riset->addMedia($document)->toMediaCollection('documents');
+        }
+
+        return redirect()
+            ->route('admin.risets.show', $riset)
+            ->with('success', 'Riset berhasil diajukan dan akan segera ditinjau.');
+    }
+
+    public function show(Request $request, RisetModel $riset): Response
+    {
+        $actor = $request->user();
+        $isSuperAdmin = $actor->hasRole('super-admin');
+        $isOwner = $riset->user_id === $actor->id;
+        $canReview = $isSuperAdmin || $actor->hasRole('reviewer');
+
+        $riset->load(['organisasi:id,name', 'category:id,name', 'user:id,name', 'reviews.reviewer:id,name']);
 
         return Inertia::render('Admin/Risets/Show', [
             'meta' => ['title' => $riset->title],
+            'canManage' => $isSuperAdmin || ($isOwner && $riset->status !== 'published'),
             'riset' => [
                 ...$this->detail($riset),
                 'views_count' => $riset->views_count,
                 'read_minutes' => $this->readMinutes($riset->abstrak),
+                'reviewable' => $canReview && in_array($riset->status, self::REVIEWABLE_STATUSES, true),
+                'reviews' => $riset->reviews
+                    ->sortByDesc('reviewed_at')
+                    ->map(fn (ReviewModel $review): array => [
+                        'id' => $review->id,
+                        'status' => $review->status,
+                        'catatan' => $review->catatan,
+                        'reviewer' => $review->reviewer?->name,
+                        'reviewed_at' => $review->reviewed_at?->toDateTimeString(),
+                    ])
+                    ->values()
+                    ->all(),
             ],
             'relatedRisets' => $this->relatedRisets($riset),
         ]);
     }
 
-    public function edit(RisetModel $riset): Response
+    public function edit(Request $request, RisetModel $riset): Response
     {
+        $this->authorizeManageable($request, $riset);
+
         $riset->load(['organisasi:id,name', 'category:id,name']);
 
         return Inertia::render('Admin/Risets/Form', [
@@ -111,6 +222,10 @@ class RisetController extends Controller
             'tahun',
             'published_at',
         ]);
+
+        if (! $request->user()->hasRole('super-admin')) {
+            $validated['organisasi_id'] = $riset->organisasi_id;
+        }
 
         $riset->update([
             ...$validated,
@@ -141,8 +256,10 @@ class RisetController extends Controller
             ->with('success', 'Riset berhasil diperbarui.');
     }
 
-    public function destroy(RisetModel $riset): RedirectResponse
+    public function destroy(Request $request, RisetModel $riset): RedirectResponse
     {
+        $this->authorizeManageable($request, $riset);
+
         $riset->delete();
 
         return redirect()
@@ -161,6 +278,87 @@ class RisetController extends Controller
         return redirect()
             ->route('admin.risets.index', ['trashed' => true])
             ->with('success', 'Riset beserta berkasnya berhasil dihapus permanen.');
+    }
+
+    public function approve(Request $request, RisetModel $riset): RedirectResponse
+    {
+        if (! in_array($riset->status, self::REVIEWABLE_STATUSES, true)) {
+            return back()->with('error', 'Riset ini tidak dapat ditinjau pada status saat ini.');
+        }
+
+        $validated = $request->validate([
+            'catatan' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        $riset->update([
+            'status' => 'published',
+            'assigned_reviewer_id' => $request->user()->id,
+        ]);
+
+        $riset->reviews()->create([
+            'reviewer_id' => $request->user()->id,
+            'status' => 'approved',
+            'catatan' => $validated['catatan'] ?? null,
+            'reviewed_at' => now(),
+        ]);
+
+        return redirect()
+            ->route('admin.risets.show', $riset)
+            ->with('success', 'Riset berhasil disetujui dan diterbitkan.');
+    }
+
+    public function reject(Request $request, RisetModel $riset): RedirectResponse
+    {
+        if (! in_array($riset->status, self::REVIEWABLE_STATUSES, true)) {
+            return back()->with('error', 'Riset ini tidak dapat ditinjau pada status saat ini.');
+        }
+
+        $validated = $request->validate([
+            'catatan' => ['required', 'string', 'max:1000'],
+        ], [
+            'catatan.required' => 'Alasan penolakan wajib diisi.',
+        ]);
+
+        $riset->update([
+            'status' => 'rejected',
+            'assigned_reviewer_id' => $request->user()->id,
+        ]);
+
+        $riset->reviews()->create([
+            'reviewer_id' => $request->user()->id,
+            'status' => 'rejected',
+            'catatan' => $validated['catatan'],
+            'reviewed_at' => now(),
+        ]);
+
+        return redirect()
+            ->route('admin.risets.show', $riset)
+            ->with('success', 'Riset ditolak.');
+    }
+
+    private function authorizeManageable(Request $request, RisetModel $riset): void
+    {
+        if ($request->user()->hasRole('super-admin')) {
+            return;
+        }
+
+        abort_unless($riset->user_id === $request->user()->id, 403);
+        abort_if($riset->status === 'published', 403, 'Riset yang sudah disetujui tidak dapat diubah atau dihapus.');
+    }
+
+    private function statusLabel(string $status): string
+    {
+        return match ($status) {
+            'draft' => 'Draf',
+            'submitted' => 'Diajukan',
+            'under_review' => 'Ditinjau',
+            'reviewed' => 'Direview',
+            'revision_needed' => 'Perlu revisi',
+            'published' => 'Tayang',
+            'rejected' => 'Ditolak',
+            'archived' => 'Diarsipkan',
+            default => $status,
+        };
     }
 
     /**
@@ -273,7 +471,7 @@ class RisetController extends Controller
     /**
      * @return list<UploadedFile>
      */
-    private function documents(RisetRequest $request): array
+    private function documents(RisetRequest|RisetArchiveRequest $request): array
     {
         $documents = $request->file('documents', []);
 

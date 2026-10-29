@@ -69,7 +69,10 @@ const MENU = {
         },
         {
             label: 'Riset Kami',
-            items: [{ label: 'Riset OPD', icon: 'pi pi-book', route: 'admin.risets.index' }],
+            items: [
+                { label: 'Riset OPD', icon: 'pi pi-book', route: 'admin.risets.index' },
+                { label: 'Ajukan Riset', icon: 'pi pi-plus-circle', route: 'admin.risets.create' },
+            ],
         },
         {
             label: 'Kompetisi',

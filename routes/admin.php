@@ -33,6 +33,14 @@ Route::middleware(['auth', 'role:admin-opd|bupati|dprd|asn|publik'])
         Route::delete('innovations/mine/{innovation}', [InnovationController::class, 'destroyMine'])->name('innovations.mine.destroy');
     });
 
+Route::middleware(['auth', 'role:admin-opd'])
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function () {
+        Route::get('risets/create', [RisetController::class, 'create'])->name('risets.create');
+        Route::post('risets', [RisetController::class, 'store'])->name('risets.store');
+    });
+
 Route::middleware(['auth', 'role:super-admin|admin-opd|reviewer'])
     ->prefix('admin')
     ->name('admin.')
@@ -92,6 +100,18 @@ Route::middleware(['auth', 'role:super-admin|reviewer'])
     ->group(function () {
         Route::post('innovations/{innovation}/approve', [InnovationController::class, 'approve'])->name('innovations.approve');
         Route::post('innovations/{innovation}/reject', [InnovationController::class, 'reject'])->name('innovations.reject');
+
+        Route::post('risets/{riset}/approve', [RisetController::class, 'approve'])->name('risets.approve');
+        Route::post('risets/{riset}/reject', [RisetController::class, 'reject'])->name('risets.reject');
+    });
+
+Route::middleware(['auth', 'role:super-admin|admin-opd'])
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function () {
+        Route::get('risets/{riset}/edit', [RisetController::class, 'edit'])->name('risets.edit');
+        Route::put('risets/{riset}', [RisetController::class, 'update'])->name('risets.update');
+        Route::delete('risets/{riset}', [RisetController::class, 'destroy'])->name('risets.destroy');
     });
 
 Route::middleware(['auth', 'role:super-admin'])
@@ -103,9 +123,6 @@ Route::middleware(['auth', 'role:super-admin'])
         Route::post('risets/archive', [RisetArchiveController::class, 'store'])
             ->name('risets.archive.store');
 
-        Route::get('risets/{riset}/edit', [RisetController::class, 'edit'])->name('risets.edit');
-        Route::put('risets/{riset}', [RisetController::class, 'update'])->name('risets.update');
-        Route::delete('risets/{riset}', [RisetController::class, 'destroy'])->name('risets.destroy');
         Route::delete('risets/{riset}/force', [RisetController::class, 'forceDestroy'])
             ->name('risets.force-destroy')
             ->withTrashed();

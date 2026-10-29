@@ -14,17 +14,28 @@ import RichTextEditor from '@/Components/RichTextEditor.vue';
 
 defineOptions({ layout: AdminLayout });
 
-defineProps({
+const props = defineProps({
     organisasis: { type: Array, required: true },
     categories: { type: Array, required: true },
     maxYear: { type: Number, required: true },
+    heading: { type: String, default: 'Input Arsip Riset Lama' },
+    description: {
+        type: String,
+        default: 'Data riset sejak 2021 yang didigitalisasi. Langsung tayang, tanpa alur approval.',
+    },
+    submitRoute: { type: String, default: 'admin.risets.archive.store' },
+    submitLabel: { type: String, default: 'Simpan' },
+    publishedAtHint: { type: String, default: 'Isi sesuai tanggal tayang arsip aslinya.' },
+    organisasiLocked: { type: Boolean, default: false },
+    organisasiId: { type: Number, default: null },
+    organisasiName: { type: String, default: null },
 });
 
 const minDate = new Date(2021, 0, 1);
 const maxDate = new Date();
 
 const form = useAutoClearForm({
-    organisasi_id: null,
+    organisasi_id: props.organisasiId,
     category_id: null,
     title: '',
     peneliti: '',
@@ -81,7 +92,7 @@ const submit = () => {
     form.transform((data) => ({
         ...data,
         published_at: formatDate(data.published_at),
-    })).post(route('admin.risets.archive.store'), {
+    })).post(route(props.submitRoute), {
         forceFormData: true,
     });
 };
@@ -90,9 +101,9 @@ const submit = () => {
 <template>
     <div class="max-w-3xl bg-white rounded-xl border border-surface-200 p-6">
         <div class="mb-5">
-            <h1 class="text-xl font-semibold text-surface-900">Input Arsip Riset Lama</h1>
+            <h1 class="text-xl font-semibold text-surface-900">{{ heading }}</h1>
             <p class="text-sm text-surface-500 mt-1">
-                Data riset sejak 2021 yang didigitalisasi. Langsung tayang, tanpa alur approval.
+                {{ description }}
             </p>
         </div>
 
@@ -101,6 +112,7 @@ const submit = () => {
                 <div class="flex flex-col gap-1.5">
                     <label for="organisasi_id" class="text-sm font-medium text-surface-700">OPD asal</label>
                     <Select
+                        v-if="!organisasiLocked"
                         input-id="organisasi_id"
                         v-model="form.organisasi_id"
                         :options="organisasis"
@@ -110,6 +122,7 @@ const submit = () => {
                         filter
                         class="w-full"
                     />
+                    <InputText v-else id="organisasi_id" :model-value="organisasiName" disabled class="w-full" />
                     <small v-if="form.errors.organisasi_id" class="text-rose-600">{{ form.errors.organisasi_id }}</small>
                 </div>
 
@@ -168,7 +181,7 @@ const submit = () => {
                     show-icon
                     class="w-full"
                 />
-                <small class="text-surface-400">Isi sesuai tanggal tayang arsip aslinya.</small>
+                <small class="text-surface-400">{{ publishedAtHint }}</small>
                 <small v-if="form.errors.published_at" class="text-rose-600">{{ form.errors.published_at }}</small>
             </div>
 
@@ -259,7 +272,7 @@ const submit = () => {
             </div>
 
             <div class="flex gap-2">
-                <Button type="submit" label="Simpan" :loading="form.processing" />
+                <Button type="submit" :label="submitLabel" :loading="form.processing" />
                 <Button
                     type="button"
                     label="Batal"

@@ -43,7 +43,10 @@ const submit = () => {
         </div>
 
         <div class="flex flex-col gap-1.5">
-            <label for="password" class="text-sm font-medium text-surface-700">Kata Sandi</label>
+            <div class="flex items-center justify-between">
+                <label for="password" class="text-sm font-medium text-surface-700">Kata Sandi</label>
+                <Link :href="route('password.request')" class="text-sm text-indigo-600 font-medium">Lupa kata sandi?</Link>
+            </div>
             <Password
                 id="password"
                 v-model="form.password"

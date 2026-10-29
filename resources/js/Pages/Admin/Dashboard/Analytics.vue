@@ -1,9 +1,10 @@
 <script setup>
-import { computed } from 'vue';
-import { Link } from '@inertiajs/vue3';
+import { computed, ref } from 'vue';
+import { Link, router } from '@inertiajs/vue3';
 import Chart from 'primevue/chart';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
+import Select from 'primevue/select';
 import Tag from 'primevue/tag';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 
@@ -13,7 +14,23 @@ const props = defineProps({
     stats: { type: Object, required: true },
     innovationsByStatus: { type: Object, required: true },
     latestSubmissions: { type: Array, required: true },
+    filters: { type: Object, default: () => ({}) },
+    tahunOptions: { type: Array, default: () => [] },
+    jenisInovasiOptions: { type: Array, default: () => [] },
 });
+
+const tahun = ref(props.filters.tahun ?? null);
+const jenisInovasi = ref(props.filters.jenis_inovasi ?? null);
+
+const applyFilters = () => {
+    router.get(route('admin.dashboard'), {
+        tahun: tahun.value,
+        jenis_inovasi: jenisInovasi.value,
+    }, {
+        preserveState: true,
+        replace: true,
+    });
+};
 
 const statCards = computed(() => [
     { label: 'Total Inovasi', value: props.stats.total_innovations, icon: 'pi pi-lightbulb', color: 'bg-indigo-50 text-indigo-600' },
@@ -57,6 +74,37 @@ const statusSeverity = {
 
 <template>
     <div class="flex flex-col gap-5">
+        <Teleport to="#app-rightpanel-body" defer>
+            <div class="flex flex-col gap-1.5">
+                <label for="filter-tahun" class="text-sm font-medium text-surface-700">Tahun</label>
+                <Select
+                    input-id="filter-tahun"
+                    v-model="tahun"
+                    :options="tahunOptions"
+                    option-label="name"
+                    option-value="id"
+                    placeholder="Semua tahun"
+                    show-clear
+                    class="w-full"
+                    @update:model-value="applyFilters"
+                />
+            </div>
+            <div class="flex flex-col gap-1.5">
+                <label for="filter-jenis-inovasi" class="text-sm font-medium text-surface-700">Jenis Inovasi</label>
+                <Select
+                    input-id="filter-jenis-inovasi"
+                    v-model="jenisInovasi"
+                    :options="jenisInovasiOptions"
+                    option-label="name"
+                    option-value="id"
+                    placeholder="Semua jenis"
+                    show-clear
+                    class="w-full"
+                    @update:model-value="applyFilters"
+                />
+            </div>
+        </Teleport>
+
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
             <div
                 v-for="card in statCards"

@@ -6,19 +6,23 @@ import { router, usePage } from '@inertiajs/vue3';
 import { onMounted, onUnmounted, watch } from 'vue';
 import AppTopbar from './Partials/AppTopbar.vue';
 import AppSidebar from './Partials/AppSidebar.vue';
+import AppRightPanel from './Partials/AppRightPanel.vue';
 import { useLayout } from '@/Composables/useLayout';
 
 defineProps({
     title: { type: String, default: '' },
 });
 
-const { containerClass, closeMobileSidebar } = useLayout();
+const { containerClass, closeMobileSidebar, closeRightPanel } = useLayout();
 const page = usePage();
 const toast = useToast();
 
 watch(
     () => page.url,
-    () => closeMobileSidebar(),
+    () => {
+        closeMobileSidebar();
+        closeRightPanel();
+    },
 );
 
 let stopListening;
@@ -46,8 +50,10 @@ onUnmounted(() => {
     <div class="app-shell" :class="containerClass">
         <AppTopbar />
         <AppSidebar />
+        <AppRightPanel />
 
         <div class="app-sidebar-mask" @click="closeMobileSidebar" />
+        <div class="app-rightpanel-mask" @click="closeRightPanel" />
 
         <main class="app-content">
             <h1 v-if="title" class="text-xl font-semibold text-surface-900 mb-4">{{ title }}</h1>

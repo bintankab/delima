@@ -5,7 +5,7 @@ import Menu from 'primevue/menu';
 import { ref } from 'vue';
 import { useLayout } from '@/Composables/useLayout';
 
-const { toggleSidebar } = useLayout();
+const { toggleSidebar, toggleRightPanel } = useLayout();
 const page = usePage();
 const user = page.props.auth.user;
 
@@ -41,6 +41,9 @@ const userMenuItems = [
         </div>
 
         <div class="flex items-center gap-2">
+            <button type="button" class="topbar-icon-btn" aria-label="Buka panel filter" @click="toggleRightPanel">
+                <i class="pi pi-sliders-h" />
+            </button>
             <button type="button" class="topbar-icon-btn">
                 <i class="pi pi-bell" />
             </button>
