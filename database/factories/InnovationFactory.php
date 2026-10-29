@@ -2,10 +2,10 @@
 
 namespace Database\Factories;
 
+use App\Enums\JenisInisiator;
 use App\Enums\JenisInovasi;
 use App\Enums\TahapanInovasi;
 use App\Models\InnovationModel;
-use App\Models\OrganisasiModel;
 use Illuminate\Database\Eloquent\Factories\Attributes\UseModel;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -23,7 +23,7 @@ class InnovationFactory extends Factory
     public function definition(): array
     {
         return [
-            'organisasi_id' => OrganisasiModel::factory(),
+            'inisiator' => fake()->randomElement(JenisInisiator::cases()),
             'title' => fake()->sentence(6),
             'slug' => fake()->unique()->slug(4),
             'description' => fake()->paragraphs(3, true),

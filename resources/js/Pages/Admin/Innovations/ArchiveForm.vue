@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue';
-import { router, useForm } from '@inertiajs/vue3';
+import { router } from '@inertiajs/vue3';
+import { useAutoClearForm } from '@/Composables/useAutoClearForm';
 import Button from 'primevue/button';
 import DatePicker from 'primevue/datepicker';
 import FileUpload from 'primevue/fileupload';
@@ -14,7 +15,7 @@ import RichTextEditor from '@/Components/RichTextEditor.vue';
 defineOptions({ layout: AdminLayout });
 
 defineProps({
-    organisasis: { type: Array, required: true },
+    inisiatorOptions: { type: Array, required: true },
     categories: { type: Array, required: true },
     jenisOptions: { type: Array, required: true },
     tahapanOptions: { type: Array, required: true },
@@ -24,8 +25,8 @@ defineProps({
 const minDate = new Date(2021, 0, 1);
 const maxDate = new Date();
 
-const form = useForm({
-    organisasi_id: null,
+const form = useAutoClearForm({
+    inisiator: null,
     category_id: null,
     title: '',
     jenis_inovasi: null,
@@ -34,6 +35,7 @@ const form = useForm({
     latar_belakang: '',
     manfaat: '',
     link_video: '',
+    link_file_pendukung: '',
     tahun: null,
     testing_at: null,
     implementation_at: null,
@@ -87,6 +89,7 @@ const submit = () => {
         testing_at: formatDate(data.testing_at),
         implementation_at: formatDate(data.implementation_at),
         link_video: data.link_video || null,
+        link_file_pendukung: data.link_file_pendukung || null,
     })).post(route('admin.innovations.archive.store'), {
         forceFormData: true,
     });
@@ -105,18 +108,17 @@ const submit = () => {
         <form class="flex flex-col gap-4" @submit.prevent="submit">
             <div class="grid gap-4 sm:grid-cols-2">
                 <div class="flex flex-col gap-1.5">
-                    <label for="organisasi_id" class="text-sm font-medium text-surface-700">OPD asal</label>
+                    <label for="inisiator" class="text-sm font-medium text-surface-700">Jenis Inisiator</label>
                     <Select
-                        input-id="organisasi_id"
-                        v-model="form.organisasi_id"
-                        :options="organisasis"
+                        input-id="inisiator"
+                        v-model="form.inisiator"
+                        :options="inisiatorOptions"
                         option-label="name"
                         option-value="id"
-                        placeholder="Pilih OPD"
-                        filter
+                        placeholder="Pilih jenis inisiator"
                         class="w-full"
                     />
-                    <small v-if="form.errors.organisasi_id" class="text-rose-600">{{ form.errors.organisasi_id }}</small>
+                    <small v-if="form.errors.inisiator" class="text-rose-600">{{ form.errors.inisiator }}</small>
                 </div>
 
                 <div class="flex flex-col gap-1.5">
@@ -164,6 +166,7 @@ const submit = () => {
                         :min="2021"
                         :max="maxYear"
                         :use-grouping="false"
+                        :pt="{ pcInputText: { root: { maxlength: 4, inputmode: 'numeric' } } }"
                         class="w-full"
                     />
                     <small v-if="form.errors.tahun" class="text-rose-600">{{ form.errors.tahun }}</small>
@@ -244,6 +247,20 @@ const submit = () => {
                 />
                 <small class="text-surface-400">Tautan video eksternal (YouTube, Vimeo, Google Drive, atau sumber lain).</small>
                 <small v-if="form.errors.link_video" class="text-rose-600">{{ form.errors.link_video }}</small>
+            </div>
+
+            <div class="flex flex-col gap-1.5">
+                <label for="link_file_pendukung" class="text-sm font-medium text-surface-700">Link File Pendukung</label>
+                <InputText
+                    id="link_file_pendukung"
+                    v-model="form.link_file_pendukung"
+                    placeholder="https://drive.google.com/..."
+                    class="w-full"
+                />
+                <small class="text-surface-400">
+                    Untuk berkas berukuran besar, unggah ke Google Drive lalu tempel tautannya di sini (pastikan akses "siapa saja dengan tautan" diaktifkan).
+                </small>
+                <small v-if="form.errors.link_file_pendukung" class="text-rose-600">{{ form.errors.link_file_pendukung }}</small>
             </div>
 
             <div class="flex flex-col gap-1.5">

@@ -1,5 +1,6 @@
 <script setup>
-import { router, useForm } from '@inertiajs/vue3';
+import { router } from '@inertiajs/vue3';
+import { useAutoClearForm } from '@/Composables/useAutoClearForm';
 import Button from 'primevue/button';
 import InputText from 'primevue/inputtext';
 import Select from 'primevue/select';
@@ -12,7 +13,7 @@ const props = defineProps({
     parents: { type: Array, required: true },
 });
 
-const form = useForm({
+const form = useAutoClearForm({
     name: props.category?.name ?? '',
     parent_id: props.category?.parent_id ?? null,
     icon: props.category?.icon ?? '',

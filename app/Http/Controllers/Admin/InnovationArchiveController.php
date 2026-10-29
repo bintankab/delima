@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\JenisInisiator;
 use App\Enums\JenisInovasi;
 use App\Enums\TahapanInovasi;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\InnovationArchiveRequest;
 use App\Models\InnovationCategoryModel;
 use App\Models\InnovationModel;
-use App\Models\OrganisasiModel;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
@@ -21,14 +21,7 @@ class InnovationArchiveController extends Controller
     {
         return Inertia::render('Admin/Innovations/ArchiveForm', [
             'meta' => ['title' => 'Input Arsip Inovasi Lama'],
-            'organisasis' => OrganisasiModel::query()
-                ->orderBy('name')
-                ->get(['id', 'name'])
-                ->map(fn (OrganisasiModel $organisasi): array => [
-                    'id' => $organisasi->id,
-                    'name' => $organisasi->name,
-                ])
-                ->all(),
+            'inisiatorOptions' => JenisInisiator::options(),
             'categories' => $this->categoryOptions(),
             'jenisOptions' => JenisInovasi::options(),
             'tahapanOptions' => TahapanInovasi::options(),
@@ -39,7 +32,7 @@ class InnovationArchiveController extends Controller
     public function store(InnovationArchiveRequest $request): RedirectResponse
     {
         $validated = $request->safe()->only([
-            'organisasi_id',
+            'inisiator',
             'category_id',
             'title',
             'jenis_inovasi',
@@ -48,6 +41,7 @@ class InnovationArchiveController extends Controller
             'latar_belakang',
             'manfaat',
             'link_video',
+            'link_file_pendukung',
             'tahun',
             'testing_at',
             'implementation_at',

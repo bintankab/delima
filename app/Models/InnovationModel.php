@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\JenisInisiator;
 use App\Enums\JenisInovasi;
 use App\Enums\TahapanInovasi;
 use Database\Factories\InnovationFactory;
@@ -19,8 +20,8 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 #[Fillable([
-    'organisasi_id', 'user_id', 'category_id', 'assigned_reviewer_id',
-    'title', 'slug', 'description', 'latar_belakang', 'manfaat', 'link_video', 'jenis_inovasi', 'tahapan',
+    'user_id', 'inisiator', 'category_id', 'assigned_reviewer_id',
+    'title', 'slug', 'description', 'latar_belakang', 'manfaat', 'link_video', 'link_file_pendukung', 'jenis_inovasi', 'tahapan',
     'tahun', 'status', 'origin', 'is_featured', 'testing_at', 'implementation_at',
 ])]
 #[UseFactory(InnovationFactory::class)]
@@ -34,16 +35,12 @@ class InnovationModel extends Model implements HasMedia
     {
         return [
             'jenis_inovasi' => JenisInovasi::class,
+            'inisiator' => JenisInisiator::class,
             'tahapan' => TahapanInovasi::class,
             'is_featured' => 'boolean',
             'testing_at' => 'datetime',
             'implementation_at' => 'datetime',
         ];
-    }
-
-    public function organisasi(): BelongsTo
-    {
-        return $this->belongsTo(OrganisasiModel::class, 'organisasi_id');
     }
 
     public function user(): BelongsTo

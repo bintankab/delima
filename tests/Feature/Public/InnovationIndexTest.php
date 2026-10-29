@@ -2,8 +2,8 @@
 
 namespace Tests\Feature\Public;
 
+use App\Enums\JenisInisiator;
 use App\Models\InnovationModel;
-use App\Models\OrganisasiModel;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -96,47 +96,37 @@ class InnovationIndexTest extends TestCase
                 ->where('innovations.data.0.title', 'Inovasi 2023'));
     }
 
-    public function test_innovations_can_be_filtered_by_organisasi(): void
+    public function test_innovations_can_be_filtered_by_inisiator(): void
     {
-        $organisasiA = OrganisasiModel::factory()->create(['name' => 'Dinas A']);
-        $organisasiB = OrganisasiModel::factory()->create(['name' => 'Dinas B']);
         InnovationModel::factory()->create([
-            'title' => 'Inovasi Dinas A',
+            'title' => 'Inovasi OPD',
             'status' => 'published',
-            'organisasi_id' => $organisasiA->id,
+            'inisiator' => JenisInisiator::OPD,
         ]);
         InnovationModel::factory()->create([
-            'title' => 'Inovasi Dinas B',
+            'title' => 'Inovasi Bupati',
             'status' => 'published',
-            'organisasi_id' => $organisasiB->id,
+            'inisiator' => JenisInisiator::Bupati,
         ]);
 
-        $this->get(route('inovasi', ['organisasi_id' => $organisasiA->id]))
+        $this->get(route('inovasi', ['inisiator' => JenisInisiator::OPD->value]))
             ->assertInertia(fn (Assert $page) => $page
                 ->has('innovations.data', 1)
-                ->where('innovations.data.0.title', 'Inovasi Dinas A'));
+                ->where('innovations.data.0.title', 'Inovasi OPD'));
     }
 
-    public function test_filter_options_only_include_published_years_and_organisasis(): void
+    public function test_filter_options_only_include_published_years(): void
     {
-        $organisasiPublished = OrganisasiModel::factory()->create(['name' => 'Dinas Tayang']);
-        $organisasiDraft = OrganisasiModel::factory()->create(['name' => 'Dinas Draf']);
-
         InnovationModel::factory()->create([
             'status' => 'published',
             'tahun' => 2023,
-            'organisasi_id' => $organisasiPublished->id,
         ]);
         InnovationModel::factory()->create([
             'status' => 'draft',
             'tahun' => 2020,
-            'organisasi_id' => $organisasiDraft->id,
         ]);
 
         $this->get(route('inovasi'))
-            ->assertInertia(fn (Assert $page) => $page
-                ->where('filterOptions.years', [2023])
-                ->has('filterOptions.organisasis', 1)
-                ->where('filterOptions.organisasis.0.name', 'Dinas Tayang'));
+            ->assertInertia(fn (Assert $page) => $page->where('filterOptions.years', [2023]));
     }
 }

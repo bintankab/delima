@@ -11,6 +11,9 @@ class RolePermissionSeeder extends Seeder
         'super-admin',
         'admin-opd',
         'reviewer',
+        'asn',
+        'bupati',
+        'dprd',
         'publik',
     ];
 

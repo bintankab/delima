@@ -1,6 +1,7 @@
 <script setup>
 import { ref } from 'vue';
-import { router, useForm } from '@inertiajs/vue3';
+import { router } from '@inertiajs/vue3';
+import { useAutoClearForm } from '@/Composables/useAutoClearForm';
 import Button from 'primevue/button';
 import FileUpload from 'primevue/fileupload';
 import InputText from 'primevue/inputtext';
@@ -14,7 +15,7 @@ const props = defineProps({
     organisasi: { type: Object, default: null },
 });
 
-const form = useForm({
+const form = useAutoClearForm({
     name: props.organisasi?.name ?? '',
     type: props.organisasi?.type ?? '',
     code: props.organisasi?.code ?? '',

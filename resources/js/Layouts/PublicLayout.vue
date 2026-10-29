@@ -1,9 +1,14 @@
 <script setup>
+import { computed } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
 import Toast from 'primevue/toast';
 
 const page = usePage();
 const user = page.props.auth.user;
+const roles = page.props.auth.roles ?? [];
+
+const isAdminRole = computed(() => ['super-admin', 'admin-opd', 'reviewer'].some((role) => roles.includes(role)));
+const canSubmitInnovation = computed(() => ['bupati', 'dprd', 'asn', 'publik'].some((role) => roles.includes(role)));
 
 const navItems = [
     { label: 'Beranda', href: '/' },
@@ -32,12 +37,38 @@ const navItems = [
                         {{ item.label }}
                     </Link>
                 </nav>
-                <Link
-                    :href="user ? route('admin.dashboard') : route('login')"
-                    class="text-sm bg-white/10 hover:bg-white/20 rounded-lg px-4 py-2"
-                >
-                    {{ user ? 'Dashboard' : 'Masuk' }}
-                </Link>
+                <div class="flex items-center gap-2">
+                    <Link
+                        v-if="isAdminRole"
+                        :href="route('admin.dashboard')"
+                        class="text-sm bg-white/10 hover:bg-white/20 rounded-lg px-4 py-2"
+                    >
+                        Dashboard
+                    </Link>
+                    <template v-else-if="canSubmitInnovation">
+                        <Link
+                            :href="route('admin.innovations.create')"
+                            class="text-sm bg-white/10 hover:bg-white/20 rounded-lg px-4 py-2"
+                        >
+                            Ajukan Inovasi
+                        </Link>
+                        <Link
+                            :href="route('logout')"
+                            method="post"
+                            as="button"
+                            class="text-sm bg-white/10 hover:bg-white/20 rounded-lg px-4 py-2"
+                        >
+                            Keluar
+                        </Link>
+                    </template>
+                    <Link
+                        v-else
+                        :href="route('login')"
+                        class="text-sm bg-white/10 hover:bg-white/20 rounded-lg px-4 py-2"
+                    >
+                        Masuk
+                    </Link>
+                </div>
             </div>
         </header>
 

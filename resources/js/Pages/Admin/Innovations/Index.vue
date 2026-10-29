@@ -6,6 +6,7 @@ import Button from 'primevue/button';
 import DataView from 'primevue/dataview';
 import InputText from 'primevue/inputtext';
 import Paginator from 'primevue/paginator';
+import Select from 'primevue/select';
 import Tag from 'primevue/tag';
 import ActionsMenu from '@/Components/ActionsMenu.vue';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
@@ -14,15 +15,18 @@ defineOptions({ layout: AdminLayout });
 
 const props = defineProps({
     innovations: { type: Object, required: true },
+    statusOptions: { type: Array, default: () => [] },
     filters: { type: Object, required: true },
 });
 
 const page = usePage();
 const confirm = useConfirm();
 const isSuperAdmin = computed(() => (page.props.auth?.roles ?? []).includes('super-admin'));
+const isAdminOpd = computed(() => (page.props.auth?.roles ?? []).includes('admin-opd'));
 const isTrashed = computed(() => !!props.filters.trashed);
 
 const search = ref(props.filters.search ?? '');
+const status = ref(props.filters.status ?? null);
 
 const originLabel = (origin) => (origin === 'archive' ? 'Arsip' : 'Pengajuan');
 
@@ -51,6 +55,21 @@ const statusSeverity = {
 const applySearch = () => {
     router.get(route('admin.innovations.index'), {
         search: search.value,
+        status: status.value,
+        trashed: isTrashed.value,
+        per_page: props.filters.per_page,
+        sort: props.filters.sort,
+        direction: props.filters.direction,
+    }, {
+        preserveState: true,
+        replace: true,
+    });
+};
+
+const onStatusChange = () => {
+    router.get(route('admin.innovations.index'), {
+        search: props.filters.search,
+        status: status.value,
         trashed: isTrashed.value,
         per_page: props.filters.per_page,
         sort: props.filters.sort,
@@ -64,6 +83,7 @@ const applySearch = () => {
 const onPage = (event) => {
     router.get(route('admin.innovations.index'), {
         search: props.filters.search,
+        status: props.filters.status,
         trashed: isTrashed.value,
         page: event.page + 1,
         per_page: event.rows,
@@ -77,6 +97,7 @@ const onPage = (event) => {
 
 const toggleTrashed = () => {
     router.get(route('admin.innovations.index'), {
+        status: props.filters.status,
         trashed: !isTrashed.value,
         per_page: props.filters.per_page,
         sort: props.filters.sort,
@@ -94,14 +115,35 @@ const menuItems = (innovation) => {
         ];
     }
 
-    if (!isSuperAdmin.value) {
-        return [];
+    if (isSuperAdmin.value) {
+        return [
+            { label: 'Ubah', icon: 'pi pi-pencil', command: () => router.visit(route('admin.innovations.edit', innovation.id)) },
+            { label: 'Hapus', icon: 'pi pi-trash', command: () => remove(innovation) },
+        ];
     }
 
-    return [
-        { label: 'Ubah', icon: 'pi pi-pencil', command: () => router.visit(route('admin.innovations.edit', innovation.id)) },
-        { label: 'Hapus', icon: 'pi pi-trash', command: () => remove(innovation) },
-    ];
+    if (isAdminOpd.value && innovation.editable) {
+        return [
+            { label: 'Ubah', icon: 'pi pi-pencil', command: () => router.visit(route('admin.innovations.mine.edit', innovation.id)) },
+            { label: 'Hapus', icon: 'pi pi-trash', command: () => removeMine(innovation) },
+        ];
+    }
+
+    return [];
+};
+
+const removeMine = (innovation) => {
+    confirm.require({
+        message: `Hapus inovasi "${innovation.title}"?`,
+        header: 'Hapus Inovasi',
+        icon: 'pi pi-exclamation-triangle',
+        rejectLabel: 'Batal',
+        acceptLabel: 'Hapus',
+        acceptClass: 'p-button-danger',
+        accept: () => router.delete(route('admin.innovations.mine.destroy', innovation.id), {
+            data: { redirect_route: 'admin.innovations.index' },
+        }),
+    });
 };
 
 const remove = (innovation) => {
@@ -142,19 +184,37 @@ const purge = (innovation) => {
                         : 'Inovasi yang sudah masuk, termasuk arsip lama.' }}
                 </p>
             </div>
-            <Button
-                v-if="isSuperAdmin"
-                :label="isTrashed ? 'Kembali' : 'Tampilkan Sampah'"
-                :icon="isTrashed ? 'pi pi-arrow-left' : 'pi pi-trash'"
-                severity="secondary"
-                outlined
-                @click="toggleTrashed"
-            />
+            <div class="flex gap-2">
+                <Button
+                    v-if="isAdminOpd && !isTrashed"
+                    label="Tambah Inovasi"
+                    icon="pi pi-plus"
+                    @click="router.visit(route('admin.innovations.create'))"
+                />
+                <Button
+                    v-if="isSuperAdmin"
+                    :label="isTrashed ? 'Kembali' : 'Tampilkan Sampah'"
+                    :icon="isTrashed ? 'pi pi-arrow-left' : 'pi pi-trash'"
+                    severity="secondary"
+                    outlined
+                    @click="toggleTrashed"
+                />
+            </div>
         </div>
 
         <div class="bg-white rounded-xl border border-surface-200 p-5">
-            <form class="flex gap-2 mb-4" @submit.prevent="applySearch">
+            <form class="flex flex-wrap gap-2 mb-4" @submit.prevent="applySearch">
                 <InputText v-model="search" placeholder="Cari judul inovasi" class="w-full sm:max-w-xs" />
+                <Select
+                    v-model="status"
+                    :options="statusOptions"
+                    option-label="name"
+                    option-value="id"
+                    placeholder="Semua Status"
+                    show-clear
+                    class="w-full sm:w-52"
+                    @update:model-value="onStatusChange"
+                />
                 <Button type="submit" label="Cari" severity="secondary" />
             </form>
 

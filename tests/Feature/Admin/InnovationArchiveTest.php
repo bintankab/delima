@@ -2,11 +2,11 @@
 
 namespace Tests\Feature\Admin;
 
+use App\Enums\JenisInisiator;
 use App\Enums\JenisInovasi;
 use App\Enums\TahapanInovasi;
 use App\Models\InnovationCategoryModel;
 use App\Models\InnovationModel;
-use App\Models\OrganisasiModel;
 use App\Models\UserModel;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -55,14 +55,13 @@ class InnovationArchiveTest extends TestCase
 
     public function test_super_admin_stores_a_published_archive(): void
     {
-        $organisasi = OrganisasiModel::factory()->create();
         $category = InnovationCategoryModel::factory()->create();
         $admin = $this->userWithRole('super-admin');
         $otherUser = UserModel::factory()->create();
 
         $this->actingAs($admin)
             ->post(route('admin.innovations.archive.store'), [
-                'organisasi_id' => $organisasi->id,
+                'inisiator' => JenisInisiator::OPD->value,
                 'category_id' => $category->id,
                 'title' => 'Aplikasi Layanan Terpadu 2021',
                 'jenis_inovasi' => JenisInovasi::Teknologi->value,
@@ -81,7 +80,7 @@ class InnovationArchiveTest extends TestCase
         $this->assertDatabaseHas('innovations', [
             'title' => 'Aplikasi Layanan Terpadu 2021',
             'slug' => 'aplikasi-layanan-terpadu-2021',
-            'organisasi_id' => $organisasi->id,
+            'inisiator' => JenisInisiator::OPD->value,
             'category_id' => $category->id,
             'user_id' => $admin->id,
             'jenis_inovasi' => JenisInovasi::Teknologi->value,
@@ -100,12 +99,11 @@ class InnovationArchiveTest extends TestCase
     {
         Storage::fake('public');
 
-        $organisasi = OrganisasiModel::factory()->create();
         $category = InnovationCategoryModel::factory()->create();
 
         $this->actingAs($this->userWithRole('super-admin'))
             ->post(route('admin.innovations.archive.store'), [
-                'organisasi_id' => $organisasi->id,
+                'inisiator' => JenisInisiator::Bupati->value,
                 'category_id' => $category->id,
                 'title' => 'Sistem Antrean Digital',
                 'jenis_inovasi' => JenisInovasi::Digital->value,
@@ -135,7 +133,7 @@ class InnovationArchiveTest extends TestCase
             ->post(route('admin.innovations.archive.store'), [])
             ->assertRedirect(route('admin.innovations.archive.create'))
             ->assertSessionHasErrors([
-                'organisasi_id' => 'OPD asal wajib dipilih.',
+                'inisiator' => 'Jenis inisiator wajib dipilih.',
                 'category_id' => 'Kategori wajib dipilih.',
                 'title' => 'Judul wajib diisi.',
                 'jenis_inovasi' => 'Jenis inovasi wajib dipilih.',
@@ -150,13 +148,12 @@ class InnovationArchiveTest extends TestCase
 
     public function test_year_before_2021_is_rejected(): void
     {
-        $organisasi = OrganisasiModel::factory()->create();
         $category = InnovationCategoryModel::factory()->create();
 
         $this->actingAs($this->userWithRole('super-admin'))
             ->from(route('admin.innovations.archive.create'))
             ->post(route('admin.innovations.archive.store'), [
-                'organisasi_id' => $organisasi->id,
+                'inisiator' => JenisInisiator::ASN->value,
                 'category_id' => $category->id,
                 'title' => 'Inovasi Lama',
                 'jenis_inovasi' => JenisInovasi::NonDigital->value,

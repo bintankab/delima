@@ -62,7 +62,10 @@ const MENU = {
         },
         {
             label: 'Inovasi Kami',
-            items: [{ label: 'Inovasi OPD', icon: 'pi pi-lightbulb', route: 'admin.innovations.index' }],
+            items: [
+                { label: 'Inovasi OPD', icon: 'pi pi-lightbulb', route: 'admin.innovations.index' },
+                { label: 'Tambah Inovasi', icon: 'pi pi-plus-circle', route: 'admin.innovations.create' },
+            ],
         },
         {
             label: 'Riset Kami',
@@ -77,6 +80,43 @@ const MENU = {
             items: [
                 { label: 'Pustaka OPD', icon: 'pi pi-folder-open', route: 'admin.library-documents.index' },
                 { label: 'Klinik Inovasi', icon: 'pi pi-heart', route: 'admin.consultations.index' },
+                { label: 'Staf ASN', icon: 'pi pi-id-card', route: 'admin.users.index' },
+            ],
+        },
+    ],
+    bupati: [
+        {
+            label: 'Inovasi',
+            items: [
+                { label: 'Ajukan Inovasi', icon: 'pi pi-plus-circle', route: 'admin.innovations.create' },
+                { label: 'Inovasi Saya', icon: 'pi pi-list', route: 'admin.innovations.mine' },
+            ],
+        },
+    ],
+    dprd: [
+        {
+            label: 'Inovasi',
+            items: [
+                { label: 'Ajukan Inovasi', icon: 'pi pi-plus-circle', route: 'admin.innovations.create' },
+                { label: 'Inovasi Saya', icon: 'pi pi-list', route: 'admin.innovations.mine' },
+            ],
+        },
+    ],
+    asn: [
+        {
+            label: 'Inovasi',
+            items: [
+                { label: 'Ajukan Inovasi', icon: 'pi pi-plus-circle', route: 'admin.innovations.create' },
+                { label: 'Inovasi Saya', icon: 'pi pi-list', route: 'admin.innovations.mine' },
+            ],
+        },
+    ],
+    publik: [
+        {
+            label: 'Inovasi',
+            items: [
+                { label: 'Ajukan Inovasi', icon: 'pi pi-plus-circle', route: 'admin.innovations.create' },
+                { label: 'Inovasi Saya', icon: 'pi pi-list', route: 'admin.innovations.mine' },
             ],
         },
     ],
@@ -102,7 +142,7 @@ export function useMenu() {
     const roles = computed(() => page.props.auth?.roles ?? []);
 
     const sections = computed(() => {
-        const primaryRole = ['super-admin', 'admin-opd', 'reviewer'].find((r) =>
+        const primaryRole = ['super-admin', 'admin-opd', 'reviewer', 'bupati', 'dprd', 'asn', 'publik'].find((r) =>
             roles.value.includes(r),
         );
 

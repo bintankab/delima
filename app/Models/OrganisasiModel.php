@@ -35,11 +35,6 @@ class OrganisasiModel extends Model implements HasMedia
             ->withTimestamps();
     }
 
-    public function innovations(): HasMany
-    {
-        return $this->hasMany(InnovationModel::class, 'organisasi_id');
-    }
-
     public function risets(): HasMany
     {
         return $this->hasMany(RisetModel::class, 'organisasi_id');

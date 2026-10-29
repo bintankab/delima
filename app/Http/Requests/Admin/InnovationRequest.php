@@ -2,8 +2,10 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Enums\JenisInisiator;
 use App\Enums\JenisInovasi;
 use App\Enums\TahapanInovasi;
+use App\Models\InnovationModel;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -12,6 +14,13 @@ class InnovationRequest extends FormRequest
 {
     public function authorize(): bool
     {
+        $innovation = $this->route('innovation');
+
+        if ($innovation instanceof InnovationModel && $this->routeIs('admin.innovations.mine.update')) {
+            return $innovation->user_id === $this->user()?->id
+                && $innovation->status !== 'published';
+        }
+
         return true;
     }
 
@@ -21,7 +30,10 @@ class InnovationRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'organisasi_id' => ['required', 'integer', Rule::exists('organisasis', 'id')],
+            'inisiator' => [
+                Rule::requiredIf(fn (): bool => $this->user()?->hasRole('super-admin') ?? false),
+                Rule::enum(JenisInisiator::class),
+            ],
             'category_id' => ['required', 'integer', Rule::exists('innovation_categories', 'id')],
             'title' => ['required', 'string', 'max:255'],
             'jenis_inovasi' => ['required', Rule::enum(JenisInovasi::class)],
@@ -30,6 +42,7 @@ class InnovationRequest extends FormRequest
             'latar_belakang' => ['nullable', 'string'],
             'manfaat' => ['nullable', 'string'],
             'link_video' => ['nullable', 'string', 'max:255', 'url'],
+            'link_file_pendukung' => ['nullable', 'string', 'max:255', 'url'],
             'tahun' => ['required', 'integer', 'between:2021,'.now()->year],
             'testing_at' => ['nullable', 'date', 'after_or_equal:2021-01-01', 'before_or_equal:today'],
             'implementation_at' => ['required', 'date', 'after_or_equal:2021-01-01', 'before_or_equal:today'],
@@ -47,9 +60,8 @@ class InnovationRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'organisasi_id.required' => 'OPD asal wajib dipilih.',
-            'organisasi_id.integer' => 'OPD yang dipilih tidak ditemukan.',
-            'organisasi_id.exists' => 'OPD yang dipilih tidak ditemukan.',
+            'inisiator.required' => 'Jenis inisiator wajib dipilih.',
+            'inisiator.enum' => 'Jenis inisiator tidak valid.',
             'category_id.required' => 'Kategori wajib dipilih.',
             'category_id.integer' => 'Kategori yang dipilih tidak ditemukan.',
             'category_id.exists' => 'Kategori yang dipilih tidak ditemukan.',
@@ -62,6 +74,8 @@ class InnovationRequest extends FormRequest
             'description.required' => 'Deskripsi wajib diisi.',
             'link_video.url' => 'Link video tidak valid.',
             'link_video.max' => 'Link video terlalu panjang.',
+            'link_file_pendukung.url' => 'Link file pendukung tidak valid.',
+            'link_file_pendukung.max' => 'Link file pendukung terlalu panjang.',
             'tahun.required' => 'Tahun wajib diisi.',
             'tahun.integer' => 'Tahun harus berupa angka.',
             'tahun.between' => 'Tahun harus antara :min dan :max.',

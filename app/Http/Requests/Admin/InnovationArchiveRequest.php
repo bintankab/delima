@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Enums\JenisInisiator;
 use App\Enums\JenisInovasi;
 use App\Enums\TahapanInovasi;
 use Illuminate\Contracts\Validation\ValidationRule;
@@ -21,7 +22,7 @@ class InnovationArchiveRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'organisasi_id' => ['required', 'integer', Rule::exists('organisasis', 'id')],
+            'inisiator' => ['required', Rule::enum(JenisInisiator::class)],
             'category_id' => ['required', 'integer', Rule::exists('innovation_categories', 'id')],
             'title' => ['required', 'string', 'max:255'],
             'jenis_inovasi' => ['required', Rule::enum(JenisInovasi::class)],
@@ -30,6 +31,7 @@ class InnovationArchiveRequest extends FormRequest
             'latar_belakang' => ['nullable', 'string'],
             'manfaat' => ['nullable', 'string'],
             'link_video' => ['nullable', 'string', 'max:255', 'url'],
+            'link_file_pendukung' => ['nullable', 'string', 'max:255', 'url'],
             'tahun' => ['required', 'integer', 'between:2021,'.now()->year],
             'testing_at' => ['nullable', 'date', 'after_or_equal:2021-01-01', 'before_or_equal:today'],
             'implementation_at' => ['required', 'date', 'after_or_equal:2021-01-01', 'before_or_equal:today'],
@@ -45,9 +47,8 @@ class InnovationArchiveRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'organisasi_id.required' => 'OPD asal wajib dipilih.',
-            'organisasi_id.integer' => 'OPD yang dipilih tidak ditemukan.',
-            'organisasi_id.exists' => 'OPD yang dipilih tidak ditemukan.',
+            'inisiator.required' => 'Jenis inisiator wajib dipilih.',
+            'inisiator.enum' => 'Jenis inisiator tidak valid.',
             'category_id.required' => 'Kategori wajib dipilih.',
             'category_id.integer' => 'Kategori yang dipilih tidak ditemukan.',
             'category_id.exists' => 'Kategori yang dipilih tidak ditemukan.',
@@ -60,6 +61,8 @@ class InnovationArchiveRequest extends FormRequest
             'description.required' => 'Deskripsi wajib diisi.',
             'link_video.url' => 'Link video tidak valid.',
             'link_video.max' => 'Link video terlalu panjang.',
+            'link_file_pendukung.url' => 'Link file pendukung tidak valid.',
+            'link_file_pendukung.max' => 'Link file pendukung terlalu panjang.',
             'tahun.required' => 'Tahun wajib diisi.',
             'tahun.integer' => 'Tahun harus berupa angka.',
             'tahun.between' => 'Tahun harus antara :min dan :max.',

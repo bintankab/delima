@@ -1,6 +1,7 @@
 <script setup>
 import { ref } from 'vue';
-import { router, useForm } from '@inertiajs/vue3';
+import { router } from '@inertiajs/vue3';
+import { useAutoClearForm } from '@/Composables/useAutoClearForm';
 import Button from 'primevue/button';
 import DatePicker from 'primevue/datepicker';
 import FileUpload from 'primevue/fileupload';
@@ -32,7 +33,7 @@ const formatDate = (value) => {
     return `${value.getFullYear()}-${month}-${day}`;
 };
 
-const form = useForm({
+const form = useAutoClearForm({
     title: props.document?.title ?? '',
     nomor_dokumen: props.document?.nomor_dokumen ?? '',
     penyusun: props.document?.penyusun ?? '',

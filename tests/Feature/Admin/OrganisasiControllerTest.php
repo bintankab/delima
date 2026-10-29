@@ -2,7 +2,6 @@
 
 namespace Tests\Feature\Admin;
 
-use App\Models\InnovationModel;
 use App\Models\OrganisasiModel;
 use App\Models\UserModel;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -118,19 +117,6 @@ class OrganisasiControllerTest extends TestCase
             ->assertSessionHas('success');
 
         $this->assertDatabaseMissing('organisasis', ['id' => $organisasi->id]);
-    }
-
-    public function test_organisasi_with_an_innovation_cannot_be_deleted(): void
-    {
-        $organisasi = OrganisasiModel::factory()->create();
-        InnovationModel::factory()->create(['organisasi_id' => $organisasi->id]);
-
-        $this->actingAs($this->userWithRole('super-admin'))
-            ->delete(route('admin.organisasis.destroy', $organisasi))
-            ->assertRedirect()
-            ->assertSessionHas('error');
-
-        $this->assertDatabaseHas('organisasis', ['id' => $organisasi->id]);
     }
 
     public function test_organisasi_with_a_user_cannot_be_deleted(): void

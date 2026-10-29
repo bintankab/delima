@@ -1,10 +1,12 @@
 <script setup>
 import { ref } from 'vue';
 import { router } from '@inertiajs/vue3';
+import { useConfirm } from 'primevue/useconfirm';
 import Avatar from 'primevue/avatar';
 import Button from 'primevue/button';
 import Dialog from 'primevue/dialog';
 import Tag from 'primevue/tag';
+import Textarea from 'primevue/textarea';
 import { useToast } from 'primevue/usetoast';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { useVideoEmbed } from '@/Composables/useVideoEmbed';
@@ -14,13 +16,75 @@ defineOptions({ layout: AdminLayout });
 const props = defineProps({
     innovation: { type: Object, required: true },
     relatedInnovations: { type: Array, default: () => [] },
+    canManage: { type: Boolean, default: false },
+    backRoute: { type: String, default: 'admin.innovations.index' },
+    editRoute: { type: String, default: 'admin.innovations.edit' },
+    deleteRoute: { type: String, default: 'admin.innovations.destroy' },
 });
 
 const toast = useToast();
+const confirm = useConfirm();
 const { getEmbed } = useVideoEmbed();
 
 const videoDialogVisible = ref(false);
 const videoEmbed = getEmbed(props.innovation.link_video);
+
+const rejectDialogVisible = ref(false);
+const rejectCatatan = ref('');
+const rejectError = ref('');
+const reviewing = ref(false);
+
+const approve = () => {
+    confirm.require({
+        message: 'Setujui dan terbitkan inovasi ini?',
+        header: 'Setujui Inovasi',
+        icon: 'pi pi-check-circle',
+        rejectLabel: 'Batal',
+        acceptLabel: 'Setujui',
+        accept: () => {
+            reviewing.value = true;
+            router.post(route('admin.innovations.approve', props.innovation.id), {}, {
+                onFinish: () => { reviewing.value = false; },
+            });
+        },
+    });
+};
+
+const removeInnovation = () => {
+    confirm.require({
+        message: `Hapus inovasi "${props.innovation.title}"?`,
+        header: 'Hapus Inovasi',
+        icon: 'pi pi-exclamation-triangle',
+        rejectLabel: 'Batal',
+        acceptLabel: 'Hapus',
+        acceptClass: 'p-button-danger',
+        accept: () => router.delete(route(props.deleteRoute, props.innovation.id), {
+            data: { redirect_route: props.backRoute },
+        }),
+    });
+};
+
+const openRejectDialog = () => {
+    rejectCatatan.value = '';
+    rejectError.value = '';
+    rejectDialogVisible.value = true;
+};
+
+const submitReject = () => {
+    if (!rejectCatatan.value.trim()) {
+        rejectError.value = 'Alasan penolakan wajib diisi.';
+        return;
+    }
+
+    reviewing.value = true;
+    router.post(route('admin.innovations.reject', props.innovation.id), {
+        catatan: rejectCatatan.value,
+    }, {
+        onSuccess: () => { rejectDialogVisible.value = false; },
+        onError: (errors) => { rejectError.value = errors.catatan ?? ''; },
+        onFinish: () => { reviewing.value = false; },
+    });
+};
 
 const statusLabel = (status) => ({
     draft: 'Draf',
@@ -71,7 +135,7 @@ const copyLink = async () => {
                 icon="pi pi-arrow-left"
                 severity="secondary"
                 text
-                @click="router.visit(route('admin.innovations.index'))"
+                @click="router.visit(route(backRoute))"
             />
             <div class="flex gap-2">
                 <Button
@@ -82,12 +146,38 @@ const copyLink = async () => {
                     outlined
                     @click="videoDialogVisible = true"
                 />
-                <Button
-                    label="Ubah"
-                    icon="pi pi-pencil"
-                    severity="secondary"
-                    @click="router.visit(route('admin.innovations.edit', innovation.id))"
-                />
+                <template v-if="innovation.reviewable">
+                    <Button
+                        label="Tolak"
+                        icon="pi pi-times"
+                        severity="danger"
+                        outlined
+                        :disabled="reviewing"
+                        @click="openRejectDialog"
+                    />
+                    <Button
+                        label="Setujui"
+                        icon="pi pi-check"
+                        severity="success"
+                        :disabled="reviewing"
+                        @click="approve"
+                    />
+                </template>
+                <template v-if="canManage">
+                    <Button
+                        label="Ubah"
+                        icon="pi pi-pencil"
+                        severity="secondary"
+                        @click="router.visit(route(editRoute, innovation.id))"
+                    />
+                    <Button
+                        label="Hapus"
+                        icon="pi pi-trash"
+                        severity="danger"
+                        outlined
+                        @click="removeInnovation"
+                    />
+                </template>
             </div>
         </div>
 
@@ -146,6 +236,20 @@ const copyLink = async () => {
                     </ul>
                 </div>
 
+                <div v-if="innovation.link_file_pendukung">
+                    <h2 class="text-lg font-semibold text-surface-900 mb-2">Berkas Pendukung Lainnya</h2>
+                    <a
+                        :href="innovation.link_file_pendukung"
+                        target="_blank"
+                        rel="noopener"
+                        class="flex items-center gap-2 text-sm bg-surface-50 rounded-lg px-3 py-2 text-indigo-600 w-fit"
+                    >
+                        <i class="pi pi-google" />
+                        <span class="truncate">Buka link Google Drive</span>
+                        <i class="pi pi-external-link text-xs" />
+                    </a>
+                </div>
+
                 <div class="border-t border-surface-200 pt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div class="flex items-center gap-3">
                         <Avatar :label="initials(innovation.user)" shape="circle" size="large" class="!bg-indigo-600 !text-white" />
@@ -195,16 +299,34 @@ const copyLink = async () => {
                     <p class="text-sm text-surface-800 mt-1">{{ innovation.category ?? '—' }}</p>
                 </div>
                 <div class="pb-4 border-b border-surface-200">
-                    <h3 class="text-xs font-medium text-surface-500 uppercase">OPD</h3>
-                    <p class="text-sm text-surface-800 mt-1">{{ innovation.organisasi ?? '—' }}</p>
+                    <h3 class="text-xs font-medium text-surface-500 uppercase">Jenis Inisiator</h3>
+                    <p class="text-sm text-surface-800 mt-1">{{ innovation.inisiator_label ?? '—' }}</p>
                 </div>
                 <div class="pb-4 border-b border-surface-200">
                     <h3 class="text-xs font-medium text-surface-500 uppercase">Jenis &amp; Tahapan</h3>
                     <p class="text-sm text-surface-800 mt-1">{{ innovation.jenis_inovasi_label ?? '—' }} &middot; {{ innovation.tahapan_label ?? '—' }}</p>
                 </div>
-                <div>
+                <div :class="{ 'pb-4 border-b border-surface-200': innovation.reviews.length }">
                     <h3 class="text-xs font-medium text-surface-500 uppercase">Tahun</h3>
                     <p class="text-sm text-surface-800 mt-1">{{ innovation.tahun }}</p>
+                </div>
+                <div v-if="innovation.reviews.length" class="flex flex-col gap-3">
+                    <h3 class="text-xs font-medium text-surface-500 uppercase">Riwayat Review</h3>
+                    <div
+                        v-for="review in innovation.reviews"
+                        :key="review.id"
+                        class="rounded-lg bg-surface-50 p-3 text-sm"
+                    >
+                        <div class="flex items-center justify-between gap-2">
+                            <Tag
+                                :value="review.status === 'approved' ? 'Disetujui' : 'Ditolak'"
+                                :severity="review.status === 'approved' ? 'success' : 'danger'"
+                            />
+                            <span class="text-xs text-surface-500">{{ review.reviewed_at }}</span>
+                        </div>
+                        <p class="text-surface-700 mt-2">{{ review.catatan ?? '—' }}</p>
+                        <p class="text-xs text-surface-500 mt-1">oleh {{ review.reviewer ?? '—' }}</p>
+                    </div>
                 </div>
             </aside>
         </div>
@@ -227,7 +349,7 @@ const copyLink = async () => {
                     <div class="min-w-0">
                         <p class="text-xs text-surface-500">{{ item.implementation_at ?? '—' }} &middot; {{ item.read_minutes }} menit</p>
                         <p class="font-semibold text-surface-900 truncate">{{ item.title }}</p>
-                        <p class="text-xs text-surface-500 mt-1">{{ item.organisasi ?? '—' }}</p>
+                        <p class="text-xs text-surface-500 mt-1">{{ item.inisiator_label ?? '—' }}</p>
                     </div>
                 </button>
             </div>
@@ -255,6 +377,22 @@ const copyLink = async () => {
                     Video tidak tampil? Buka di tab baru &rarr;
                 </a>
             </div>
+        </Dialog>
+
+        <Dialog
+            v-model:visible="rejectDialogVisible"
+            header="Tolak Inovasi"
+            modal
+            dismissable-mask
+            :style="{ width: '32rem', maxWidth: '95vw' }"
+        >
+            <p class="text-sm text-surface-600 mb-3">Jelaskan alasan penolakan agar pengusul dapat memperbaikinya.</p>
+            <Textarea v-model="rejectCatatan" rows="4" class="w-full" autofocus />
+            <p v-if="rejectError" class="text-sm text-red-600 mt-1">{{ rejectError }}</p>
+            <template #footer>
+                <Button label="Batal" severity="secondary" text @click="rejectDialogVisible = false" />
+                <Button label="Tolak Inovasi" severity="danger" :loading="reviewing" @click="submitReject" />
+            </template>
         </Dialog>
     </div>
 </template>

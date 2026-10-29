@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\JenisInisiator;
 use App\Models\InnovationModel;
 use App\Models\NewsModel;
 use App\Models\OrganisasiModel;
@@ -165,16 +166,16 @@ class PublicController extends Controller
     {
         $search = mb_substr($request->string('search')->trim()->toString(), 0, 100);
         $tahun = $request->integer('tahun') ?: null;
-        $organisasiId = $request->integer('organisasi_id') ?: null;
+        $inisiator = $request->string('inisiator')->trim()->toString() ?: null;
 
         $innovations = InnovationModel::query()
             ->where('status', 'published')
-            ->with(['organisasi:id,name', 'category:id,name'])
+            ->with(['category:id,name'])
             ->when($search !== '', function ($query) use ($search): void {
                 $query->where('title', 'like', '%'.addcslashes($search, '%_\\').'%');
             })
             ->when($tahun !== null, fn ($query) => $query->where('tahun', $tahun))
-            ->when($organisasiId !== null, fn ($query) => $query->where('organisasi_id', $organisasiId))
+            ->when($inisiator !== null, fn ($query) => $query->where('inisiator', $inisiator))
             ->latest('implementation_at')
             ->paginate(9)
             ->withQueryString()
@@ -185,7 +186,7 @@ class PublicController extends Controller
                 'description' => $this->excerpt($innovation->description, 50),
                 'jenis_inovasi_label' => $innovation->jenis_inovasi?->label(),
                 'tahun' => $innovation->tahun,
-                'organisasi' => $innovation->organisasi?->name,
+                'inisiator_label' => $innovation->inisiator?->label(),
                 'category' => $innovation->category?->name,
                 'cover' => $innovation->getFirstMedia('cover')?->getUrl('thumb'),
             ]);
@@ -199,7 +200,7 @@ class PublicController extends Controller
             'filters' => [
                 'search' => $search,
                 'tahun' => $tahun,
-                'organisasi_id' => $organisasiId,
+                'inisiator' => $inisiator,
             ],
             'filterOptions' => [
                 'years' => InnovationModel::query()
@@ -207,10 +208,7 @@ class PublicController extends Controller
                     ->distinct()
                     ->orderByDesc('tahun')
                     ->pluck('tahun'),
-                'organisasis' => OrganisasiModel::query()
-                    ->whereHas('innovations', fn ($query) => $query->where('status', 'published'))
-                    ->orderBy('name')
-                    ->get(['id', 'name']),
+                'inisiators' => JenisInisiator::options(),
             ],
         ]);
     }
@@ -221,7 +219,7 @@ class PublicController extends Controller
 
         $this->recordView($innovation, 'innovation');
 
-        $innovation->load(['organisasi:id,name', 'category:id,name']);
+        $innovation->load(['category:id,name']);
         $cover = $innovation->getFirstMedia('cover');
 
         return Inertia::render('Public/Innovations/Show', [
@@ -238,10 +236,11 @@ class PublicController extends Controller
                 'latar_belakang' => $innovation->latar_belakang,
                 'manfaat' => $innovation->manfaat,
                 'link_video' => $innovation->link_video,
+                'link_file_pendukung' => $innovation->link_file_pendukung,
                 'tahun' => $innovation->tahun,
                 'testing_at' => $innovation->testing_at?->toDateString(),
                 'implementation_at' => $innovation->implementation_at?->toDateString(),
-                'organisasi' => $innovation->organisasi?->name,
+                'inisiator_label' => $innovation->inisiator?->label(),
                 'category' => $innovation->category?->name,
                 'views_count' => $innovation->views_count,
                 'read_minutes' => $this->readMinutes($innovation->description),
@@ -319,7 +318,6 @@ class PublicController extends Controller
                 $innovation->category_id,
                 fn ($query) => $query->where('category_id', $innovation->category_id),
             )
-            ->with('organisasi:id,name')
             ->latest('implementation_at')
             ->take(2)
             ->get()
@@ -328,7 +326,7 @@ class PublicController extends Controller
                 'title' => $related->title,
                 'slug' => $related->slug,
                 'cover' => $related->getFirstMedia('cover')?->getUrl('thumb'),
-                'organisasi' => $related->organisasi?->name,
+                'inisiator_label' => $related->inisiator?->label(),
                 'implementation_at' => $related->implementation_at?->toDateString(),
                 'read_minutes' => $this->readMinutes($related->description),
             ])

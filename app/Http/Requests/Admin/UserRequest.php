@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Models\UserModel;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -9,11 +10,21 @@ use Illuminate\Validation\Rules\Password;
 
 class UserRequest extends FormRequest
 {
-    public const ASSIGNABLE_ROLES = ['super-admin', 'admin-opd', 'reviewer'];
+    public const SUPER_ADMIN_ASSIGNABLE_ROLES = ['super-admin', 'admin-opd', 'reviewer', 'bupati', 'dprd', 'asn', 'publik'];
+
+    public const ADMIN_OPD_ASSIGNABLE_ROLES = ['asn'];
 
     public function authorize(): bool
     {
         return true;
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function assignableRolesFor(UserModel $actor): array
+    {
+        return $actor->hasRole('super-admin') ? self::SUPER_ADMIN_ASSIGNABLE_ROLES : self::ADMIN_OPD_ASSIGNABLE_ROLES;
     }
 
     /**
@@ -22,6 +33,8 @@ class UserRequest extends FormRequest
     public function rules(): array
     {
         $user = $this->route('user');
+        $actor = $this->user();
+        $allowedRoles = self::assignableRolesFor($actor);
 
         return [
             'name' => ['required', 'string', 'max:255'],
@@ -39,9 +52,9 @@ class UserRequest extends FormRequest
                 Password::defaults(),
             ],
             'is_active' => ['boolean'],
-            'role' => ['required', Rule::in(self::ASSIGNABLE_ROLES)],
+            'role' => ['required', Rule::in($allowedRoles)],
             'organisasi_id' => [
-                Rule::requiredIf($this->input('role') === 'admin-opd'),
+                Rule::requiredIf(fn (): bool => $actor->hasRole('super-admin') && in_array($this->input('role'), ['admin-opd', 'asn'], true)),
                 'nullable',
                 'integer',
                 Rule::exists('organisasis', 'id'),

@@ -14,6 +14,25 @@ use App\Http\Controllers\Admin\RisetController;
 use App\Http\Controllers\Admin\UserController;
 use Illuminate\Support\Facades\Route;
 
+Route::middleware(['auth', 'role:super-admin|admin-opd|bupati|dprd|asn|publik'])
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function () {
+        Route::get('innovations/create', [InnovationController::class, 'create'])->name('innovations.create');
+        Route::post('innovations', [InnovationController::class, 'store'])->name('innovations.store');
+    });
+
+Route::middleware(['auth', 'role:admin-opd|bupati|dprd|asn|publik'])
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function () {
+        Route::get('innovations/mine', [InnovationController::class, 'mine'])->name('innovations.mine');
+        Route::get('innovations/mine/{innovation}', [InnovationController::class, 'showMine'])->name('innovations.mine.show');
+        Route::get('innovations/mine/{innovation}/edit', [InnovationController::class, 'editMine'])->name('innovations.mine.edit');
+        Route::put('innovations/mine/{innovation}', [InnovationController::class, 'updateMine'])->name('innovations.mine.update');
+        Route::delete('innovations/mine/{innovation}', [InnovationController::class, 'destroyMine'])->name('innovations.mine.destroy');
+    });
+
 Route::middleware(['auth', 'role:super-admin|admin-opd|reviewer'])
     ->prefix('admin')
     ->name('admin.')
@@ -34,7 +53,7 @@ Route::middleware(['auth', 'role:super-admin|admin-opd|reviewer'])
 
         Route::resource('users', UserController::class)
             ->except(['show'])
-            ->middleware('role:super-admin');
+            ->middleware('role:super-admin|admin-opd');
 
         Route::resource('library-documents', LibraryDocumentController::class)
             ->except(['show'])
@@ -65,6 +84,14 @@ Route::middleware(['auth', 'role:super-admin|admin-opd|reviewer'])
                 fn () => app(PlaceholderController::class)->show($title)
             )->name($name);
         }
+    });
+
+Route::middleware(['auth', 'role:super-admin|reviewer'])
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function () {
+        Route::post('innovations/{innovation}/approve', [InnovationController::class, 'approve'])->name('innovations.approve');
+        Route::post('innovations/{innovation}/reject', [InnovationController::class, 'reject'])->name('innovations.reject');
     });
 
 Route::middleware(['auth', 'role:super-admin'])

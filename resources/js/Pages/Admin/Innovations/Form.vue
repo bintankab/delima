@@ -1,6 +1,7 @@
 <script setup>
 import { computed, ref } from 'vue';
-import { router, useForm } from '@inertiajs/vue3';
+import { router, usePage } from '@inertiajs/vue3';
+import { useAutoClearForm } from '@/Composables/useAutoClearForm';
 import Button from 'primevue/button';
 import DatePicker from 'primevue/datepicker';
 import FileUpload from 'primevue/fileupload';
@@ -15,14 +16,37 @@ import RichTextEditor from '@/Components/RichTextEditor.vue';
 defineOptions({ layout: AdminLayout });
 
 const confirm = useConfirm();
+const page = usePage();
 
 const props = defineProps({
-    innovation: { type: Object, required: true },
-    organisasis: { type: Array, required: true },
+    innovation: { type: Object, default: null },
     categories: { type: Array, required: true },
     jenisOptions: { type: Array, required: true },
     tahapanOptions: { type: Array, required: true },
+    inisiatorOptions: { type: Array, required: true },
+    inisiator: { type: String, default: null },
+    inisiatorLocked: { type: Boolean, default: false },
     maxYear: { type: Number, required: true },
+    updateRoute: { type: String, default: 'admin.innovations.update' },
+    showRoute: { type: String, default: 'admin.innovations.show' },
+});
+
+const isEditing = computed(() => props.innovation !== null);
+
+const inisiatorLabel = computed(
+    () => props.inisiatorOptions.find((option) => option.id === form.inisiator)?.name ?? '—',
+);
+
+const canAccessIndex = computed(
+    () => ['super-admin', 'admin-opd'].some((role) => (page.props.auth?.roles ?? []).includes(role)),
+);
+
+const cancelHref = computed(() => {
+    if (isEditing.value) {
+        return route(props.showRoute, props.innovation.id);
+    }
+
+    return canAccessIndex.value ? route('admin.innovations.index') : route('home');
 });
 
 const minDate = new Date(2021, 0, 1);
@@ -30,25 +54,26 @@ const maxDate = new Date();
 
 const toDate = (value) => (value ? new Date(`${value}T00:00:00`) : null);
 
-const form = useForm({
-    organisasi_id: props.innovation.organisasi_id,
-    category_id: props.innovation.category_id,
-    title: props.innovation.title,
-    jenis_inovasi: props.innovation.jenis_inovasi,
-    tahapan: props.innovation.tahapan,
-    description: props.innovation.description,
-    latar_belakang: props.innovation.latar_belakang ?? '',
-    manfaat: props.innovation.manfaat ?? '',
-    link_video: props.innovation.link_video ?? '',
-    tahun: props.innovation.tahun,
-    testing_at: toDate(props.innovation.testing_at),
-    implementation_at: toDate(props.innovation.implementation_at),
+const form = useAutoClearForm({
+    inisiator: props.innovation?.inisiator ?? props.inisiator,
+    category_id: props.innovation?.category_id ?? null,
+    title: props.innovation?.title ?? '',
+    jenis_inovasi: props.innovation?.jenis_inovasi ?? null,
+    tahapan: props.innovation?.tahapan ?? null,
+    description: props.innovation?.description ?? '',
+    latar_belakang: props.innovation?.latar_belakang ?? '',
+    manfaat: props.innovation?.manfaat ?? '',
+    link_video: props.innovation?.link_video ?? '',
+    link_file_pendukung: props.innovation?.link_file_pendukung ?? '',
+    tahun: props.innovation?.tahun ?? null,
+    testing_at: toDate(props.innovation?.testing_at),
+    implementation_at: toDate(props.innovation?.implementation_at),
     cover: null,
     documents: [],
     remove_document_ids: [],
 });
 
-const existingDocuments = ref([...props.innovation.documents]);
+const existingDocuments = ref(props.innovation ? [...props.innovation.documents] : []);
 const newCoverPreview = ref(null);
 
 const formatDate = (value) => {
@@ -110,40 +135,48 @@ const documentErrors = computed(() => Object.entries(form.errors)
     .map(([, message]) => message));
 
 const submit = () => {
-    form.transform((data) => ({
+    const transformed = form.transform((data) => ({
         ...data,
         testing_at: formatDate(data.testing_at),
         implementation_at: formatDate(data.implementation_at),
         link_video: data.link_video || null,
-        _method: 'put',
-    })).post(route('admin.innovations.update', props.innovation.id), {
-        forceFormData: true,
-    });
+        link_file_pendukung: data.link_file_pendukung || null,
+        ...(isEditing.value ? { _method: 'put' } : {}),
+    }));
+
+    if (isEditing.value) {
+        transformed.post(route(props.updateRoute, props.innovation.id), { forceFormData: true });
+
+        return;
+    }
+
+    transformed.post(route('admin.innovations.store'), { forceFormData: true });
 };
 </script>
 
 <template>
     <div class="max-w-3xl bg-white rounded-xl border border-surface-200 p-6">
         <div class="mb-5">
-            <h1 class="text-xl font-semibold text-surface-900">Ubah Inovasi</h1>
-            <p class="text-sm text-surface-500 mt-1">Slug: {{ innovation.slug }}</p>
+            <h1 class="text-xl font-semibold text-surface-900">{{ isEditing ? 'Ubah Inovasi' : 'Ajukan Inovasi' }}</h1>
+            <p v-if="isEditing" class="text-sm text-surface-500 mt-1">Slug: {{ innovation.slug }}</p>
         </div>
 
         <form class="flex flex-col gap-4" @submit.prevent="submit">
             <div class="grid gap-4 sm:grid-cols-2">
                 <div class="flex flex-col gap-1.5">
-                    <label for="organisasi_id" class="text-sm font-medium text-surface-700">OPD asal</label>
+                    <label for="inisiator" class="text-sm font-medium text-surface-700">Jenis Inisiator</label>
                     <Select
-                        input-id="organisasi_id"
-                        v-model="form.organisasi_id"
-                        :options="organisasis"
+                        v-if="!inisiatorLocked"
+                        input-id="inisiator"
+                        v-model="form.inisiator"
+                        :options="inisiatorOptions"
                         option-label="name"
                         option-value="id"
-                        placeholder="Pilih OPD"
-                        filter
+                        placeholder="Pilih jenis inisiator"
                         class="w-full"
                     />
-                    <small v-if="form.errors.organisasi_id" class="text-rose-600">{{ form.errors.organisasi_id }}</small>
+                    <InputText v-else id="inisiator" :model-value="inisiatorLabel" disabled class="w-full" />
+                    <small v-if="form.errors.inisiator" class="text-rose-600">{{ form.errors.inisiator }}</small>
                 </div>
 
                 <div class="flex flex-col gap-1.5">
@@ -191,6 +224,7 @@ const submit = () => {
                         :min="2021"
                         :max="maxYear"
                         :use-grouping="false"
+                        :pt="{ pcInputText: { root: { maxlength: 4, inputmode: 'numeric' } } }"
                         class="w-full"
                     />
                     <small v-if="form.errors.tahun" class="text-rose-600">{{ form.errors.tahun }}</small>
@@ -273,8 +307,22 @@ const submit = () => {
             </div>
 
             <div class="flex flex-col gap-1.5">
+                <label for="link_file_pendukung" class="text-sm font-medium text-surface-700">Link File Pendukung</label>
+                <InputText
+                    id="link_file_pendukung"
+                    v-model="form.link_file_pendukung"
+                    placeholder="https://drive.google.com/..."
+                    class="w-full"
+                />
+                <small class="text-surface-400">
+                    Untuk berkas berukuran besar, unggah ke Google Drive lalu tempel tautannya di sini (pastikan akses "siapa saja dengan tautan" diaktifkan).
+                </small>
+                <small v-if="form.errors.link_file_pendukung" class="text-rose-600">{{ form.errors.link_file_pendukung }}</small>
+            </div>
+
+            <div class="flex flex-col gap-1.5">
                 <span class="text-sm font-medium text-surface-700">Cover</span>
-                <div v-if="innovation.cover && !newCoverPreview" class="flex items-center gap-3">
+                <div v-if="innovation?.cover && !newCoverPreview" class="flex items-center gap-3">
                     <img :src="innovation.cover.thumb" alt="Cover saat ini" class="w-24 h-18 rounded-lg object-cover border border-surface-200" />
                     <span class="text-xs text-surface-500">Cover saat ini. Pilih gambar baru untuk menggantinya.</span>
                 </div>
@@ -372,7 +420,7 @@ const submit = () => {
                     type="button"
                     label="Batal"
                     severity="secondary"
-                    @click="router.visit(route('admin.innovations.show', innovation.id))"
+                    @click="router.visit(cancelHref)"
                 />
             </div>
         </form>

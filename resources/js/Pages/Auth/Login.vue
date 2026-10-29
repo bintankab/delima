@@ -1,5 +1,6 @@
 <script setup>
-import { useForm } from '@inertiajs/vue3';
+import { Link, usePage } from '@inertiajs/vue3';
+import { useAutoClearForm } from '@/Composables/useAutoClearForm';
 import InputText from 'primevue/inputtext';
 import Password from 'primevue/password';
 import Checkbox from 'primevue/checkbox';
@@ -7,9 +8,11 @@ import Button from 'primevue/button';
 import Message from 'primevue/message';
 import AuthLayout from '@/Layouts/AuthLayout.vue';
 
+const page = usePage();
+
 defineOptions({ layout: AuthLayout });
 
-const form = useForm({
+const form = useAutoClearForm({
     email: '',
     password: '',
     remember: false,
@@ -25,6 +28,10 @@ const submit = () => {
 <template>
     <form class="flex flex-col gap-4" @submit.prevent="submit">
         <h1 class="text-lg font-semibold text-surface-900">Masuk</h1>
+
+        <Message v-if="page.props.flash?.success" severity="success" :closable="false">
+            {{ page.props.flash.success }}
+        </Message>
 
         <Message v-if="form.errors.email" severity="error" :closable="false">
             {{ form.errors.email }}
@@ -54,5 +61,10 @@ const submit = () => {
         </div>
 
         <Button type="submit" label="Masuk" class="w-full" :loading="form.processing" />
+
+        <p class="text-sm text-surface-500 text-center">
+            Belum punya akun?
+            <Link :href="route('register')" class="text-indigo-600 font-medium">Daftar sebagai masyarakat</Link>
+        </p>
     </form>
 </template>

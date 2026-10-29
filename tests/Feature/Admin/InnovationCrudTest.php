@@ -2,11 +2,11 @@
 
 namespace Tests\Feature\Admin;
 
+use App\Enums\JenisInisiator;
 use App\Enums\JenisInovasi;
 use App\Enums\TahapanInovasi;
 use App\Models\InnovationCategoryModel;
 use App\Models\InnovationModel;
-use App\Models\OrganisasiModel;
 use App\Models\UserModel;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -31,6 +31,64 @@ class InnovationCrudTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Admin/Innovations/Show')
                 ->where('innovation.id', $innovation->id));
+    }
+
+    public function test_super_admin_can_manage_any_innovation_from_the_show_page(): void
+    {
+        $innovation = InnovationModel::factory()->create(['status' => 'submitted']);
+
+        $this->actingAs($this->userWithRole('super-admin'))
+            ->get(route('admin.innovations.show', $innovation))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('canManage', true)
+                ->where('editRoute', 'admin.innovations.edit')
+                ->where('deleteRoute', 'admin.innovations.destroy'));
+    }
+
+    public function test_admin_opd_can_manage_its_own_unapproved_innovation_from_the_show_page(): void
+    {
+        $owner = $this->userWithRole('admin-opd');
+        $innovation = InnovationModel::factory()->create(['user_id' => $owner->id, 'status' => 'submitted']);
+
+        $this->actingAs($owner)
+            ->get(route('admin.innovations.show', $innovation))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('canManage', true)
+                ->where('editRoute', 'admin.innovations.mine.edit')
+                ->where('deleteRoute', 'admin.innovations.mine.destroy'));
+    }
+
+    public function test_admin_opd_cannot_manage_someone_elses_innovation_from_the_show_page(): void
+    {
+        $innovation = InnovationModel::factory()->create(['status' => 'submitted']);
+
+        $this->actingAs($this->userWithRole('admin-opd'))
+            ->get(route('admin.innovations.show', $innovation))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page->where('canManage', false));
+    }
+
+    public function test_admin_opd_cannot_manage_its_own_already_approved_innovation_from_the_show_page(): void
+    {
+        $owner = $this->userWithRole('admin-opd');
+        $innovation = InnovationModel::factory()->create(['user_id' => $owner->id, 'status' => 'published']);
+
+        $this->actingAs($owner)
+            ->get(route('admin.innovations.show', $innovation))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page->where('canManage', false));
+    }
+
+    public function test_reviewer_cannot_manage_an_innovation_from_the_show_page(): void
+    {
+        $innovation = InnovationModel::factory()->create(['status' => 'submitted']);
+
+        $this->actingAs($this->userWithRole('reviewer'))
+            ->get(route('admin.innovations.show', $innovation))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page->where('canManage', false));
     }
 
     #[DataProvider('unprivilegedRoles')]
@@ -70,12 +128,11 @@ class InnovationCrudTest extends TestCase
     public function test_super_admin_updates_innovation_fields(): void
     {
         $innovation = InnovationModel::factory()->create(['title' => 'Judul Lama']);
-        $organisasi = OrganisasiModel::factory()->create();
         $category = InnovationCategoryModel::factory()->create();
 
         $this->actingAs($this->userWithRole('super-admin'))
             ->put(route('admin.innovations.update', $innovation), [
-                'organisasi_id' => $organisasi->id,
+                'inisiator' => JenisInisiator::DPRD->value,
                 'category_id' => $category->id,
                 'title' => 'Judul Baru',
                 'jenis_inovasi' => JenisInovasi::NonDigital->value,
@@ -94,8 +151,53 @@ class InnovationCrudTest extends TestCase
         $this->assertSame('judul-baru', $innovation->slug);
         $this->assertSame(JenisInovasi::NonDigital, $innovation->jenis_inovasi);
         $this->assertSame(TahapanInovasi::UjiCoba, $innovation->tahapan);
-        $this->assertSame($organisasi->id, $innovation->organisasi_id);
+        $this->assertSame(JenisInisiator::DPRD, $innovation->inisiator);
         $this->assertSame($category->id, $innovation->category_id);
+    }
+
+    public function test_super_admin_can_set_a_google_drive_support_link(): void
+    {
+        $innovation = InnovationModel::factory()->create(['category_id' => InnovationCategoryModel::factory()->create()->id]);
+
+        $this->actingAs($this->userWithRole('super-admin'))
+            ->put(route('admin.innovations.update', $innovation), [
+                'inisiator' => $innovation->inisiator->value,
+                'category_id' => $innovation->category_id,
+                'title' => $innovation->title,
+                'jenis_inovasi' => $innovation->jenis_inovasi->value,
+                'tahapan' => $innovation->tahapan->value,
+                'description' => $innovation->description,
+                'tahun' => $innovation->tahun,
+                'implementation_at' => $innovation->implementation_at->toDateString(),
+                'link_file_pendukung' => 'https://drive.google.com/drive/folders/abc123',
+            ])
+            ->assertRedirect(route('admin.innovations.show', $innovation));
+
+        $this->assertSame('https://drive.google.com/drive/folders/abc123', $innovation->fresh()->link_file_pendukung);
+
+        $this->actingAs($this->userWithRole('super-admin'))
+            ->get(route('admin.innovations.show', $innovation))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('innovation.link_file_pendukung', 'https://drive.google.com/drive/folders/abc123'));
+    }
+
+    public function test_link_file_pendukung_must_be_a_valid_url(): void
+    {
+        $innovation = InnovationModel::factory()->create(['category_id' => InnovationCategoryModel::factory()->create()->id]);
+
+        $this->actingAs($this->userWithRole('super-admin'))
+            ->put(route('admin.innovations.update', $innovation), [
+                'inisiator' => $innovation->inisiator->value,
+                'category_id' => $innovation->category_id,
+                'title' => $innovation->title,
+                'jenis_inovasi' => $innovation->jenis_inovasi->value,
+                'tahapan' => $innovation->tahapan->value,
+                'description' => $innovation->description,
+                'tahun' => $innovation->tahun,
+                'implementation_at' => $innovation->implementation_at->toDateString(),
+                'link_file_pendukung' => 'bukan-url',
+            ])
+            ->assertSessionHasErrors(['link_file_pendukung' => 'Link file pendukung tidak valid.']);
     }
 
     public function test_super_admin_can_replace_cover_and_manage_documents(): void
@@ -116,7 +218,7 @@ class InnovationCrudTest extends TestCase
 
         $this->actingAs($this->userWithRole('super-admin'))
             ->put(route('admin.innovations.update', $innovation), [
-                'organisasi_id' => $innovation->organisasi_id,
+                'inisiator' => $innovation->inisiator->value,
                 'category_id' => $innovation->category_id,
                 'title' => $innovation->title,
                 'jenis_inovasi' => $innovation->jenis_inovasi->value,

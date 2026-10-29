@@ -92,13 +92,27 @@ const shareWhatsapp = () => {
                     <DocumentList :documents="innovation.documents" />
                 </div>
 
+                <div v-if="innovation.link_file_pendukung">
+                    <h2 class="text-lg font-semibold text-surface-900 mb-2">Berkas Pendukung Lainnya</h2>
+                    <a
+                        :href="innovation.link_file_pendukung"
+                        target="_blank"
+                        rel="noopener"
+                        class="flex items-center gap-2 text-sm bg-surface-50 rounded-lg px-3 py-2 text-indigo-600 w-fit"
+                    >
+                        <i class="pi pi-google" />
+                        <span class="truncate">Buka link Google Drive</span>
+                        <i class="pi pi-external-link text-xs" />
+                    </a>
+                </div>
+
                 <div class="border-t border-surface-200 pt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div class="flex items-center gap-3">
                         <div class="w-12 h-12 rounded-full bg-indigo-600 text-white flex items-center justify-center font-semibold shrink-0">
-                            {{ initials(innovation.organisasi) }}
+                            {{ initials(innovation.inisiator_label) }}
                         </div>
                         <div>
-                            <p class="font-semibold text-surface-900">{{ innovation.organisasi ?? 'Pemerintah Kabupaten Bintan' }}</p>
+                            <p class="font-semibold text-surface-900">{{ innovation.inisiator_label ?? 'Pemerintah Kabupaten Bintan' }}</p>
                             <p class="text-sm text-surface-500">{{ innovation.category ?? '—' }} &middot; {{ innovation.read_minutes }} menit baca</p>
                         </div>
                     </div>
@@ -131,8 +145,8 @@ const shareWhatsapp = () => {
                     <p class="text-sm text-surface-800 mt-1">{{ innovation.category ?? '—' }}</p>
                 </div>
                 <div class="pb-4 border-b border-surface-200">
-                    <h3 class="text-xs font-medium text-surface-500 uppercase">OPD</h3>
-                    <p class="text-sm text-surface-800 mt-1">{{ innovation.organisasi ?? '—' }}</p>
+                    <h3 class="text-xs font-medium text-surface-500 uppercase">Jenis Inisiator</h3>
+                    <p class="text-sm text-surface-800 mt-1">{{ innovation.inisiator_label ?? '—' }}</p>
                 </div>
                 <div class="pb-4 border-b border-surface-200">
                     <h3 class="text-xs font-medium text-surface-500 uppercase">Jenis Inovasi</h3>
@@ -163,7 +177,7 @@ const shareWhatsapp = () => {
                     <div class="min-w-0">
                         <p class="text-xs text-surface-500">{{ item.implementation_at ?? '—' }} &middot; {{ item.read_minutes }} menit</p>
                         <p class="font-semibold text-surface-900 truncate">{{ item.title }}</p>
-                        <p class="text-xs text-surface-500 mt-1">{{ item.organisasi ?? '—' }}</p>
+                        <p class="text-xs text-surface-500 mt-1">{{ item.inisiator_label ?? '—' }}</p>
                     </div>
                 </button>
             </div>

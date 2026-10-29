@@ -17,16 +17,16 @@ const props = defineProps({
 
 const search = ref(props.filters.search ?? '');
 const tahun = ref(props.filters.tahun ?? null);
-const organisasiId = ref(props.filters.organisasi_id ?? null);
+const inisiator = ref(props.filters.inisiator ?? null);
 const loading = ref(false);
 
-const hasActiveFilters = () => search.value !== '' || tahun.value !== null || organisasiId.value !== null;
+const hasActiveFilters = () => search.value !== '' || tahun.value !== null || inisiator.value !== null;
 
 const applyFilters = () => {
     router.get(route('inovasi'), {
         search: search.value,
         tahun: tahun.value,
-        organisasi_id: organisasiId.value,
+        inisiator: inisiator.value,
     }, {
         preserveState: true,
         replace: true,
@@ -38,7 +38,7 @@ const applyFilters = () => {
 const resetFilters = () => {
     search.value = '';
     tahun.value = null;
-    organisasiId.value = null;
+    inisiator.value = null;
     applyFilters();
 };
 
@@ -46,7 +46,7 @@ const onPage = (event) => {
     router.get(route('inovasi'), {
         search: props.filters.search,
         tahun: props.filters.tahun,
-        organisasi_id: props.filters.organisasi_id,
+        inisiator: props.filters.inisiator,
         page: event.page + 1,
     }, {
         preserveState: true,
@@ -90,16 +90,15 @@ const onPage = (event) => {
             </div>
 
             <div class="flex flex-col gap-1.5">
-                <label for="organisasi_id" class="text-sm font-medium text-surface-700">Organisasi</label>
+                <label for="inisiator" class="text-sm font-medium text-surface-700">Jenis Inisiator</label>
                 <Select
-                    input-id="organisasi_id"
-                    v-model="organisasiId"
-                    :options="filterOptions.organisasis"
+                    input-id="inisiator"
+                    v-model="inisiator"
+                    :options="filterOptions.inisiators"
                     option-label="name"
                     option-value="id"
-                    placeholder="Semua organisasi"
+                    placeholder="Semua inisiator"
                     show-clear
-                    filter
                     class="w-full"
                 />
             </div>
@@ -142,7 +141,7 @@ const onPage = (event) => {
                     </div>
                     <h2 class="font-semibold text-surface-900 leading-snug">{{ innovation.title }}</h2>
                     <p class="text-sm text-surface-600 flex-1">{{ innovation.description }}</p>
-                    <p v-if="innovation.organisasi" class="text-xs text-surface-400 mt-1">{{ innovation.organisasi }}</p>
+                    <p v-if="innovation.inisiator_label" class="text-xs text-surface-400 mt-1">{{ innovation.inisiator_label }}</p>
                 </div>
             </Link>
 

@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue';
-import { router, useForm } from '@inertiajs/vue3';
+import { router } from '@inertiajs/vue3';
+import { useAutoClearForm } from '@/Composables/useAutoClearForm';
 import Button from 'primevue/button';
 import DatePicker from 'primevue/datepicker';
 import FileUpload from 'primevue/fileupload';
@@ -22,7 +23,7 @@ defineProps({
 const minDate = new Date(2021, 0, 1);
 const maxDate = new Date();
 
-const form = useForm({
+const form = useAutoClearForm({
     organisasi_id: null,
     category_id: null,
     title: '',
@@ -149,6 +150,7 @@ const submit = () => {
                         :min="2021"
                         :max="maxYear"
                         :use-grouping="false"
+                        :pt="{ pcInputText: { root: { maxlength: 4, inputmode: 'numeric' } } }"
                         class="w-full"
                     />
                     <small v-if="form.errors.tahun" class="text-rose-600">{{ form.errors.tahun }}</small>

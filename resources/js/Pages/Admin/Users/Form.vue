@@ -1,5 +1,6 @@
 <script setup>
-import { router, useForm } from '@inertiajs/vue3';
+import { router } from '@inertiajs/vue3';
+import { useAutoClearForm } from '@/Composables/useAutoClearForm';
 import Button from 'primevue/button';
 import InputText from 'primevue/inputtext';
 import Password from 'primevue/password';
@@ -13,16 +14,17 @@ const props = defineProps({
     user: { type: Object, default: null },
     roles: { type: Array, required: true },
     organisasis: { type: Array, required: true },
+    lockedRole: { type: String, default: null },
 });
 
-const form = useForm({
+const form = useAutoClearForm({
     name: props.user?.name ?? '',
     email: props.user?.email ?? '',
     phone: props.user?.phone ?? '',
     password: '',
     password_confirmation: '',
     is_active: props.user?.is_active ?? true,
-    role: props.user?.role ?? null,
+    role: props.user?.role ?? props.lockedRole,
     organisasi_id: props.user?.organisasi_id ?? null,
 });
 
@@ -41,7 +43,7 @@ const submit = () => {
     <div class="max-w-lg bg-white rounded-xl border border-surface-200 p-6">
         <div class="mb-5">
             <h1 class="text-xl font-semibold text-surface-900">
-                {{ user ? 'Ubah Pengguna' : 'Tambah Pengguna' }}
+                {{ lockedRole ? (user ? 'Ubah Staf ASN' : 'Tambah Staf ASN') : (user ? 'Ubah Pengguna' : 'Tambah Pengguna') }}
             </h1>
         </div>
 
@@ -64,7 +66,7 @@ const submit = () => {
                 <small v-if="form.errors.phone" class="text-rose-600">{{ form.errors.phone }}</small>
             </div>
 
-            <div class="flex flex-col gap-1.5">
+            <div v-if="!lockedRole" class="flex flex-col gap-1.5">
                 <label for="role" class="text-sm font-medium text-surface-700">Role</label>
                 <Select
                     input-id="role"
@@ -78,7 +80,7 @@ const submit = () => {
                 <small v-if="form.errors.role" class="text-rose-600">{{ form.errors.role }}</small>
             </div>
 
-            <div v-if="form.role === 'admin-opd'" class="flex flex-col gap-1.5">
+            <div v-if="!lockedRole && ['admin-opd', 'asn'].includes(form.role)" class="flex flex-col gap-1.5">
                 <label for="organisasi_id" class="text-sm font-medium text-surface-700">Organisasi/OPD</label>
                 <Select
                     input-id="organisasi_id"

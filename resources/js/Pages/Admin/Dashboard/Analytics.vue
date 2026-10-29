@@ -89,7 +89,7 @@ const statusSeverity = {
                     >
                         <div class="min-w-0">
                             <p class="text-surface-800 truncate">{{ item.title }}</p>
-                            <p class="text-surface-400 text-xs">{{ item.organisasi?.name ?? '-' }}</p>
+                            <p class="text-surface-400 text-xs">{{ item.inisiator_label ?? '-' }}</p>
                         </div>
                         <Tag :value="item.status" :severity="statusSeverity[item.status] ?? 'secondary'" />
                     </li>
@@ -109,8 +109,8 @@ const statusSeverity = {
             </div>
             <DataTable :value="latestSubmissions" size="small" :paginator="latestSubmissions.length > 5" :rows="5">
                 <Column field="title" header="Judul Inovasi" />
-                <Column header="OPD">
-                    <template #body="{ data }">{{ data.organisasi?.name ?? '-' }}</template>
+                <Column header="Inisiator">
+                    <template #body="{ data }">{{ data.inisiator_label ?? '-' }}</template>
                 </Column>
                 <Column header="Kategori">
                     <template #body="{ data }">{{ data.category?.name ?? '-' }}</template>

@@ -12,8 +12,8 @@ return new class extends Migration
     {
         Schema::create('innovations', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('organisasi_id')->constrained()->cascadeOnDelete();
             $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
+            $table->string('inisiator')->nullable()->index();
             $table->foreignId('category_id')->nullable()->constrained('innovation_categories')->nullOnDelete();
             $table->foreignId('assigned_reviewer_id')->nullable()->constrained('users')->nullOnDelete();
             $table->string('title');

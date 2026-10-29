@@ -1,9 +1,10 @@
 <script setup>
-//
+import Toast from 'primevue/toast';
 </script>
 
 <template>
     <div class="min-h-screen flex items-center justify-center bg-surface-100 px-4">
+        <Toast />
         <div class="w-full max-w-md">
             <div class="text-center mb-6">
                 <div class="inline-flex items-center gap-2 text-indigo-700 font-bold text-2xl">

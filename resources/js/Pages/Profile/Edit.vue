@@ -1,5 +1,6 @@
 <script setup>
-import { useForm, usePage } from '@inertiajs/vue3';
+import { usePage } from '@inertiajs/vue3';
+import { useAutoClearForm } from '@/Composables/useAutoClearForm';
 import InputText from 'primevue/inputtext';
 import Button from 'primevue/button';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
@@ -9,7 +10,7 @@ defineOptions({ layout: AdminLayout });
 const page = usePage();
 const user = page.props.auth.user;
 
-const form = useForm({
+const form = useAutoClearForm({
     name: user.name,
     phone: user.phone ?? '',
 });

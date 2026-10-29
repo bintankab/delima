@@ -11,6 +11,7 @@ import ToastService from 'primevue/toastservice';
 import ConfirmationService from 'primevue/confirmationservice';
 import { delimaTheme } from './theme';
 import GlobalLoadingOverlay from './Components/GlobalLoadingOverlay.vue';
+import GlobalValidationToast from './Components/GlobalValidationToast.vue';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Delima';
 
@@ -22,7 +23,7 @@ createInertiaApp({
             import.meta.glob('./Pages/**/*.vue'),
         ),
     setup({ el, App, props, plugin }) {
-        createApp({ render: () => h(Fragment, [h(App, props), h(GlobalLoadingOverlay)]) })
+        createApp({ render: () => h(Fragment, [h(App, props), h(GlobalLoadingOverlay), h(GlobalValidationToast)]) })
             .use(plugin)
             .use(ZiggyVue)
             .use(PrimeVue, {

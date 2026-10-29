@@ -31,9 +31,25 @@ class AuthenticatedSessionController extends Controller
             ])->onlyInput('email');
         }
 
-        $request->session()->regenerate();
-
         $user = Auth::user();
+
+        if (! $user->hasVerifiedEmail()) {
+            Auth::logout();
+
+            return back()->withErrors([
+                'email' => 'Email Anda belum diverifikasi. Silakan cek email Anda untuk tautan verifikasi.',
+            ])->onlyInput('email');
+        }
+
+        if (! $user->is_active) {
+            Auth::logout();
+
+            return back()->withErrors([
+                'email' => 'Akun Anda telah dinonaktifkan. Hubungi admin untuk informasi lebih lanjut.',
+            ])->onlyInput('email');
+        }
+
+        $request->session()->regenerate();
 
         if ($user->hasAnyRole(['super-admin', 'admin-opd', 'reviewer'])) {
             return redirect()->intended(route('admin.dashboard'));

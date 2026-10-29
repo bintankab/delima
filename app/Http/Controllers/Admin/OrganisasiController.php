@@ -21,7 +21,7 @@ class OrganisasiController extends Controller
         ]);
 
         $organisasis = OrganisasiModel::query()
-            ->withCount(['users', 'innovations', 'risets', 'competitionSubmissions', 'libraryDocuments'])
+            ->withCount(['users', 'risets', 'competitionSubmissions', 'libraryDocuments'])
             ->when($search !== '', function ($query) use ($search): void {
                 $query->where('name', 'like', '%'.addcslashes($search, '%_\\').'%');
             })
@@ -44,7 +44,6 @@ class OrganisasiController extends Controller
                 'logo_thumb' => $organisasi->getFirstMediaUrl('logo', 'thumb') ?: null,
                 'documents_count' => $organisasi->library_documents_count,
                 'can_delete' => $organisasi->users_count === 0
-                    && $organisasi->innovations_count === 0
                     && $organisasi->risets_count === 0
                     && $organisasi->competition_submissions_count === 0
                     && $organisasi->library_documents_count === 0,
@@ -110,10 +109,9 @@ class OrganisasiController extends Controller
 
     public function destroy(OrganisasiModel $organisasi): RedirectResponse
     {
-        $organisasi->loadCount(['users', 'innovations', 'risets', 'competitionSubmissions', 'libraryDocuments']);
+        $organisasi->loadCount(['users', 'risets', 'competitionSubmissions', 'libraryDocuments']);
 
         if ($organisasi->users_count > 0
-            || $organisasi->innovations_count > 0
             || $organisasi->risets_count > 0
             || $organisasi->competition_submissions_count > 0
             || $organisasi->library_documents_count > 0) {

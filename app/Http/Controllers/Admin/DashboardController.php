@@ -20,7 +20,11 @@ class DashboardController extends Controller
 
         $innovationQuery = InnovationModel::query();
         if (! $isSuperAdmin && $user->hasRole('admin-opd')) {
-            $innovationQuery->whereIn('organisasi_id', $user->organisasis()->pluck('organisasis.id'));
+            $ownOrganisasiIds = $user->organisasis()->pluck('organisasis.id');
+            $innovationQuery->whereHas(
+                'user.organisasis',
+                fn ($query) => $query->whereIn('organisasis.id', $ownOrganisasiIds),
+            );
         }
 
         $statusCounts = (clone $innovationQuery)
@@ -44,10 +48,18 @@ class DashboardController extends Controller
                 'data' => array_map(fn ($s) => (int) ($statusCounts[$s] ?? 0), $statuses),
             ],
             'latestSubmissions' => (clone $innovationQuery)
-                ->with(['organisasi:id,name', 'category:id,name'])
+                ->with(['category:id,name'])
                 ->latest()
                 ->take(6)
-                ->get(['id', 'title', 'organisasi_id', 'category_id', 'status', 'tahun', 'created_at']),
+                ->get(['id', 'title', 'inisiator', 'category_id', 'status', 'tahun', 'created_at'])
+                ->map(fn (InnovationModel $innovation): array => [
+                    'id' => $innovation->id,
+                    'title' => $innovation->title,
+                    'inisiator_label' => $innovation->inisiator?->label(),
+                    'category' => $innovation->category?->name,
+                    'status' => $innovation->status,
+                    'tahun' => $innovation->tahun,
+                ]),
         ]);
     }
 }

@@ -19,11 +19,75 @@ class UserControllerTest extends TestCase
             ->assertRedirect(route('login'));
     }
 
-    public function test_admin_opd_cannot_open_the_user_list(): void
+    public function test_bupati_cannot_open_the_user_list(): void
     {
-        $this->actingAs($this->userWithRole('admin-opd'))
+        $this->actingAs($this->userWithRole('bupati'))
             ->get(route('admin.users.index'))
             ->assertForbidden();
+    }
+
+    public function test_admin_opd_only_sees_its_own_asn_staff(): void
+    {
+        $organisasi = OrganisasiModel::factory()->create();
+        $otherOrganisasi = OrganisasiModel::factory()->create();
+
+        $adminOpd = $this->userWithRole('admin-opd');
+        $adminOpd->organisasis()->sync([$organisasi->id => ['is_primary' => true]]);
+
+        $ownAsn = $this->userWithRole('asn', 'Staf Sendiri');
+        $ownAsn->organisasis()->sync([$organisasi->id => ['is_primary' => true]]);
+
+        $otherAsn = $this->userWithRole('asn', 'Staf OPD Lain');
+        $otherAsn->organisasis()->sync([$otherOrganisasi->id => ['is_primary' => true]]);
+
+        $this->actingAs($adminOpd)
+            ->get(route('admin.users.index'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Admin/Users/Index')
+                ->has('users.data', 1)
+                ->where('users.data.0.name', 'Staf Sendiri'));
+    }
+
+    public function test_admin_opd_creates_an_asn_user_scoped_to_its_own_organisasi(): void
+    {
+        $organisasi = OrganisasiModel::factory()->create();
+        $adminOpd = $this->userWithRole('admin-opd');
+        $adminOpd->organisasis()->sync([$organisasi->id => ['is_primary' => true]]);
+        Role::findOrCreate('asn', 'web');
+
+        $this->actingAs($adminOpd)
+            ->post(route('admin.users.store'), [
+                'name' => 'Staf ASN',
+                'email' => 'asn@example.test',
+                'password' => 'password123',
+                'password_confirmation' => 'password123',
+                'role' => 'asn',
+            ])
+            ->assertRedirect(route('admin.users.index'))
+            ->assertSessionHas('success');
+
+        $user = UserModel::where('email', 'asn@example.test')->first();
+
+        $this->assertNotNull($user);
+        $this->assertTrue($user->hasRole('asn'));
+        $this->assertTrue($user->organisasis->contains($organisasi));
+    }
+
+    public function test_admin_opd_cannot_assign_a_role_other_than_asn(): void
+    {
+        $adminOpd = $this->userWithRole('admin-opd');
+
+        $this->actingAs($adminOpd)
+            ->from(route('admin.users.create'))
+            ->post(route('admin.users.store'), [
+                'name' => 'Mencoba Jadi Admin',
+                'email' => 'mencoba@example.test',
+                'password' => 'password123',
+                'password_confirmation' => 'password123',
+                'role' => 'super-admin',
+            ])
+            ->assertSessionHasErrors(['role']);
     }
 
     public function test_super_admin_sees_users_matching_the_search(): void
@@ -65,6 +129,34 @@ class UserControllerTest extends TestCase
         $this->assertNotNull($user);
         $this->assertTrue($user->hasRole('admin-opd'));
         $this->assertTrue($user->organisasis->contains($organisasi));
+        $this->assertNotNull($user->email_verified_at);
+    }
+
+    public function test_a_user_created_by_an_admin_can_log_in_immediately_without_verifying_email(): void
+    {
+        $admin = $this->userWithRole('super-admin');
+        Role::findOrCreate('admin-opd', 'web');
+        $organisasi = OrganisasiModel::factory()->create();
+
+        $this->actingAs($admin)
+            ->post(route('admin.users.store'), [
+                'name' => 'Budi Santoso',
+                'email' => 'budi@example.test',
+                'password' => 'password123',
+                'password_confirmation' => 'password123',
+                'is_active' => true,
+                'role' => 'admin-opd',
+                'organisasi_id' => $organisasi->id,
+            ]);
+
+        $this->post(route('logout'));
+
+        $this->post(route('login'), [
+            'email' => 'budi@example.test',
+            'password' => 'password123',
+        ])->assertRedirect(route('admin.dashboard'));
+
+        $this->assertAuthenticated();
     }
 
     public function test_admin_opd_role_requires_an_organisasi(): void
@@ -199,9 +291,9 @@ class UserControllerTest extends TestCase
         $this->assertDatabaseHas('users', ['id' => $admin->id]);
     }
 
-    private function userWithRole(string $role): UserModel
+    private function userWithRole(string $role, ?string $name = null): UserModel
     {
-        $user = UserModel::factory()->create();
+        $user = UserModel::factory()->create($name === null ? [] : ['name' => $name]);
         Role::findOrCreate($role, 'web');
         $user->assignRole($role);
 
