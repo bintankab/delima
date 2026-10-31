@@ -115,6 +115,9 @@ const remove = (organisasi) => {
                 :sort-order="filters.direction === 'desc' ? -1 : 1"
                 @sort="onSort"
             >
+                <Column header="No" style="width: 3.5rem">
+                    <template #body="{ index }">{{ (organisasis.current_page - 1) * organisasis.per_page + index + 1 }}</template>
+                </Column>
                 <Column header="Logo" style="width: 4rem">
                     <template #body="{ data }">
                         <img

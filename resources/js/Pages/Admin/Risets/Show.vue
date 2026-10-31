@@ -5,6 +5,7 @@ import { useConfirm } from 'primevue/useconfirm';
 import Avatar from 'primevue/avatar';
 import Button from 'primevue/button';
 import Dialog from 'primevue/dialog';
+import Select from 'primevue/select';
 import Tag from 'primevue/tag';
 import Textarea from 'primevue/textarea';
 import { useToast } from 'primevue/usetoast';
@@ -16,6 +17,7 @@ const props = defineProps({
     riset: { type: Object, required: true },
     relatedRisets: { type: Array, default: () => [] },
     canManage: { type: Boolean, default: false },
+    statusOptions: { type: Array, default: () => [] },
 });
 
 const toast = useToast();
@@ -25,6 +27,12 @@ const rejectDialogVisible = ref(false);
 const rejectCatatan = ref('');
 const rejectError = ref('');
 const reviewing = ref(false);
+
+const statusDialogVisible = ref(false);
+const newStatus = ref(null);
+const statusCatatan = ref('');
+const statusErrors = ref({});
+const statusSubmitting = ref(false);
 
 const approve = () => {
     confirm.require({
@@ -73,6 +81,36 @@ const submitReject = () => {
         onSuccess: () => { rejectDialogVisible.value = false; },
         onError: (errors) => { rejectError.value = errors.catatan ?? ''; },
         onFinish: () => { reviewing.value = false; },
+    });
+};
+
+const openStatusDialog = () => {
+    newStatus.value = props.riset.status;
+    statusCatatan.value = '';
+    statusErrors.value = {};
+    statusDialogVisible.value = true;
+};
+
+const submitStatusChange = () => {
+    statusErrors.value = {};
+
+    if (!newStatus.value) {
+        statusErrors.value.status = 'Status baru wajib dipilih.';
+        return;
+    }
+    if (!statusCatatan.value.trim()) {
+        statusErrors.value.catatan = 'Alasan perubahan status wajib diisi.';
+        return;
+    }
+
+    statusSubmitting.value = true;
+    router.put(route('admin.risets.update-status', props.riset.id), {
+        status: newStatus.value,
+        catatan: statusCatatan.value,
+    }, {
+        onSuccess: () => { statusDialogVisible.value = false; },
+        onError: (errors) => { statusErrors.value = errors; },
+        onFinish: () => { statusSubmitting.value = false; },
     });
 };
 
@@ -145,6 +183,14 @@ const copyLink = async () => {
                         @click="approve"
                     />
                 </template>
+                <Button
+                    v-if="riset.can_edit_status"
+                    label="Ubah Status"
+                    icon="pi pi-sync"
+                    severity="warn"
+                    outlined
+                    @click="openStatusDialog"
+                />
                 <template v-if="canManage">
                     <Button
                         label="Ubah"
@@ -283,8 +329,8 @@ const copyLink = async () => {
                     >
                         <div class="flex items-center justify-between gap-2">
                             <Tag
-                                :value="review.status === 'approved' ? 'Disetujui' : 'Ditolak'"
-                                :severity="review.status === 'approved' ? 'success' : 'danger'"
+                                :value="review.status === 'approved' ? 'Disetujui' : statusLabel(review.status)"
+                                :severity="review.status === 'approved' ? 'success' : (statusSeverity[review.status] ?? 'danger')"
                             />
                             <span class="text-xs text-surface-500">{{ review.reviewed_at }}</span>
                         </div>
@@ -332,6 +378,39 @@ const copyLink = async () => {
             <template #footer>
                 <Button label="Batal" severity="secondary" text @click="rejectDialogVisible = false" />
                 <Button label="Tolak Riset" severity="danger" :loading="reviewing" @click="submitReject" />
+            </template>
+        </Dialog>
+
+        <Dialog
+            v-model:visible="statusDialogVisible"
+            header="Ubah Status Riset"
+            modal
+            dismissable-mask
+            :style="{ width: '32rem', maxWidth: '95vw' }"
+        >
+            <p class="text-sm text-surface-600 mb-3">
+                Gunakan ini untuk mengoreksi status yang salah atau membatalkan riset di luar alur tinjau normal.
+            </p>
+            <div class="flex flex-col gap-1 mb-3">
+                <label class="text-sm font-medium text-surface-700">Status Baru</label>
+                <Select
+                    v-model="newStatus"
+                    :options="statusOptions"
+                    option-label="name"
+                    option-value="id"
+                    placeholder="Pilih status"
+                    class="w-full"
+                />
+                <p v-if="statusErrors.status" class="text-sm text-red-600">{{ statusErrors.status }}</p>
+            </div>
+            <div class="flex flex-col gap-1">
+                <label class="text-sm font-medium text-surface-700">Alasan Perubahan</label>
+                <Textarea v-model="statusCatatan" rows="4" class="w-full" />
+                <p v-if="statusErrors.catatan" class="text-sm text-red-600">{{ statusErrors.catatan }}</p>
+            </div>
+            <template #footer>
+                <Button label="Batal" severity="secondary" text @click="statusDialogVisible = false" />
+                <Button label="Simpan Status" severity="warn" :loading="statusSubmitting" @click="submitStatusChange" />
             </template>
         </Dialog>
     </div>

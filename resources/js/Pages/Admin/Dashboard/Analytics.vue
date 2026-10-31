@@ -21,6 +21,7 @@ const props = defineProps({
 
 const tahun = ref(props.filters.tahun ?? null);
 const jenisInovasi = ref(props.filters.jenis_inovasi ?? null);
+const latestSubmissionsFirst = ref(0);
 
 const applyFilters = () => {
     router.get(route('admin.dashboard'), {
@@ -155,7 +156,16 @@ const statusSeverity = {
                     Lihat Semua
                 </Link>
             </div>
-            <DataTable :value="latestSubmissions" size="small" :paginator="latestSubmissions.length > 5" :rows="5">
+            <DataTable
+                :value="latestSubmissions"
+                size="small"
+                :paginator="latestSubmissions.length > 5"
+                :rows="5"
+                v-model:first="latestSubmissionsFirst"
+            >
+                <Column header="No" style="width: 3.5rem">
+                    <template #body="{ index }">{{ latestSubmissionsFirst + index + 1 }}</template>
+                </Column>
                 <Column field="title" header="Judul Inovasi" />
                 <Column header="Inisiator">
                     <template #body="{ data }">{{ data.inisiator_label ?? '-' }}</template>

@@ -41,21 +41,11 @@ class LibraryDocumentControllerTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page->has('documents.data', 2));
     }
 
-    public function test_admin_opd_only_sees_documents_from_their_own_organisasi(): void
+    public function test_admin_opd_cannot_open_the_document_list(): void
     {
-        $organisasiMine = OrganisasiModel::factory()->create();
-        $organisasiOther = OrganisasiModel::factory()->create();
-        LibraryDocumentModel::factory()->create(['title' => 'Dokumen Saya', 'organisasi_id' => $organisasiMine->id]);
-        LibraryDocumentModel::factory()->create(['title' => 'Dokumen Lain', 'organisasi_id' => $organisasiOther->id]);
-
-        $admin = $this->userWithRole('admin-opd');
-        $admin->organisasis()->sync([$organisasiMine->id => ['is_primary' => true]]);
-
-        $this->actingAs($admin)
+        $this->actingAs($this->userWithRole('admin-opd'))
             ->get(route('admin.library-documents.index'))
-            ->assertInertia(fn (Assert $page) => $page
-                ->has('documents.data', 1)
-                ->where('documents.data.0.title', 'Dokumen Saya'));
+            ->assertForbidden();
     }
 
     public function test_super_admin_creates_a_document_with_a_file(): void
@@ -83,12 +73,16 @@ class LibraryDocumentControllerTest extends TestCase
         $this->assertNotNull($document->getFirstMedia('file'));
     }
 
-    public function test_admin_opd_creates_a_document_scoped_to_their_own_organisasi(): void
+    public function test_admin_opd_cannot_create_a_document(): void
     {
         Storage::fake('public');
         $organisasi = OrganisasiModel::factory()->create();
         $admin = $this->userWithRole('admin-opd');
         $admin->organisasis()->sync([$organisasi->id => ['is_primary' => true]]);
+
+        $this->actingAs($admin)
+            ->get(route('admin.library-documents.create'))
+            ->assertForbidden();
 
         $this->actingAs($admin)
             ->post(route('admin.library-documents.store'), [
@@ -97,37 +91,15 @@ class LibraryDocumentControllerTest extends TestCase
                 'is_public' => true,
                 'file' => UploadedFile::fake()->create('laporan.pdf', 100),
             ])
-            ->assertRedirect(route('admin.library-documents.index'));
+            ->assertForbidden();
 
-        $document = LibraryDocumentModel::where('title', 'Laporan BPS 2024')->first();
-
-        $this->assertSame($organisasi->id, $document->organisasi_id);
+        $this->assertDatabaseMissing('library_documents', ['title' => 'Laporan BPS 2024']);
     }
 
-    public function test_admin_opd_cannot_submit_a_different_organisasi(): void
-    {
-        Storage::fake('public');
-        $organisasiMine = OrganisasiModel::factory()->create();
-        $organisasiOther = OrganisasiModel::factory()->create();
-        $admin = $this->userWithRole('admin-opd');
-        $admin->organisasis()->sync([$organisasiMine->id => ['is_primary' => true]]);
-
-        $this->actingAs($admin)
-            ->from(route('admin.library-documents.create'))
-            ->post(route('admin.library-documents.store'), [
-                'title' => 'Laporan Statistik',
-                'type' => 'laporan',
-                'organisasi_id' => $organisasiOther->id,
-                'file' => UploadedFile::fake()->create('laporan.pdf', 100),
-            ])
-            ->assertSessionHasErrors('organisasi_id');
-    }
-
-    public function test_admin_opd_cannot_edit_a_document_from_another_organisasi(): void
+    public function test_admin_opd_cannot_edit_or_delete_a_document_even_from_their_own_organisasi(): void
     {
         $organisasiMine = OrganisasiModel::factory()->create();
-        $organisasiOther = OrganisasiModel::factory()->create();
-        $document = LibraryDocumentModel::factory()->create(['organisasi_id' => $organisasiOther->id]);
+        $document = LibraryDocumentModel::factory()->create(['organisasi_id' => $organisasiMine->id]);
 
         $admin = $this->userWithRole('admin-opd');
         $admin->organisasis()->sync([$organisasiMine->id => ['is_primary' => true]]);
@@ -135,6 +107,16 @@ class LibraryDocumentControllerTest extends TestCase
         $this->actingAs($admin)
             ->get(route('admin.library-documents.edit', $document))
             ->assertForbidden();
+
+        $this->actingAs($admin)
+            ->put(route('admin.library-documents.update', $document), ['title' => 'Diubah'])
+            ->assertForbidden();
+
+        $this->actingAs($admin)
+            ->delete(route('admin.library-documents.destroy', $document))
+            ->assertForbidden();
+
+        $this->assertDatabaseHas('library_documents', ['id' => $document->id, 'deleted_at' => null]);
     }
 
     public function test_empty_title_is_rejected(): void

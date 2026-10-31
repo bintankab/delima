@@ -64,7 +64,7 @@ const MENU = {
             label: 'Inovasi Kami',
             items: [
                 { label: 'Inovasi OPD', icon: 'pi pi-lightbulb', route: 'admin.innovations.index' },
-                { label: 'Tambah Inovasi', icon: 'pi pi-plus-circle', route: 'admin.innovations.create' },
+                { label: 'Ajukan Inovasi', icon: 'pi pi-plus-circle', route: 'admin.innovations.create' },
             ],
         },
         {
@@ -81,7 +81,6 @@ const MENU = {
         {
             label: 'Lainnya',
             items: [
-                { label: 'Pustaka OPD', icon: 'pi pi-folder-open', route: 'admin.library-documents.index' },
                 { label: 'Klinik Inovasi', icon: 'pi pi-heart', route: 'admin.consultations.index' },
                 { label: 'Staf ASN', icon: 'pi pi-id-card', route: 'admin.users.index' },
             ],

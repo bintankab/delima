@@ -177,6 +177,7 @@ class InnovationController extends Controller
         return $this->renderShow($innovation, [
             'reviewable' => $canReview && in_array($innovation->status, self::REVIEWABLE_STATUSES, true),
             'canManage' => $isSuperAdmin || ($isOwner && $innovation->status !== 'published'),
+            'canEditStatus' => $isSuperAdmin,
             'backRoute' => 'admin.innovations.index',
             'editRoute' => $isSuperAdmin ? 'admin.innovations.edit' : 'admin.innovations.mine.edit',
             'deleteRoute' => $isSuperAdmin ? 'admin.innovations.destroy' : 'admin.innovations.mine.destroy',
@@ -238,6 +239,7 @@ class InnovationController extends Controller
         return $this->renderShow($innovation, [
             'reviewable' => false,
             'canManage' => $innovation->status !== 'published',
+            'canEditStatus' => false,
             'backRoute' => 'admin.innovations.mine',
             'editRoute' => 'admin.innovations.mine.edit',
             'deleteRoute' => 'admin.innovations.mine.destroy',
@@ -337,7 +339,7 @@ class InnovationController extends Controller
     }
 
     /**
-     * @param  array{reviewable: bool, canManage: bool, backRoute: string, editRoute: string, deleteRoute: string, relatedInnovations: list<array<string, mixed>>}  $context
+     * @param  array{reviewable: bool, canManage: bool, canEditStatus: bool, backRoute: string, editRoute: string, deleteRoute: string, relatedInnovations: list<array<string, mixed>>}  $context
      */
     private function renderShow(InnovationModel $innovation, array $context): Response
     {
@@ -349,11 +351,16 @@ class InnovationController extends Controller
             'backRoute' => $context['backRoute'],
             'editRoute' => $context['editRoute'],
             'deleteRoute' => $context['deleteRoute'],
+            'statusOptions' => $context['canEditStatus'] ? array_map(
+                fn (string $status): array => ['id' => $status, 'name' => $this->statusLabel($status)],
+                self::STATUSES,
+            ) : [],
             'innovation' => [
                 ...$this->detail($innovation),
                 'views_count' => $innovation->views_count,
                 'read_minutes' => $this->readMinutes($innovation->description),
                 'reviewable' => $context['reviewable'],
+                'can_edit_status' => $context['canEditStatus'],
                 'reviews' => $innovation->reviews
                     ->sortByDesc('reviewed_at')
                     ->map(fn (ReviewModel $review): array => [
@@ -424,6 +431,37 @@ class InnovationController extends Controller
         return redirect()
             ->route('admin.innovations.show', $innovation)
             ->with('success', 'Inovasi ditolak.');
+    }
+
+    /**
+     * Directly override an innovation's status (super-admin only), for correcting
+     * mistakes or cancelling a submission outside the normal approve/reject flow.
+     */
+    public function updateStatus(Request $request, InnovationModel $innovation): RedirectResponse
+    {
+        $validated = $request->validate([
+            'status' => ['required', 'string', 'in:'.implode(',', self::STATUSES)],
+            'catatan' => ['required', 'string', 'max:1000'],
+        ], [
+            'catatan.required' => 'Alasan perubahan status wajib diisi.',
+        ]);
+
+        if ($validated['status'] === $innovation->status) {
+            return back()->with('error', 'Status baru sama dengan status saat ini.');
+        }
+
+        $innovation->update(['status' => $validated['status']]);
+
+        $innovation->reviews()->create([
+            'reviewer_id' => $request->user()->id,
+            'status' => $validated['status'],
+            'catatan' => $validated['catatan'],
+            'reviewed_at' => now(),
+        ]);
+
+        return redirect()
+            ->route('admin.innovations.show', $innovation)
+            ->with('success', 'Status inovasi berhasil diubah.');
     }
 
     public function edit(InnovationModel $innovation): Response

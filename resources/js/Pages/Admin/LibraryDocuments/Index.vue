@@ -119,6 +119,9 @@ const menuItems = (document) => [
                 :sort-order="filters.direction === 'desc' ? -1 : 1"
                 @sort="onSort"
             >
+                <Column header="No" style="width: 3.5rem">
+                    <template #body="{ index }">{{ (documents.current_page - 1) * documents.per_page + index + 1 }}</template>
+                </Column>
                 <Column field="title" header="Judul" sortable />
                 <Column field="type" header="Jenis" sortable>
                     <template #body="{ data }">{{ typeLabel(data.type) }}</template>

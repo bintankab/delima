@@ -65,7 +65,7 @@ Route::middleware(['auth', 'role:super-admin|admin-opd|reviewer'])
 
         Route::resource('library-documents', LibraryDocumentController::class)
             ->except(['show'])
-            ->middleware('role:super-admin|admin-opd');
+            ->middleware('role:super-admin');
 
         Route::get('risets', [RisetController::class, 'index'])->name('risets.index');
         Route::get('risets/{riset}', [RisetController::class, 'show'])->name('risets.show');
@@ -123,6 +123,7 @@ Route::middleware(['auth', 'role:super-admin'])
         Route::post('risets/archive', [RisetArchiveController::class, 'store'])
             ->name('risets.archive.store');
 
+        Route::put('risets/{riset}/status', [RisetController::class, 'updateStatus'])->name('risets.update-status');
         Route::delete('risets/{riset}/force', [RisetController::class, 'forceDestroy'])
             ->name('risets.force-destroy')
             ->withTrashed();
@@ -137,6 +138,7 @@ Route::middleware(['auth', 'role:super-admin'])
 
         Route::get('innovations/{innovation}/edit', [InnovationController::class, 'edit'])->name('innovations.edit');
         Route::put('innovations/{innovation}', [InnovationController::class, 'update'])->name('innovations.update');
+        Route::put('innovations/{innovation}/status', [InnovationController::class, 'updateStatus'])->name('innovations.update-status');
         Route::delete('innovations/{innovation}', [InnovationController::class, 'destroy'])->name('innovations.destroy');
         Route::delete('innovations/{innovation}/force', [InnovationController::class, 'forceDestroy'])
             ->name('innovations.force-destroy')

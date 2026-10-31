@@ -3,11 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Enums\JenisInisiator;
+use App\Http\Requests\Admin\LibraryDocumentRequest;
 use App\Models\InnovationModel;
+use App\Models\LibraryDocumentModel;
 use App\Models\NewsModel;
 use App\Models\OrganisasiModel;
 use App\Models\RisetModel;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
@@ -283,6 +286,100 @@ class PublicController extends Controller
                 'label' => $innovation->title,
             ],
         ]);
+    }
+
+    public function pustaka(Request $request): Response
+    {
+        $search = mb_substr($request->string('search')->trim()->toString(), 0, 100);
+        $type = $request->string('type')->trim()->toString();
+        $type = in_array($type, LibraryDocumentRequest::TYPES, true) ? $type : null;
+        $tahun = $request->integer('tahun') ?: null;
+        $organisasiId = $request->integer('organisasi_id') ?: null;
+
+        $documents = LibraryDocumentModel::query()
+            ->where('is_public', true)
+            ->with(['organisasi:id,name', 'media'])
+            ->when($search !== '', function ($query) use ($search): void {
+                $escaped = '%'.addcslashes($search, '%_\\').'%';
+
+                $query->where(function ($query) use ($escaped): void {
+                    $query->where('title', 'like', $escaped)
+                        ->orWhere('nomor_dokumen', 'like', $escaped);
+                });
+            })
+            ->when($type !== null, fn ($query) => $query->where('type', $type))
+            ->when($tahun !== null, fn ($query) => $query->where('tahun_terbit', $tahun))
+            ->when($organisasiId !== null, fn ($query) => $query->where('organisasi_id', $organisasiId))
+            ->latest('tanggal_terbit')
+            ->paginate(10)
+            ->withQueryString()
+            ->through(fn (LibraryDocumentModel $document): array => [
+                'id' => $document->id,
+                'title' => $document->title,
+                'nomor_dokumen' => $document->nomor_dokumen,
+                'penyusun' => $document->penyusun,
+                'tahun_terbit' => $document->tahun_terbit,
+                'tanggal_terbit' => $document->tanggal_terbit?->toDateString(),
+                'description' => $this->excerpt($document->description, 40),
+                'type' => $document->type,
+                'type_label' => $this->libraryDocumentTypeLabel($document->type),
+                'organisasi' => $document->organisasi?->name,
+                'file_size' => $document->getFirstMedia('file')?->human_readable_size,
+                'download_url' => route('pustaka.download', $document),
+            ]);
+
+        return Inertia::render('Public/LibraryDocuments/Index', [
+            'meta' => [
+                'title' => 'Pustaka',
+                'description' => 'Dokumen publik Kabupaten Bintan: regulasi, panduan, laporan, dan arsip lainnya.',
+            ],
+            'documents' => $documents,
+            'filters' => [
+                'search' => $search,
+                'type' => $type,
+                'tahun' => $tahun,
+                'organisasi_id' => $organisasiId,
+            ],
+            'filterOptions' => [
+                'types' => array_map(
+                    fn (string $type): array => ['id' => $type, 'name' => $this->libraryDocumentTypeLabel($type)],
+                    LibraryDocumentRequest::TYPES,
+                ),
+                'years' => LibraryDocumentModel::query()
+                    ->where('is_public', true)
+                    ->whereNotNull('tahun_terbit')
+                    ->distinct()
+                    ->orderByDesc('tahun_terbit')
+                    ->pluck('tahun_terbit'),
+                'organisasis' => OrganisasiModel::query()
+                    ->whereHas('libraryDocuments', fn ($query) => $query->where('is_public', true))
+                    ->orderBy('name')
+                    ->get(['id', 'name']),
+            ],
+        ]);
+    }
+
+    public function pustakaDownload(LibraryDocumentModel $libraryDocument): RedirectResponse
+    {
+        abort_unless($libraryDocument->is_public, 404);
+
+        $file = $libraryDocument->getFirstMedia('file');
+        abort_unless($file !== null, 404);
+
+        $libraryDocument->increment('downloads_count');
+
+        return redirect($file->getUrl());
+    }
+
+    private function libraryDocumentTypeLabel(string $type): string
+    {
+        return match ($type) {
+            'regulasi' => 'Regulasi',
+            'panduan' => 'Panduan',
+            'laporan' => 'Laporan',
+            'lainnya' => 'Lainnya',
+            default => $type,
+        };
     }
 
     /**

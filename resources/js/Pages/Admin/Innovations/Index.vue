@@ -187,7 +187,7 @@ const purge = (innovation) => {
             <div class="flex gap-2">
                 <Button
                     v-if="isAdminOpd && !isTrashed"
-                    label="Tambah Inovasi"
+                    label="Ajukan Inovasi"
                     icon="pi pi-plus"
                     @click="router.visit(route('admin.innovations.create'))"
                 />

@@ -112,6 +112,9 @@ const remove = (category) => {
                 :sort-order="filters.direction === 'desc' ? -1 : 1"
                 @sort="onSort"
             >
+                <Column header="No" style="width: 3.5rem">
+                    <template #body="{ index }">{{ (categories.current_page - 1) * categories.per_page + index + 1 }}</template>
+                </Column>
                 <Column field="name" header="Nama" sortable />
                 <Column header="Induk">
                     <template #body="{ data }">{{ data.parent?.name ?? '—' }}</template>

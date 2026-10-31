@@ -17,6 +17,8 @@ Route::get('/riset/{riset:slug}/dokumen/{media}', [PublicController::class, 'ris
 Route::get('/inovasi', [PublicController::class, 'inovasi'])->name('inovasi');
 Route::get('/inovasi/{innovation:slug}', [PublicController::class, 'inovasiShow'])->name('inovasi.show');
 Route::get('/inovasi/{innovation:slug}/dokumen/{media}', [PublicController::class, 'inovasiDocument'])->name('inovasi.document');
+Route::get('/pustaka', [PublicController::class, 'pustaka'])->name('pustaka');
+Route::get('/pustaka/{libraryDocument}/unduh', [PublicController::class, 'pustakaDownload'])->name('pustaka.download');
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthenticatedSessionController::class, 'create'])->name('login');

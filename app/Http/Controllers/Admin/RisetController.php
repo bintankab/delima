@@ -173,11 +173,16 @@ class RisetController extends Controller
         return Inertia::render('Admin/Risets/Show', [
             'meta' => ['title' => $riset->title],
             'canManage' => $isSuperAdmin || ($isOwner && $riset->status !== 'published'),
+            'statusOptions' => $isSuperAdmin ? array_map(
+                fn (string $status): array => ['id' => $status, 'name' => $this->statusLabel($status)],
+                self::STATUSES,
+            ) : [],
             'riset' => [
                 ...$this->detail($riset),
                 'views_count' => $riset->views_count,
                 'read_minutes' => $this->readMinutes($riset->abstrak),
                 'reviewable' => $canReview && in_array($riset->status, self::REVIEWABLE_STATUSES, true),
+                'can_edit_status' => $isSuperAdmin,
                 'reviews' => $riset->reviews
                     ->sortByDesc('reviewed_at')
                     ->map(fn (ReviewModel $review): array => [
@@ -334,6 +339,37 @@ class RisetController extends Controller
         return redirect()
             ->route('admin.risets.show', $riset)
             ->with('success', 'Riset ditolak.');
+    }
+
+    /**
+     * Directly override a riset's status (super-admin only), for correcting
+     * mistakes or cancelling a submission outside the normal approve/reject flow.
+     */
+    public function updateStatus(Request $request, RisetModel $riset): RedirectResponse
+    {
+        $validated = $request->validate([
+            'status' => ['required', 'string', 'in:'.implode(',', self::STATUSES)],
+            'catatan' => ['required', 'string', 'max:1000'],
+        ], [
+            'catatan.required' => 'Alasan perubahan status wajib diisi.',
+        ]);
+
+        if ($validated['status'] === $riset->status) {
+            return back()->with('error', 'Status baru sama dengan status saat ini.');
+        }
+
+        $riset->update(['status' => $validated['status']]);
+
+        $riset->reviews()->create([
+            'reviewer_id' => $request->user()->id,
+            'status' => $validated['status'],
+            'catatan' => $validated['catatan'],
+            'reviewed_at' => now(),
+        ]);
+
+        return redirect()
+            ->route('admin.risets.show', $riset)
+            ->with('success', 'Status riset berhasil diubah.');
     }
 
     private function authorizeManageable(Request $request, RisetModel $riset): void
