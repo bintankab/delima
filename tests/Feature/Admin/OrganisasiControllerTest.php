@@ -35,7 +35,7 @@ class OrganisasiControllerTest extends TestCase
             ->get(route('admin.organisasis.index', ['search' => 'Kesehatan']))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->component('Admin/Organisasis/Index')
+                ->component('Admin/Organisasis/A-Organisasis-Index')
                 ->has('organisasis.data', 1)
                 ->where('organisasis.data.0.name', 'Dinas Kesehatan'));
     }

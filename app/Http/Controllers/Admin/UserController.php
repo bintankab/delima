@@ -54,7 +54,7 @@ class UserController extends Controller
                 'is_self' => $user->id === $request->user()->id,
             ]);
 
-        return Inertia::render('Admin/Users/Index', [
+        return Inertia::render('Admin/Users/A-Users-Index', [
             'meta' => ['title' => 'Pengguna'],
             'users' => $users,
             'filters' => [
@@ -71,7 +71,7 @@ class UserController extends Controller
         $actor = $request->user();
         $isSuperAdmin = $actor->hasRole('super-admin');
 
-        return Inertia::render('Admin/Users/Form', [
+        return Inertia::render('Admin/Users/A-Users-Form', [
             'meta' => ['title' => $isSuperAdmin ? 'Tambah Pengguna' : 'Tambah Staf ASN'],
             'user' => null,
             'roles' => $this->roleOptions($actor),
@@ -111,7 +111,7 @@ class UserController extends Controller
 
         $user->load('roles:id,name', 'organisasis:id,name');
 
-        return Inertia::render('Admin/Users/Form', [
+        return Inertia::render('Admin/Users/A-Users-Form', [
             'meta' => ['title' => $isSuperAdmin ? 'Ubah Pengguna' : 'Ubah Staf ASN'],
             'user' => [
                 'id' => $user->id,

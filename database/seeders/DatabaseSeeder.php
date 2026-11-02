@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             RolePermissionSeeder::class,
             InnovationCategorySeeder::class,
+            MenuSeeder::class,
         ]);
 
         $superAdmin = UserModel::factory()->create([
@@ -26,5 +27,7 @@ class DatabaseSeeder extends Seeder
             'password' => '12345678',
         ]);
         $superAdmin->assignRole('super-admin');
+
+        $this->call(PostSeeder::class);
     }
 }

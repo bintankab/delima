@@ -167,14 +167,22 @@ const typeSeverity = {
                         <span v-if="document.file_size">{{ document.file_size }}</span>
                     </div>
                 </div>
-                <a
-                    :href="document.download_url"
-                    target="_blank"
-                    rel="noopener"
-                    class="inline-flex items-center gap-2 text-sm font-medium text-indigo-600 hover:text-indigo-700 shrink-0"
-                >
-                    <i class="pi pi-download" /> Unduh
-                </a>
+                <div class="flex items-center gap-2 shrink-0">
+                    <Button
+                        label="Lihat"
+                        icon="pi pi-eye"
+                        size="small"
+                        @click="router.visit(route('pustaka.show', document.slug))"
+                    />
+                    <a
+                        :href="document.download_url"
+                        target="_blank"
+                        rel="noopener"
+                        class="inline-flex items-center gap-2 text-sm font-medium text-indigo-600 hover:text-indigo-700"
+                    >
+                        <i class="pi pi-download" /> Unduh
+                    </a>
+                </div>
             </div>
 
             <p v-if="!documents.data.length" class="text-surface-400 text-sm text-center py-10">

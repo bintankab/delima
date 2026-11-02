@@ -23,7 +23,7 @@ class RisetIndexTest extends TestCase
             ->get(route('admin.risets.index', ['search' => 'Gizi Balita']))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->component('Admin/Risets/Index')
+                ->component('Admin/Risets/A-Risets-Index')
                 ->where('filters.search', 'Gizi Balita')
                 ->has('risets.data', 1)
                 ->where('risets.data.0.title', 'Studi Gizi Balita Bintan'));

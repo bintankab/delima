@@ -25,6 +25,7 @@ class LibraryDocumentFactory extends Factory
             'organisasi_id' => OrganisasiModel::factory(),
             'uploaded_by' => UserModel::factory(),
             'title' => fake()->sentence(5),
+            'slug' => fake()->unique()->slug(4),
             'nomor_dokumen' => fake()->optional()->bothify('SK-###/??/????'),
             'penyusun' => fake()->name(),
             'tahun_terbit' => fake()->numberBetween(2021, now()->year),

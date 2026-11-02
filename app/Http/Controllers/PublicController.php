@@ -3,11 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Enums\JenisInisiator;
+use App\Enums\PageLayout;
 use App\Http\Requests\Admin\LibraryDocumentRequest;
+use App\Models\CategoryModel;
 use App\Models\InnovationModel;
 use App\Models\LibraryDocumentModel;
-use App\Models\NewsModel;
 use App\Models\OrganisasiModel;
+use App\Models\PageModel;
+use App\Models\PostModel;
 use App\Models\RisetModel;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\RedirectResponse;
@@ -22,10 +25,28 @@ class PublicController extends Controller
 {
     public function home(): Response
     {
-        $latestNews = NewsModel::where('status', 'published')
+        $latestPosts = PostModel::query()
+            ->where('status', 'published')
+            ->with(['user:id,name', 'media'])
             ->latest('published_at')
-            ->take(3)
-            ->get(['id', 'title', 'slug', 'excerpt', 'published_at']);
+            ->take(14)
+            ->get(['id', 'user_id', 'title', 'slug', 'excerpt', 'published_at'])
+            ->map(function (PostModel $post): array {
+                $cover = $post->getFirstMedia('cover');
+
+                return [
+                    'id' => $post->id,
+                    'title' => $post->title,
+                    'slug' => $post->slug,
+                    'excerpt' => $post->excerpt,
+                    'published_at' => $post->published_at?->toDateString(),
+                    'author' => $post->user?->name,
+                    'cover' => $cover === null
+                        ? null
+                        : ($cover->hasGeneratedConversion('medium') ? $cover->getUrl('medium') : $cover->getUrl()),
+                ];
+            })
+            ->all();
 
         $topInnovations = InnovationModel::where('status', 'published')
             ->where('is_featured', true)
@@ -38,8 +59,67 @@ class PublicController extends Controller
                 'title' => 'Beranda',
                 'description' => 'Delima — pusat informasi dan pengetahuan inovasi daerah Kabupaten Bintan.',
             ],
-            'latestNews' => $latestNews,
+            'latestPosts' => $latestPosts,
             'topInnovations' => $topInnovations,
+        ]);
+    }
+
+    public function beritaShow(PostModel $post): Response
+    {
+        abort_unless($post->status === 'published', 404);
+
+        $this->recordView($post, 'post');
+
+        $post->load(['user:id,name', 'categories:id,name']);
+        $cover = $post->getFirstMedia('cover');
+
+        return Inertia::render('Public/Posts/Show', [
+            'meta' => [
+                'title' => $post->title,
+                'description' => $post->excerpt ?: $this->excerpt($post->content, 30),
+            ],
+            'post' => [
+                'id' => $post->id,
+                'title' => $post->title,
+                'slug' => $post->slug,
+                'excerpt' => $post->excerpt,
+                'content' => $post->content,
+                'published_at' => $post->published_at?->toDateString(),
+                'author' => $post->user?->name,
+                'views_count' => $post->views_count,
+                'read_minutes' => $this->readMinutes($post->content),
+                'categories' => $post->categories
+                    ->sortBy('name')
+                    ->map(fn (CategoryModel $category): array => ['name' => $category->name])
+                    ->values()
+                    ->all(),
+                'cover' => $cover === null ? null : $cover->getUrl(),
+            ],
+            'relatedPosts' => $this->relatedPosts($post),
+        ]);
+    }
+
+    public function pageShow(PageModel $page): Response
+    {
+        abort_unless($page->status === 'published', 404);
+
+        $this->recordView($page, 'page');
+
+        $layout = PageLayout::from($page->layout);
+
+        return Inertia::render($layout->component(), [
+            'meta' => [
+                'title' => $page->title,
+                'description' => $page->excerpt ?: $this->excerpt($page->content, 30),
+            ],
+            'page' => [
+                'title' => $page->title,
+                'slug' => $page->slug,
+                'excerpt' => $page->excerpt,
+                'content' => $page->content,
+                'fields' => $this->pageFields($page, $layout),
+            ],
+            'slides' => $layout->hasSlides() ? $this->pageSlides($page) : [],
         ]);
     }
 
@@ -315,6 +395,7 @@ class PublicController extends Controller
             ->withQueryString()
             ->through(fn (LibraryDocumentModel $document): array => [
                 'id' => $document->id,
+                'slug' => $document->slug,
                 'title' => $document->title,
                 'nomor_dokumen' => $document->nomor_dokumen,
                 'penyusun' => $document->penyusun,
@@ -356,6 +437,47 @@ class PublicController extends Controller
                     ->orderBy('name')
                     ->get(['id', 'name']),
             ],
+        ]);
+    }
+
+    public function pustakaShow(LibraryDocumentModel $libraryDocument): Response
+    {
+        abort_unless($libraryDocument->is_public, 404);
+
+        $this->recordView($libraryDocument, 'library-document');
+
+        $libraryDocument->load('organisasi:id,name');
+        $file = $libraryDocument->getFirstMedia('file');
+
+        return Inertia::render('Public/LibraryDocuments/Show', [
+            'meta' => [
+                'title' => $libraryDocument->title,
+                'description' => $this->excerpt($libraryDocument->description, 30),
+            ],
+            'document' => [
+                'id' => $libraryDocument->id,
+                'title' => $libraryDocument->title,
+                'slug' => $libraryDocument->slug,
+                'nomor_dokumen' => $libraryDocument->nomor_dokumen,
+                'penyusun' => $libraryDocument->penyusun,
+                'tahun_terbit' => $libraryDocument->tahun_terbit,
+                'tanggal_terbit' => $libraryDocument->tanggal_terbit?->toDateString(),
+                'description' => $libraryDocument->description,
+                'type' => $libraryDocument->type,
+                'type_label' => $libraryDocument->type
+                    ? $this->libraryDocumentTypeLabel($libraryDocument->type)
+                    : 'Dokumen',
+                'organisasi' => $libraryDocument->organisasi?->name,
+                'views_count' => $libraryDocument->views_count,
+                'downloads_count' => $libraryDocument->downloads_count,
+                'read_minutes' => $this->readMinutes($libraryDocument->description),
+                'file' => $file === null ? null : [
+                    'name' => $file->file_name,
+                    'size' => $file->human_readable_size,
+                    'url' => route('pustaka.download', $libraryDocument),
+                ],
+            ],
+            'relatedDocuments' => $this->relatedLibraryDocuments($libraryDocument),
         ]);
     }
 
@@ -456,6 +578,117 @@ class PublicController extends Controller
                 'read_minutes' => $this->readMinutes($related->abstrak),
             ])
             ->all();
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    private function relatedPosts(PostModel $post): array
+    {
+        return PostModel::query()
+            ->where('status', 'published')
+            ->whereKeyNot($post->id)
+            ->with(['user:id,name', 'media'])
+            ->latest('published_at')
+            ->take(2)
+            ->get()
+            ->map(function (PostModel $related): array {
+                $cover = $related->getFirstMedia('cover');
+
+                return [
+                    'id' => $related->id,
+                    'title' => $related->title,
+                    'slug' => $related->slug,
+                    'excerpt' => $related->excerpt,
+                    'published_at' => $related->published_at?->toDateString(),
+                    'author' => $related->user?->name,
+                    'read_minutes' => $this->readMinutes($related->content),
+                    'cover' => $cover === null
+                        ? null
+                        : ($cover->hasGeneratedConversion('thumb') ? $cover->getUrl('thumb') : $cover->getUrl()),
+                ];
+            })
+            ->all();
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    private function relatedLibraryDocuments(LibraryDocumentModel $document): array
+    {
+        return LibraryDocumentModel::query()
+            ->where('is_public', true)
+            ->whereKeyNot($document->id)
+            ->when(
+                $document->type,
+                fn ($query) => $query->where('type', $document->type),
+            )
+            ->with('organisasi:id,name')
+            ->latest('tanggal_terbit')
+            ->take(2)
+            ->get()
+            ->map(fn (LibraryDocumentModel $related): array => [
+                'id' => $related->id,
+                'title' => $related->title,
+                'slug' => $related->slug,
+                'type_label' => $this->libraryDocumentTypeLabel((string) $related->type),
+                'organisasi' => $related->organisasi?->name,
+                'tahun_terbit' => $related->tahun_terbit,
+            ])
+            ->all();
+    }
+
+    /**
+     * @return array{cards: list<array{title: string, body: string, url: string|null, thumb: string|null}>}
+     */
+    private function pageFields(PageModel $page, PageLayout $layout): array
+    {
+        if (! $layout->hasCards()) {
+            return ['cards' => []];
+        }
+
+        $images = $page->getMedia('images')->keyBy('id');
+        $cards = [];
+
+        foreach ($page->fields['cards'] ?? [] as $card) {
+            $media = $images->get($card['image_id'] ?? 0);
+            $cards[] = [
+                'title' => $card['title'] ?? '',
+                'body' => $card['body'] ?? '',
+                'url' => $media?->getUrl(),
+                'thumb' => $this->mediaThumb($media),
+            ];
+        }
+
+        return ['cards' => $cards];
+    }
+
+    /**
+     * @return list<array{url: string, thumb: string|null, caption: string|null}>
+     */
+    private function pageSlides(PageModel $page): array
+    {
+        return $page->getMedia('slides')
+            ->map(function (Media $media): array {
+                $caption = $media->getCustomProperty('caption');
+
+                return [
+                    'url' => $media->getUrl(),
+                    'thumb' => $this->mediaThumb($media),
+                    'caption' => is_string($caption) && $caption !== '' ? $caption : null,
+                ];
+            })
+            ->values()
+            ->all();
+    }
+
+    private function mediaThumb(?Media $media): ?string
+    {
+        if ($media === null) {
+            return null;
+        }
+
+        return $media->hasGeneratedConversion('thumb') ? $media->getUrl('thumb') : $media->getUrl();
     }
 
     /**

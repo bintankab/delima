@@ -42,7 +42,7 @@ class RisetCategoryControllerTest extends TestCase
             ->get(route('admin.riset-categories.index', ['search' => 'Kesehatan']))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->component('Admin/RisetCategories/Index')
+                ->component('Admin/RisetCategories/A-RisetCategories-Index')
                 ->has('categories.data', 1)
                 ->where('categories.data.0.name', 'Kesehatan Masyarakat'));
     }

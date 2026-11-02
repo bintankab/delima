@@ -49,7 +49,7 @@ class OrganisasiController extends Controller
                     && $organisasi->library_documents_count === 0,
             ]);
 
-        return Inertia::render('Admin/Organisasis/Index', [
+        return Inertia::render('Admin/Organisasis/A-Organisasis-Index', [
             'meta' => ['title' => 'Organisasi/OPD'],
             'organisasis' => $organisasis,
             'filters' => [
@@ -63,7 +63,7 @@ class OrganisasiController extends Controller
 
     public function create(): Response
     {
-        return Inertia::render('Admin/Organisasis/Form', [
+        return Inertia::render('Admin/Organisasis/A-Organisasis-Form', [
             'meta' => ['title' => 'Tambah Organisasi/OPD'],
             'organisasi' => null,
         ]);
@@ -86,7 +86,7 @@ class OrganisasiController extends Controller
 
     public function edit(OrganisasiModel $organisasi): Response
     {
-        return Inertia::render('Admin/Organisasis/Form', [
+        return Inertia::render('Admin/Organisasis/A-Organisasis-Form', [
             'meta' => ['title' => 'Ubah Organisasi/OPD'],
             'organisasi' => $this->detail($organisasi),
         ]);

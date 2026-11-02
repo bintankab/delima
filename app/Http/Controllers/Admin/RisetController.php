@@ -83,7 +83,7 @@ class RisetController extends Controller
                 'editable' => $riset->user_id === $actor->id && $riset->status !== 'published',
             ]);
 
-        return Inertia::render('Admin/Risets/Index', [
+        return Inertia::render('Admin/Risets/A-Risets-Index', [
             'meta' => ['title' => 'Daftar Riset'],
             'risets' => $risets,
             'statusOptions' => array_map(
@@ -105,7 +105,7 @@ class RisetController extends Controller
     {
         $organisasi = $request->user()->organisasis()->first();
 
-        return Inertia::render('Admin/Risets/ArchiveForm', [
+        return Inertia::render('Admin/Risets/A-Risets-ArchiveForm', [
             'meta' => ['title' => 'Ajukan Riset'],
             'organisasis' => $this->organisasiOptions(),
             'categories' => $this->categoryOptions(),
@@ -170,7 +170,7 @@ class RisetController extends Controller
 
         $riset->load(['organisasi:id,name', 'category:id,name', 'user:id,name', 'reviews.reviewer:id,name']);
 
-        return Inertia::render('Admin/Risets/Show', [
+        return Inertia::render('Admin/Risets/A-Risets-Show', [
             'meta' => ['title' => $riset->title],
             'canManage' => $isSuperAdmin || ($isOwner && $riset->status !== 'published'),
             'statusOptions' => $isSuperAdmin ? array_map(
@@ -205,7 +205,7 @@ class RisetController extends Controller
 
         $riset->load(['organisasi:id,name', 'category:id,name']);
 
-        return Inertia::render('Admin/Risets/Form', [
+        return Inertia::render('Admin/Risets/A-Risets-Form', [
             'meta' => ['title' => 'Ubah Riset'],
             'riset' => $this->detail($riset),
             'organisasis' => $this->organisasiOptions(),

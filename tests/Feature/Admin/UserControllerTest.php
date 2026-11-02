@@ -44,7 +44,7 @@ class UserControllerTest extends TestCase
             ->get(route('admin.users.index'))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->component('Admin/Users/Index')
+                ->component('Admin/Users/A-Users-Index')
                 ->has('users.data', 1)
                 ->where('users.data.0.name', 'Staf Sendiri'));
     }
@@ -99,7 +99,7 @@ class UserControllerTest extends TestCase
             ->get(route('admin.users.index', ['search' => 'Budi']))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->component('Admin/Users/Index')
+                ->component('Admin/Users/A-Users-Index')
                 ->has('users.data', 1)
                 ->where('users.data.0.name', 'Budi Santoso'));
     }

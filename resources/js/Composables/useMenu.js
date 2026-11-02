@@ -24,34 +24,21 @@ const MENU = {
             ],
         },
         {
-            label: 'Kompetisi',
-            items: [
-                { label: 'Daftar Kompetisi', icon: 'pi pi-trophy', route: 'admin.competitions.index' },
-                { label: 'Submission Masuk', icon: 'pi pi-inbox', route: 'admin.competition-submissions.index' },
-            ],
-        },
-        {
-            label: 'Keterlibatan Publik',
-            items: [
-                { label: 'Ide Inovasi', icon: 'pi pi-comment', route: 'admin.ideas.index' },
-                { label: 'Klinik Inovasi', icon: 'pi pi-heart', route: 'admin.consultations.index' },
-            ],
-        },
-        {
             label: 'Konten',
             items: [
-                { label: 'Berita', icon: 'pi pi-megaphone', route: 'admin.news.index' },
-                { label: 'Agenda', icon: 'pi pi-calendar', route: 'admin.events.index' },
-                { label: 'Pengumuman', icon: 'pi pi-bell', route: 'admin.announcements.index' },
+                { label: 'Kategori Post', icon: 'pi pi-tags', route: 'admin.post-categories.index' },
+                { label: 'Post', icon: 'pi pi-megaphone', route: 'admin.posts.index' },
+                { label: 'Page', icon: 'pi pi-file', route: 'admin.pages.index' },                
                 { label: 'Pustaka', icon: 'pi pi-folder-open', route: 'admin.library-documents.index' },
                 { label: 'FAQ', icon: 'pi pi-question-circle', route: 'admin.faqs.index' },
+                { label: 'Menu', icon: 'pi pi-bars', route: 'admin.menus.index' },
             ],
         },
         {
             label: 'Administrasi',
             items: [
                 { label: 'Organisasi/OPD', icon: 'pi pi-building', route: 'admin.organisasis.index' },
-                { label: 'Pengguna', icon: 'pi pi-users', route: 'admin.users.index' },
+                { label: 'Pengguna', icon: 'pi pi-users', route: 'admin.users.index' },                
             ],
         },
     ],
@@ -75,13 +62,8 @@ const MENU = {
             ],
         },
         {
-            label: 'Kompetisi',
-            items: [{ label: 'Ikuti Kompetisi', icon: 'pi pi-trophy', route: 'admin.competition-submissions.index' }],
-        },
-        {
             label: 'Lainnya',
             items: [
-                { label: 'Klinik Inovasi', icon: 'pi pi-heart', route: 'admin.consultations.index' },
                 { label: 'Staf ASN', icon: 'pi pi-id-card', route: 'admin.users.index' },
             ],
         },
@@ -132,7 +114,6 @@ const MENU = {
             items: [
                 { label: 'Review Inovasi', icon: 'pi pi-check-square', route: 'admin.innovations.index' },
                 { label: 'Review Riset', icon: 'pi pi-check-square', route: 'admin.risets.index' },
-                { label: 'Review Kompetisi', icon: 'pi pi-trophy', route: 'admin.competition-submissions.index' },
             ],
         },
     ],

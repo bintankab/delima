@@ -29,7 +29,7 @@ class InnovationCrudTest extends TestCase
             ->get(route('admin.innovations.show', $innovation))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->component('Admin/Innovations/Show')
+                ->component('Admin/Innovations/A-Innovations-Show')
                 ->where('innovation.id', $innovation->id));
     }
 

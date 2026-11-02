@@ -23,7 +23,7 @@ class InnovationIndexTest extends TestCase
             ->get(route('admin.innovations.index', ['search' => 'Layanan Terpadu']))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->component('Admin/Innovations/Index')
+                ->component('Admin/Innovations/A-Innovations-Index')
                 ->where('filters.search', 'Layanan Terpadu')
                 ->has('innovations.data', 1)
                 ->where('innovations.data.0.title', 'Aplikasi Layanan Terpadu'));

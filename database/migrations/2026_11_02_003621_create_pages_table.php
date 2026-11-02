@@ -8,15 +8,16 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('news', function (Blueprint $table) {
+        Schema::create('pages', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->string('title');
             $table->string('slug')->unique();
             $table->text('excerpt')->nullable();
-            $table->longText('content');
-            $table->string('category')->nullable();
-            $table->string('status')->default('draft'); // draft, published
+            $table->longText('content')->nullable();
+            $table->json('fields')->nullable();
+            $table->string('layout')->default('layout_1');
+            $table->string('status')->default('draft');
             $table->timestamp('published_at')->nullable();
             $table->unsignedInteger('views_count')->default(0);
             $table->timestamps();
@@ -26,6 +27,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('news');
+        Schema::dropIfExists('pages');
     }
 };

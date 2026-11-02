@@ -57,7 +57,7 @@ class InnovationCategoryController extends Controller
                     && $category->ideas_count === 0,
             ]);
 
-        return Inertia::render('Admin/InnovationCategories/Index', [
+        return Inertia::render('Admin/InnovationCategories/A-InnovationCategories-Index', [
             'meta' => ['title' => 'Kategori Inovasi'],
             'categories' => $categories,
             'filters' => [
@@ -71,7 +71,7 @@ class InnovationCategoryController extends Controller
 
     public function create(): Response
     {
-        return Inertia::render('Admin/InnovationCategories/Form', [
+        return Inertia::render('Admin/InnovationCategories/A-InnovationCategories-Form', [
             'meta' => ['title' => 'Tambah Kategori Inovasi'],
             'category' => null,
             'parents' => $this->parentOptions(),
@@ -96,7 +96,7 @@ class InnovationCategoryController extends Controller
 
     public function edit(InnovationCategoryModel $innovationCategory): Response
     {
-        return Inertia::render('Admin/InnovationCategories/Form', [
+        return Inertia::render('Admin/InnovationCategories/A-InnovationCategories-Form', [
             'meta' => ['title' => 'Ubah Kategori Inovasi'],
             'category' => [
                 'id' => $innovationCategory->id,

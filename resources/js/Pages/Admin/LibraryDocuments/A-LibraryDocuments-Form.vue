@@ -79,6 +79,7 @@ const submit = () => {
             <h1 class="text-xl font-semibold text-surface-900">
                 {{ document ? 'Ubah Dokumen' : 'Tambah Dokumen' }}
             </h1>
+            <p v-if="document?.slug" class="text-sm text-surface-500 mt-1">Slug: {{ document.slug }}</p>
         </div>
 
         <form class="flex flex-col gap-4" @submit.prevent="submit">

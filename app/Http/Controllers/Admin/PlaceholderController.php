@@ -10,7 +10,7 @@ class PlaceholderController extends Controller
 {
     public function show(string $title): Response
     {
-        return Inertia::render('Admin/ComingSoon', [
+        return Inertia::render('Admin/A-ComingSoon', [
             'meta' => ['title' => $title],
             'title' => $title,
         ]);

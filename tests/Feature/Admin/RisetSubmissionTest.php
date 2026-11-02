@@ -26,7 +26,7 @@ class RisetSubmissionTest extends TestCase
             ->get(route('admin.risets.create'))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->component('Admin/Risets/ArchiveForm')
+                ->component('Admin/Risets/A-Risets-ArchiveForm')
                 ->where('organisasiLocked', true)
                 ->where('organisasiId', $organisasi->id)
                 ->where('organisasiName', 'Dinas Kesehatan')

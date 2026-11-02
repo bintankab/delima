@@ -17,7 +17,7 @@ class RisetArchiveController extends Controller
 {
     public function create(): Response
     {
-        return Inertia::render('Admin/Risets/ArchiveForm', [
+        return Inertia::render('Admin/Risets/A-Risets-ArchiveForm', [
             'meta' => ['title' => 'Input Arsip Riset Lama'],
             'organisasis' => OrganisasiModel::query()
                 ->orderBy('name')

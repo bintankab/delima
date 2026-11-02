@@ -30,7 +30,7 @@ class RisetArchiveTest extends TestCase
         $this->actingAs($this->userWithRole($role))
             ->get(route('admin.risets.index'))
             ->assertOk()
-            ->assertInertia(fn (Assert $page) => $page->component('Admin/Risets/Index'));
+            ->assertInertia(fn (Assert $page) => $page->component('Admin/Risets/A-Risets-Index'));
     }
 
     #[DataProvider('unprivilegedRoles')]

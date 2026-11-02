@@ -27,7 +27,7 @@ class RisetCrudTest extends TestCase
             ->get(route('admin.risets.show', $riset))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->component('Admin/Risets/Show')
+                ->component('Admin/Risets/A-Risets-Show')
                 ->where('riset.id', $riset->id));
     }
 

@@ -83,7 +83,7 @@ class InnovationController extends Controller
                 'editable' => $innovation->user_id === $actor->id && $innovation->status !== 'published',
             ]);
 
-        return Inertia::render('Admin/Innovations/Index', [
+        return Inertia::render('Admin/Innovations/A-Innovations-Index', [
             'meta' => ['title' => 'Data Inovasi'],
             'innovations' => $innovations,
             'statusOptions' => array_map(
@@ -105,7 +105,7 @@ class InnovationController extends Controller
     {
         $inisiator = JenisInisiator::fromRole($request->user()->getRoleNames()->first() ?? '');
 
-        return Inertia::render('Admin/Innovations/Form', [
+        return Inertia::render('Admin/Innovations/A-Innovations-Form', [
             'meta' => ['title' => 'Ajukan Inovasi'],
             'innovation' => null,
             'categories' => $this->categoryOptions(),
@@ -220,7 +220,7 @@ class InnovationController extends Controller
                 'editable' => $innovation->status !== 'published',
             ]);
 
-        return Inertia::render('Admin/Innovations/Mine', [
+        return Inertia::render('Admin/Innovations/A-Innovations-Mine', [
             'meta' => ['title' => 'Inovasi Saya'],
             'innovations' => $innovations,
             'filters' => [
@@ -253,7 +253,7 @@ class InnovationController extends Controller
 
         $innovation->load(['category:id,name']);
 
-        return Inertia::render('Admin/Innovations/Form', [
+        return Inertia::render('Admin/Innovations/A-Innovations-Form', [
             'meta' => ['title' => 'Ubah Inovasi'],
             'innovation' => $this->detail($innovation),
             'categories' => $this->categoryOptions(),
@@ -345,7 +345,7 @@ class InnovationController extends Controller
     {
         $innovation->load(['category:id,name', 'user:id,name', 'reviews.reviewer:id,name']);
 
-        return Inertia::render('Admin/Innovations/Show', [
+        return Inertia::render('Admin/Innovations/A-Innovations-Show', [
             'meta' => ['title' => $innovation->title],
             'canManage' => $context['canManage'],
             'backRoute' => $context['backRoute'],
@@ -468,7 +468,7 @@ class InnovationController extends Controller
     {
         $innovation->load(['category:id,name']);
 
-        return Inertia::render('Admin/Innovations/Form', [
+        return Inertia::render('Admin/Innovations/A-Innovations-Form', [
             'meta' => ['title' => 'Ubah Inovasi'],
             'innovation' => $this->detail($innovation),
             'categories' => $this->categoryOptions(),

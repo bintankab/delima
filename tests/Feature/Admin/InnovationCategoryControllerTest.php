@@ -42,7 +42,7 @@ class InnovationCategoryControllerTest extends TestCase
             ->get(route('admin.innovation-categories.index', ['search' => 'Pelayanan']))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->component('Admin/InnovationCategories/Index')
+                ->component('Admin/InnovationCategories/A-InnovationCategories-Index')
                 ->has('categories.data', 1)
                 ->where('categories.data.0.name', 'Pelayanan Publik'));
     }

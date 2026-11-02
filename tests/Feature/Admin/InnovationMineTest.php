@@ -28,7 +28,7 @@ class InnovationMineTest extends TestCase
             ->get(route('admin.innovations.mine'))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->component('Admin/Innovations/Mine')
+                ->component('Admin/Innovations/A-Innovations-Mine')
                 ->has('innovations.data', 1)
                 ->where('innovations.data.0.title', 'Punya Saya'));
     }
@@ -43,7 +43,7 @@ class InnovationMineTest extends TestCase
             ->get(route('admin.innovations.mine.show', $innovation))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->component('Admin/Innovations/Show')
+                ->component('Admin/Innovations/A-Innovations-Show')
                 ->where('innovation.id', $innovation->id)
                 ->where('innovation.reviewable', false)
                 ->where('canManage', true)
@@ -91,7 +91,7 @@ class InnovationMineTest extends TestCase
             ->get(route('admin.innovations.mine.edit', $innovation))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->component('Admin/Innovations/Form')
+                ->component('Admin/Innovations/A-Innovations-Form')
                 ->where('updateRoute', 'admin.innovations.mine.update')
                 ->where('showRoute', 'admin.innovations.mine.show')
                 ->where('inisiatorLocked', true));

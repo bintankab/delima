@@ -45,7 +45,7 @@ class RisetCategoryController extends Controller
                 'can_delete' => $category->children_count === 0 && $category->risets_count === 0,
             ]);
 
-        return Inertia::render('Admin/RisetCategories/Index', [
+        return Inertia::render('Admin/RisetCategories/A-RisetCategories-Index', [
             'meta' => ['title' => 'Kategori Riset'],
             'categories' => $categories,
             'filters' => [
@@ -59,7 +59,7 @@ class RisetCategoryController extends Controller
 
     public function create(): Response
     {
-        return Inertia::render('Admin/RisetCategories/Form', [
+        return Inertia::render('Admin/RisetCategories/A-RisetCategories-Form', [
             'meta' => ['title' => 'Tambah Kategori Riset'],
             'category' => null,
             'parents' => $this->parentOptions(),
@@ -84,7 +84,7 @@ class RisetCategoryController extends Controller
 
     public function edit(RisetCategoryModel $risetCategory): Response
     {
-        return Inertia::render('Admin/RisetCategories/Form', [
+        return Inertia::render('Admin/RisetCategories/A-RisetCategories-Form', [
             'meta' => ['title' => 'Ubah Kategori Riset'],
             'category' => [
                 'id' => $risetCategory->id,

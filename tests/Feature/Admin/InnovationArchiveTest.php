@@ -32,7 +32,7 @@ class InnovationArchiveTest extends TestCase
         $this->actingAs($this->userWithRole($role))
             ->get(route('admin.innovations.index'))
             ->assertOk()
-            ->assertInertia(fn (Assert $page) => $page->component('Admin/Innovations/Index'));
+            ->assertInertia(fn (Assert $page) => $page->component('Admin/Innovations/A-Innovations-Index'));
     }
 
     #[DataProvider('unprivilegedRoles')]

@@ -13,10 +13,12 @@ return new class extends Migration
             $table->foreignId('organisasi_id')->nullable()->constrained()->nullOnDelete();
             $table->foreignId('uploaded_by')->constrained('users')->cascadeOnDelete();
             $table->string('title');
+            $table->string('slug')->unique();
             $table->text('description')->nullable();
             $table->string('type')->nullable(); // regulasi, panduan, laporan, lainnya
             $table->boolean('is_public')->default(true);
             $table->unsignedInteger('downloads_count')->default(0);
+            $table->unsignedInteger('views_count')->default(0);
             $table->timestamps();
             $table->softDeletes();
         });

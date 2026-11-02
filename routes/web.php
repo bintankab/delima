@@ -11,6 +11,8 @@ use App\Http\Controllers\PublicController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [PublicController::class, 'home'])->name('home');
+Route::get('/berita/{post:slug}', [PublicController::class, 'beritaShow'])->name('berita.show');
+Route::get('/p/{page:slug}', [PublicController::class, 'pageShow'])->name('pages.show');
 Route::get('/riset', [PublicController::class, 'riset'])->name('riset');
 Route::get('/riset/{riset:slug}', [PublicController::class, 'risetShow'])->name('riset.show');
 Route::get('/riset/{riset:slug}/dokumen/{media}', [PublicController::class, 'risetDocument'])->name('riset.document');
@@ -18,6 +20,7 @@ Route::get('/inovasi', [PublicController::class, 'inovasi'])->name('inovasi');
 Route::get('/inovasi/{innovation:slug}', [PublicController::class, 'inovasiShow'])->name('inovasi.show');
 Route::get('/inovasi/{innovation:slug}/dokumen/{media}', [PublicController::class, 'inovasiDocument'])->name('inovasi.document');
 Route::get('/pustaka', [PublicController::class, 'pustaka'])->name('pustaka');
+Route::get('/pustaka/{libraryDocument:slug}', [PublicController::class, 'pustakaShow'])->name('pustaka.show');
 Route::get('/pustaka/{libraryDocument}/unduh', [PublicController::class, 'pustakaDownload'])->name('pustaka.download');
 
 Route::middleware('guest')->group(function () {

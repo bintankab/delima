@@ -1,13 +1,17 @@
 <?php
 
+use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\InnovationArchiveController;
 use App\Http\Controllers\Admin\InnovationCategoryController;
 use App\Http\Controllers\Admin\InnovationController;
 use App\Http\Controllers\Admin\LibraryDocumentController;
 use App\Http\Controllers\Admin\MediaLibraryController;
+use App\Http\Controllers\Admin\MenuController;
 use App\Http\Controllers\Admin\OrganisasiController;
+use App\Http\Controllers\Admin\PageController;
 use App\Http\Controllers\Admin\PlaceholderController;
+use App\Http\Controllers\Admin\PostController;
 use App\Http\Controllers\Admin\RisetArchiveController;
 use App\Http\Controllers\Admin\RisetCategoryController;
 use App\Http\Controllers\Admin\RisetController;
@@ -67,6 +71,32 @@ Route::middleware(['auth', 'role:super-admin|admin-opd|reviewer'])
             ->except(['show'])
             ->middleware('role:super-admin');
 
+        Route::redirect('news/index', '/admin/posts');
+        Route::redirect('news', '/admin/posts');
+        Route::resource('posts', PostController::class)
+            ->except(['show'])
+            ->middleware('role:super-admin');
+
+        Route::resource('pages', PageController::class)
+            ->except(['show'])
+            ->middleware('role:super-admin');
+
+        Route::resource('post-categories', CategoryController::class)
+            ->except(['show'])
+            ->parameters(['post-categories' => 'category'])
+            ->middleware('role:super-admin');
+
+        Route::middleware('role:super-admin')->group(function () {
+            Route::get('menus', [MenuController::class, 'index'])->name('menus.index');
+            Route::get('menus/create', [MenuController::class, 'create'])->name('menus.create');
+            Route::post('menus', [MenuController::class, 'store'])->name('menus.store');
+            Route::post('menus/{menuItem}/move-up', [MenuController::class, 'moveUp'])->name('menus.move-up');
+            Route::post('menus/{menuItem}/move-down', [MenuController::class, 'moveDown'])->name('menus.move-down');
+            Route::get('menus/{menuItem}/edit', [MenuController::class, 'edit'])->name('menus.edit');
+            Route::put('menus/{menuItem}', [MenuController::class, 'update'])->name('menus.update');
+            Route::delete('menus/{menuItem}', [MenuController::class, 'destroy'])->name('menus.destroy');
+        });
+
         Route::get('risets', [RisetController::class, 'index'])->name('risets.index');
         Route::get('risets/{riset}', [RisetController::class, 'show'])->name('risets.show');
 
@@ -76,13 +106,6 @@ Route::middleware(['auth', 'role:super-admin|admin-opd|reviewer'])
         // Placeholder routes — kerangka navigasi untuk fitur yang akan
         // dibangun bertahap (CRUD penuh menyusul per modul).
         $placeholders = [
-            'competitions.index' => 'Daftar Kompetisi',
-            'competition-submissions.index' => 'Submission Kompetisi',
-            'ideas.index' => 'Ide Inovasi',
-            'consultations.index' => 'Klinik Inovasi',
-            'news.index' => 'Berita',
-            'events.index' => 'Agenda',
-            'announcements.index' => 'Pengumuman',
             'faqs.index' => 'FAQ',
         ];
 

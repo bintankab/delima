@@ -55,7 +55,7 @@ class LibraryDocumentController extends Controller
                 'downloads_count' => $document->downloads_count,
             ]);
 
-        return Inertia::render('Admin/LibraryDocuments/Index', [
+        return Inertia::render('Admin/LibraryDocuments/A-LibraryDocuments-Index', [
             'meta' => ['title' => $isSuperAdmin ? 'Pustaka' : 'Pustaka OPD'],
             'documents' => $documents,
             'filters' => [
@@ -71,7 +71,7 @@ class LibraryDocumentController extends Controller
     {
         $isSuperAdmin = $request->user()->hasRole('super-admin');
 
-        return Inertia::render('Admin/LibraryDocuments/Form', [
+        return Inertia::render('Admin/LibraryDocuments/A-LibraryDocuments-Form', [
             'meta' => ['title' => 'Tambah Dokumen'],
             'document' => null,
             'types' => $this->typeOptions(),
@@ -95,6 +95,7 @@ class LibraryDocumentController extends Controller
 
         $document = LibraryDocumentModel::create([
             ...$validated,
+            'slug' => LibraryDocumentModel::uniqueSlug($validated['title']),
             'organisasi_id' => $organisasiId,
             'uploaded_by' => $user->id,
         ]);
@@ -114,11 +115,12 @@ class LibraryDocumentController extends Controller
         $file = $libraryDocument->getFirstMedia('file');
         $isSuperAdmin = $request->user()->hasRole('super-admin');
 
-        return Inertia::render('Admin/LibraryDocuments/Form', [
+        return Inertia::render('Admin/LibraryDocuments/A-LibraryDocuments-Form', [
             'meta' => ['title' => 'Ubah Dokumen'],
             'document' => [
                 'id' => $libraryDocument->id,
                 'title' => $libraryDocument->title,
+                'slug' => $libraryDocument->slug,
                 'nomor_dokumen' => $libraryDocument->nomor_dokumen,
                 'penyusun' => $libraryDocument->penyusun,
                 'tahun_terbit' => $libraryDocument->tahun_terbit,
@@ -150,7 +152,12 @@ class LibraryDocumentController extends Controller
             $validated['organisasi_id'] = $request->validated('organisasi_id');
         }
 
-        $libraryDocument->update($validated);
+        $libraryDocument->update([
+            ...$validated,
+            'slug' => $libraryDocument->title === $validated['title']
+                ? $libraryDocument->slug
+                : LibraryDocumentModel::uniqueSlug($validated['title'], $libraryDocument->id),
+        ]);
 
         if ($request->hasFile('file')) {
             $libraryDocument->addMediaFromRequest('file')->toMediaCollection('file');

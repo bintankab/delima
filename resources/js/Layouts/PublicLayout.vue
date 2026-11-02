@@ -10,16 +10,20 @@ const roles = page.props.auth.roles ?? [];
 const isAdminRole = computed(() => ['super-admin', 'admin-opd', 'reviewer'].some((role) => roles.includes(role)));
 const canSubmitInnovation = computed(() => ['bupati', 'dprd', 'asn', 'publik'].some((role) => roles.includes(role)));
 
-const navItems = [
-    { label: 'Beranda', href: '/' },
-    { label: 'Etalase', href: '/etalase' },
-    { label: 'Kompetisi', href: '/kompetisi' },
-    { label: 'Riset', href: '/riset' },
-    { label: 'Inovasi', href: '/inovasi' },
-    { label: 'Ide Inovasi', href: '/ide-inovasi' },
-    { label: 'Pustaka', href: '/pustaka' },
-    { label: 'FAQ', href: '/faq' },
+const fallbackNavigation = [
+    { label: 'Beranda', url: '/' },
+    { label: 'Kompetisi', url: '/kompetisi' },
+    { label: 'Riset', url: '/riset' },
+    { label: 'Inovasi', url: '/inovasi' },
+    { label: 'Pustaka', url: '/pustaka' },
+    { label: 'FAQ', url: '/faq' },
 ];
+
+const navItems = computed(() => page.props.navigation ?? fallbackNavigation);
+
+const isInternal = (item) => Boolean(item.url?.startsWith('/'))
+    && !item.url.startsWith('//')
+    && !item.opens_in_new_tab;
 </script>
 
 <template>
@@ -33,9 +37,51 @@ const navItems = [
                     DELIMA
                 </Link>
                 <nav class="hidden lg:flex items-center gap-6 text-sm">
-                    <Link v-for="item in navItems" :key="item.href" :href="item.href" class="hover:text-indigo-200">
-                        {{ item.label }}
-                    </Link>
+                    <div v-for="item in navItems" :key="`${item.label}-${item.url}`" class="relative group">
+                        <Link
+                            v-if="isInternal(item)"
+                            :href="item.url"
+                            class="inline-flex items-center gap-1 hover:text-indigo-200"
+                        >
+                            {{ item.label }}
+                            <i v-if="item.children?.length" class="pi pi-chevron-down text-[10px]" />
+                        </Link>
+                        <a
+                            v-else
+                            :href="item.url"
+                            class="inline-flex items-center gap-1 hover:text-indigo-200"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            {{ item.label }}
+                            <i v-if="item.children?.length" class="pi pi-chevron-down text-[10px]" />
+                        </a>
+                        <div
+                            v-if="item.children?.length"
+                            class="absolute left-0 top-full z-20 hidden min-w-48 pt-2 group-hover:block group-focus-within:block"
+                        >
+                            <div class="rounded-lg bg-white py-2 text-surface-800 shadow-lg">
+                                <template v-for="child in item.children" :key="`${child.label}-${child.url}`">
+                                    <Link
+                                        v-if="isInternal(child)"
+                                        :href="child.url"
+                                        class="block px-4 py-2 hover:bg-surface-100"
+                                    >
+                                        {{ child.label }}
+                                    </Link>
+                                    <a
+                                        v-else
+                                        :href="child.url"
+                                        class="block px-4 py-2 hover:bg-surface-100"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                    >
+                                        {{ child.label }}
+                                    </a>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
                 </nav>
                 <div class="flex items-center gap-2">
                     <Link

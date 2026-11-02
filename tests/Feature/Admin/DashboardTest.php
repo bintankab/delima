@@ -20,7 +20,7 @@ class DashboardTest extends TestCase
             ->get(route('admin.dashboard'))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->component('Admin/Dashboard/Analytics')
+                ->component('Admin/Dashboard/A-Dashboard-Analytics')
                 ->where('filters.tahun', null)
                 ->where('filters.jenis_inovasi', null)
                 ->has('tahunOptions')

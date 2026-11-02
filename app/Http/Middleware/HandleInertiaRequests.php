@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\MenuModel;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -47,6 +48,11 @@ class HandleInertiaRequests extends Middleware
                 'success' => fn () => $request->session()->get('success'),
                 'error' => fn () => $request->session()->get('error'),
             ],
+            'navigation' => function (): ?array {
+                $menu = MenuModel::query()->where('location', 'header')->first();
+
+                return $menu?->navigation();
+            },
         ];
     }
 }

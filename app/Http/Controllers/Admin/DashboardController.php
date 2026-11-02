@@ -46,7 +46,7 @@ class DashboardController extends Controller
 
         $statuses = ['draft', 'submitted', 'under_review', 'reviewed', 'revision_needed', 'published', 'rejected', 'archived'];
 
-        return Inertia::render('Admin/Dashboard/Analytics', [
+        return Inertia::render('Admin/Dashboard/A-Dashboard-Analytics', [
             'meta' => ['title' => 'Dashboard'],
             'stats' => [
                 'total_innovations' => (clone $innovationQuery)->count(),

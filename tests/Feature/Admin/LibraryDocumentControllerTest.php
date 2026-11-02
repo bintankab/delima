@@ -68,6 +68,7 @@ class LibraryDocumentControllerTest extends TestCase
         $document = LibraryDocumentModel::where('title', 'Peraturan Daerah No. 1')->first();
 
         $this->assertNotNull($document);
+        $this->assertSame('peraturan-daerah-no-1', $document->slug);
         $this->assertSame($organisasi->id, $document->organisasi_id);
         $this->assertSame($admin->id, $document->uploaded_by);
         $this->assertNotNull($document->getFirstMedia('file'));
@@ -146,7 +147,56 @@ class LibraryDocumentControllerTest extends TestCase
         $document->refresh();
 
         $this->assertSame('Baru', $document->title);
+        $this->assertSame('baru', $document->slug);
         $this->assertSame($originalMediaId, $document->getFirstMedia('file')->id);
+    }
+
+    public function test_updating_without_changing_the_title_keeps_the_slug(): void
+    {
+        $document = LibraryDocumentModel::factory()->create([
+            'title' => 'Lama',
+            'slug' => 'slug-lama',
+            'type' => 'laporan',
+        ]);
+
+        $this->actingAs($this->userWithRole('super-admin'))
+            ->put(route('admin.library-documents.update', $document), [
+                'title' => 'Lama',
+                'type' => 'panduan',
+                'is_public' => true,
+            ])
+            ->assertRedirect(route('admin.library-documents.index'));
+
+        $document->refresh();
+
+        $this->assertSame('slug-lama', $document->slug);
+        $this->assertSame('panduan', $document->type);
+    }
+
+    public function test_a_duplicate_title_gets_a_unique_slug(): void
+    {
+        Storage::fake('public');
+        $admin = $this->userWithRole('super-admin');
+        $payload = [
+            'title' => 'Panduan yang Sama',
+            'type' => 'panduan',
+            'is_public' => true,
+            'file' => UploadedFile::fake()->create('panduan.pdf', 100),
+        ];
+
+        $this->actingAs($admin)
+            ->post(route('admin.library-documents.store'), $payload)
+            ->assertRedirect(route('admin.library-documents.index'));
+
+        $this->actingAs($admin)
+            ->post(route('admin.library-documents.store'), [
+                ...$payload,
+                'file' => UploadedFile::fake()->create('panduan-2.pdf', 100),
+            ])
+            ->assertRedirect(route('admin.library-documents.index'));
+
+        $this->assertDatabaseHas('library_documents', ['title' => 'Panduan yang Sama', 'slug' => 'panduan-yang-sama']);
+        $this->assertDatabaseHas('library_documents', ['title' => 'Panduan yang Sama', 'slug' => 'panduan-yang-sama-2']);
     }
 
     public function test_document_can_be_deleted(): void

@@ -19,7 +19,7 @@ class InnovationArchiveController extends Controller
 {
     public function create(): Response
     {
-        return Inertia::render('Admin/Innovations/ArchiveForm', [
+        return Inertia::render('Admin/Innovations/A-Innovations-ArchiveForm', [
             'meta' => ['title' => 'Input Arsip Inovasi Lama'],
             'inisiatorOptions' => JenisInisiator::options(),
             'categories' => $this->categoryOptions(),
