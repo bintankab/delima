@@ -34,8 +34,8 @@ const userMenuItems = [
             >
                 <i class="pi pi-bars" />
             </button>
-            <Link href="/" class="flex items-center gap-2 text-white font-semibold tracking-wide">
-                <i class="pi pi-sitemap text-xl" />
+            <Link href="/" class="flex items-center gap-2 text-[#FFD700] font-semibold tracking-wide">
+                <img src="/images/logo-2.png" alt="" class="h-9 w-auto" />
                 <span>DELIMA</span>
             </Link>
         </div>
@@ -48,9 +48,9 @@ const userMenuItems = [
                 <i class="pi pi-bell" />
             </button>
             <button type="button" class="flex items-center gap-2 pl-2" @click="userMenu.toggle($event)">
-                <Avatar :label="user.name.charAt(0)" shape="circle" class="bg-white/20 text-white" />
-                <span class="hidden md:inline text-white text-sm">{{ user.name }}</span>
-                <i class="pi pi-angle-down text-white text-xs hidden md:inline" />
+                <Avatar :label="user.name.charAt(0)" shape="circle" class="bg-white/20 text-[#FFD700]" />
+                <span class="hidden md:inline text-[#FFD700] text-sm">{{ user.name }}</span>
+                <i class="pi pi-angle-down text-[#FFD700] text-xs hidden md:inline" />
             </button>
             <Menu ref="userMenu" :model="userMenuItems" :popup="true" />
         </div>

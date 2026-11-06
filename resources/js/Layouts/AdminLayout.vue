@@ -56,7 +56,7 @@ onUnmounted(() => {
         <div class="app-rightpanel-mask" @click="closeRightPanel" />
 
         <main class="app-content">
-            <h1 v-if="title" class="text-xl font-semibold text-surface-900 mb-4">{{ title }}</h1>
+            <h1 v-if="title" class="text-xl font-semibold text-white mb-4">{{ title }}</h1>
             <slot />
         </main>
 

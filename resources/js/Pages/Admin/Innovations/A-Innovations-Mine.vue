@@ -85,8 +85,8 @@ const remove = (item) => {
 <template>
     <div class="flex flex-col gap-4">
         <div>
-            <h1 class="text-xl font-semibold text-surface-900">Inovasi Saya</h1>
-            <p class="text-sm text-surface-500">Daftar inovasi yang pernah Anda ajukan beserta status reviewnya.</p>
+            <h1 class="text-xl font-semibold text-white">Inovasi Saya</h1>
+            <p class="text-sm text-white/70">Daftar inovasi yang pernah Anda ajukan beserta status reviewnya.</p>
         </div>
 
         <div class="bg-white rounded-xl border border-surface-200 p-5">

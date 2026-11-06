@@ -50,8 +50,8 @@ const menuItems = (item) => [
     <div class="flex flex-col gap-4">
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-                <h1 class="text-xl font-semibold text-surface-900">{{ menu.name }}</h1>
-                <p class="text-sm text-surface-500">Atur tautan yang tampil di menu atas halaman publik.</p>
+                <h1 class="text-xl font-semibold text-white">{{ menu.name }}</h1>
+                <p class="text-sm text-white/70">Atur tautan yang tampil di menu atas halaman publik.</p>
             </div>
             <Button
                 label="Tambah Menu"

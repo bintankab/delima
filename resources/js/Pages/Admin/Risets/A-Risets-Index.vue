@@ -154,10 +154,10 @@ const purge = (riset) => {
     <div class="flex flex-col gap-4">
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-                <h1 class="text-xl font-semibold text-surface-900">
+                <h1 class="text-xl font-semibold text-white">
                     {{ isTrashed ? 'Sampah Riset' : 'Daftar Riset' }}
                 </h1>
-                <p class="text-sm text-surface-500">
+                <p class="text-sm text-white/70">
                     {{ isTrashed
                         ? 'Riset yang sudah dihapus. Hapus permanen akan menghapus berkasnya juga.'
                         : 'Riset yang sudah masuk, termasuk arsip lama.' }}

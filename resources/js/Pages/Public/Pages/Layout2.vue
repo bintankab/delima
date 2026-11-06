@@ -12,8 +12,8 @@ defineProps({
 <template>
     <article class="max-w-6xl mx-auto px-4 py-10 flex flex-col gap-8">
         <header>
-            <h1 class="text-3xl sm:text-4xl font-bold text-surface-900">{{ page.title }}</h1>
-            <p v-if="page.excerpt" class="mt-3 text-lg text-surface-600">{{ page.excerpt }}</p>
+            <h1 class="text-3xl sm:text-4xl font-bold text-white">{{ page.title }}</h1>
+            <p v-if="page.excerpt" class="mt-3 text-lg text-white/80">{{ page.excerpt }}</p>
         </header>
 
         <div v-if="slides.length" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -31,6 +31,6 @@ defineProps({
             </section>
         </div>
 
-        <div class="rich-text text-base" v-html="page.content" />
+        <div class="rich-text text-base bg-white rounded-2xl border border-surface-200 p-6" v-html="page.content" />
     </article>
 </template>

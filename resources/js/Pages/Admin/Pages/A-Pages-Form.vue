@@ -163,10 +163,10 @@ const remove = () => {
     <form class="flex flex-col gap-4" @submit.prevent="submit(form.status)">
         <div class="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
             <div>
-                <h1 class="text-xl font-semibold text-surface-900">
+                <h1 class="text-xl font-semibold text-white">
                     {{ page ? 'Ubah Page' : 'Tulis Page' }}
                 </h1>
-                <p v-if="page?.slug" class="text-sm text-surface-500 mt-1">Alamat publik: /p/{{ page.slug }}</p>
+                <p v-if="page?.slug" class="text-sm text-white/70 mt-1">Alamat publik: /p/{{ page.slug }}</p>
             </div>
             <Button
                 v-if="page"

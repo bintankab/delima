@@ -87,8 +87,8 @@ const remove = (faq) => {
     <div class="flex flex-col gap-4">
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-                <h1 class="text-xl font-semibold text-surface-900">FAQ</h1>
-                <p class="text-sm text-surface-500">Pertanyaan yang tampil di halaman publik /faq.</p>
+                <h1 class="text-xl font-semibold text-white">FAQ</h1>
+                <p class="text-sm text-white/70">Pertanyaan yang tampil di halaman publik /faq.</p>
             </div>
             <Button
                 label="Tambah FAQ"

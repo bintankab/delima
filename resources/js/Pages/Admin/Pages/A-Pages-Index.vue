@@ -94,8 +94,8 @@ const menuItems = (item) => [
     <div class="flex flex-col gap-4">
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-                <h1 class="text-xl font-semibold text-surface-900">Page</h1>
-                <p class="text-sm text-surface-500">Halaman statis. Setiap halaman memilih satu layout dan menyimpan isinya sendiri.</p>
+                <h1 class="text-xl font-semibold text-white">Page</h1>
+                <p class="text-sm text-white/70">Halaman statis. Setiap halaman memilih satu layout dan menyimpan isinya sendiri.</p>
             </div>
             <Button
                 label="Tulis Page"

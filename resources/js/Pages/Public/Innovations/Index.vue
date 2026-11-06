@@ -145,7 +145,7 @@ const onPage = (event) => {
                 </div>
             </Link>
 
-            <p v-if="!innovations.data.length" class="text-surface-400 text-sm col-span-full text-center py-10">
+            <p v-if="!innovations.data.length" class="text-white/70 text-sm col-span-full text-center py-10">
                 {{ hasActiveFilters()
                     ? 'Tidak ada inovasi yang cocok dengan filter yang dipilih.'
                     : 'Belum ada inovasi yang dipublikasikan.' }}

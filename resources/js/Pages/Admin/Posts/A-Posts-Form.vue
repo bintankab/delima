@@ -104,10 +104,10 @@ const remove = () => {
 <template>
     <form class="flex flex-col gap-4" @submit.prevent="submit(form.status)">
         <div>
-            <h1 class="text-xl font-semibold text-surface-900">
+            <h1 class="text-xl font-semibold text-white">
                 {{ post ? 'Ubah Post' : 'Tulis Post' }}
             </h1>
-            <p v-if="post?.slug" class="text-sm text-surface-500 mt-1">Slug: {{ post.slug }}</p>
+            <p v-if="post?.slug" class="text-sm text-white/70 mt-1">Slug: {{ post.slug }}</p>
         </div>
 
         <div class="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_20rem] gap-6 items-start">

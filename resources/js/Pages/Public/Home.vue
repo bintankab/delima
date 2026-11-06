@@ -173,11 +173,11 @@ onUnmounted(stop);
         </section>
 
         <section v-else class="max-w-6xl mx-auto px-4 py-16">
-            <p class="text-surface-400 text-sm text-center">Belum ada berita.</p>
+            <p class="text-white/70 text-sm text-center">Belum ada berita.</p>
         </section>
 
         <section class="max-w-6xl mx-auto px-4 py-12">
-            <h2 class="text-lg font-semibold text-surface-900 mb-4">Top Inovasi</h2>
+            <h2 class="text-lg font-semibold text-white mb-4">Top Inovasi</h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Link
                     v-for="item in topInnovations"
@@ -188,7 +188,7 @@ onUnmounted(stop);
                     <h3 class="font-medium text-surface-900">{{ item.title }}</h3>
                     <p class="text-sm text-surface-500 mt-1">Tahun {{ item.tahun }}</p>
                 </Link>
-                <p v-if="!topInnovations.length" class="text-surface-400 text-sm">Belum ada inovasi unggulan.</p>
+                <p v-if="!topInnovations.length" class="text-white/70 text-sm">Belum ada inovasi unggulan.</p>
             </div>
         </section>
     </div>

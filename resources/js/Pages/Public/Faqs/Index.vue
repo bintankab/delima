@@ -24,13 +24,13 @@ defineProps({
         </section>
 
         <section class="max-w-3xl mx-auto px-4 py-10">
-            <p v-if="groups.length === 0" class="text-sm text-surface-500">
+            <p v-if="groups.length === 0" class="text-sm text-white/70">
                 Belum ada pertanyaan.
             </p>
 
             <div v-else class="flex flex-col gap-8">
                 <div v-for="(group, index) in groups" :key="index" class="flex flex-col gap-3">
-                    <h2 class="text-lg font-semibold text-surface-900">
+                    <h2 class="text-lg font-semibold text-white">
                         {{ group.category ?? 'Umum' }}
                     </h2>
 

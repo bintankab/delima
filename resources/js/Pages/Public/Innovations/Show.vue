@@ -45,7 +45,7 @@ const shareWhatsapp = () => {
 
 <template>
     <div class="max-w-6xl mx-auto px-4 py-8 flex flex-col gap-6">
-        <Link :href="route('inovasi')" class="text-sm text-surface-500 hover:text-indigo-600 w-fit">
+        <Link :href="route('inovasi')" class="text-sm text-white/80 hover:text-[#FFD700] w-fit">
             &larr; Kembali ke Data Inovasi
         </Link>
 
@@ -73,7 +73,7 @@ const shareWhatsapp = () => {
             </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 bg-white rounded-2xl border border-surface-200 p-5 sm:p-8">
             <div class="lg:col-span-2 flex flex-col gap-6">
                 <div class="rich-text text-base" v-html="innovation.description" />
 
@@ -160,13 +160,13 @@ const shareWhatsapp = () => {
         </div>
 
         <div v-if="relatedInnovations.length" class="flex flex-col gap-4">
-            <h2 class="text-lg font-semibold text-surface-900">Inovasi Lainnya</h2>
+            <h2 class="text-lg font-semibold text-white">Inovasi Lainnya</h2>
             <div class="grid sm:grid-cols-2 gap-4">
                 <button
                     v-for="item in relatedInnovations"
                     :key="item.id"
                     type="button"
-                    class="flex gap-3 text-left rounded-xl border border-surface-200 p-3 hover:border-indigo-400 hover:shadow-sm transition-colors"
+                    class="flex gap-3 text-left rounded-xl border border-surface-200 bg-white p-3 hover:border-indigo-400 hover:shadow-sm transition-colors"
                     @click="router.visit(route('inovasi.show', item.slug))"
                 >
                     <img

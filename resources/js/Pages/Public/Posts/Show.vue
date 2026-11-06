@@ -119,7 +119,7 @@ const shareWhatsapp = () => {
         </article>
 
         <section v-if="relatedPosts.length" class="mt-10">
-            <h2 class="text-lg font-semibold text-surface-900 mb-4">Baca juga</h2>
+            <h2 class="text-lg font-semibold text-white mb-4">Baca juga</h2>
             <div class="flex flex-col gap-4">
                 <Link
                     v-for="item in relatedPosts"

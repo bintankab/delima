@@ -94,8 +94,8 @@ const menuItems = (item) => [
     <div class="flex flex-col gap-4">
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-                <h1 class="text-xl font-semibold text-surface-900">Post</h1>
-                <p class="text-sm text-surface-500">Tulis, simpan draf, dan terbitkan post untuk halaman publik.</p>
+                <h1 class="text-xl font-semibold text-white">Post</h1>
+                <p class="text-sm text-white/70">Tulis, simpan draf, dan terbitkan post untuk halaman publik.</p>
             </div>
             <Button
                 label="Tulis Post"

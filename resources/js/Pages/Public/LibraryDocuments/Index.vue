@@ -185,7 +185,7 @@ const typeSeverity = {
                 </div>
             </div>
 
-            <p v-if="!documents.data.length" class="text-surface-400 text-sm text-center py-10">
+            <p v-if="!documents.data.length" class="text-white/70 text-sm text-center py-10">
                 {{ hasActiveFilters()
                     ? 'Tidak ada dokumen yang cocok dengan filter yang dipilih.'
                     : 'Belum ada dokumen yang dipublikasikan.' }}

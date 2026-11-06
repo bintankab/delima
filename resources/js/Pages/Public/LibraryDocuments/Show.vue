@@ -38,7 +38,7 @@ const shareWhatsapp = () => {
 
 <template>
     <div class="max-w-6xl mx-auto px-4 py-8 flex flex-col gap-6">
-        <Link :href="route('pustaka')" class="text-sm text-surface-500 hover:text-indigo-600 w-fit">
+        <Link :href="route('pustaka')" class="text-sm text-white/80 hover:text-[#FFD700] w-fit">
             &larr; Kembali ke Pustaka
         </Link>
 
@@ -54,7 +54,7 @@ const shareWhatsapp = () => {
             <h1 class="text-xl sm:text-3xl font-bold mt-3">{{ document.title }}</h1>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 bg-white rounded-2xl border border-surface-200 p-5 sm:p-8">
             <div class="lg:col-span-2 flex flex-col gap-6">
                 <p v-if="document.description" class="text-base text-surface-800 whitespace-pre-line">{{ document.description }}</p>
                 <p v-else class="text-sm text-surface-400">Belum ada deskripsi untuk dokumen ini.</p>
@@ -130,13 +130,13 @@ const shareWhatsapp = () => {
         </div>
 
         <div v-if="relatedDocuments.length" class="flex flex-col gap-4">
-            <h2 class="text-lg font-semibold text-surface-900">Dokumen Lainnya</h2>
+            <h2 class="text-lg font-semibold text-white">Dokumen Lainnya</h2>
             <div class="grid sm:grid-cols-2 gap-4">
                 <button
                     v-for="item in relatedDocuments"
                     :key="item.id"
                     type="button"
-                    class="text-left rounded-xl border border-surface-200 p-3 hover:border-indigo-400 hover:shadow-sm transition-colors"
+                    class="text-left rounded-xl border border-surface-200 bg-white p-3 hover:border-indigo-400 hover:shadow-sm transition-colors"
                     @click="router.visit(route('pustaka.show', item.slug))"
                 >
                     <p class="text-xs text-surface-500">{{ item.type_label }}<span v-if="item.tahun_terbit"> &middot; {{ item.tahun_terbit }}</span></p>

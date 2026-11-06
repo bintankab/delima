@@ -88,8 +88,8 @@ const remove = (category) => {
     <div class="flex flex-col gap-4">
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-                <h1 class="text-xl font-semibold text-surface-900">Kategori Post</h1>
-                <p class="text-sm text-surface-500">Kelompok post. Satu post dapat memakai lebih dari satu kategori.</p>
+                <h1 class="text-xl font-semibold text-white">Kategori Post</h1>
+                <p class="text-sm text-white/70">Kelompok post. Satu post dapat memakai lebih dari satu kategori.</p>
             </div>
             <Button
                 label="Tambah Kategori"
