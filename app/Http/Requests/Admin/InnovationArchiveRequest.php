@@ -5,9 +5,11 @@ namespace App\Http\Requests\Admin;
 use App\Enums\JenisInisiator;
 use App\Enums\JenisInovasi;
 use App\Enums\TahapanInovasi;
+use App\Models\OrganisasiModel;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class InnovationArchiveRequest extends FormRequest
 {
@@ -23,6 +25,12 @@ class InnovationArchiveRequest extends FormRequest
     {
         return [
             'inisiator' => ['required', Rule::enum(JenisInisiator::class)],
+            'organisasi_id' => [
+                Rule::excludeUnless(fn (): bool => $this->input('inisiator') === JenisInisiator::OPD->value),
+                'required',
+                'integer',
+                Rule::exists('organisasis', 'id'),
+            ],
             'category_id' => ['required', 'integer', Rule::exists('innovation_categories', 'id')],
             'title' => ['required', 'string', 'max:255'],
             'jenis_inovasi' => ['required', Rule::enum(JenisInovasi::class)],
@@ -42,6 +50,32 @@ class InnovationArchiveRequest extends FormRequest
     }
 
     /**
+     * @return array<int, callable(Validator): void>
+     */
+    public function after(): array
+    {
+        return [
+            function (Validator $validator): void {
+                if ($validator->errors()->hasAny(['inisiator', 'organisasi_id'])) {
+                    return;
+                }
+
+                if ($this->input('inisiator') !== JenisInisiator::OPD->value) {
+                    return;
+                }
+
+                $ownerId = OrganisasiModel::query()
+                    ->find($this->integer('organisasi_id'))
+                    ?->primaryAdminOpdUserId();
+
+                if ($ownerId === null) {
+                    $validator->errors()->add('organisasi_id', 'OPD yang dipilih belum memiliki admin OPD.');
+                }
+            },
+        ];
+    }
+
+    /**
      * @return array<string, string>
      */
     public function messages(): array
@@ -49,6 +83,9 @@ class InnovationArchiveRequest extends FormRequest
         return [
             'inisiator.required' => 'Jenis inisiator wajib dipilih.',
             'inisiator.enum' => 'Jenis inisiator tidak valid.',
+            'organisasi_id.required' => 'OPD wajib dipilih.',
+            'organisasi_id.integer' => 'OPD yang dipilih tidak ditemukan.',
+            'organisasi_id.exists' => 'OPD yang dipilih tidak ditemukan.',
             'category_id.required' => 'Kategori wajib dipilih.',
             'category_id.integer' => 'Kategori yang dipilih tidak ditemukan.',
             'category_id.exists' => 'Kategori yang dipilih tidak ditemukan.',

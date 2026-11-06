@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue';
+import { computed, watch } from 'vue';
 import { router } from '@inertiajs/vue3';
 import { useAutoClearForm } from '@/Composables/useAutoClearForm';
 import Button from 'primevue/button';
@@ -16,6 +16,7 @@ defineOptions({ layout: AdminLayout });
 
 defineProps({
     inisiatorOptions: { type: Array, required: true },
+    organisasis: { type: Array, required: true },
     categories: { type: Array, required: true },
     jenisOptions: { type: Array, required: true },
     tahapanOptions: { type: Array, required: true },
@@ -27,6 +28,7 @@ const maxDate = new Date();
 
 const form = useAutoClearForm({
     inisiator: null,
+    organisasi_id: null,
     category_id: null,
     title: '',
     jenis_inovasi: null,
@@ -41,6 +43,12 @@ const form = useAutoClearForm({
     implementation_at: null,
     cover: null,
     documents: [],
+});
+
+watch(() => form.inisiator, (value) => {
+    if (value !== 'opd') {
+        form.organisasi_id = null;
+    }
 });
 
 const formatDate = (value) => {
@@ -90,6 +98,7 @@ const submit = () => {
         implementation_at: formatDate(data.implementation_at),
         link_video: data.link_video || null,
         link_file_pendukung: data.link_file_pendukung || null,
+        organisasi_id: data.inisiator === 'opd' ? data.organisasi_id : null,
     })).post(route('admin.innovations.archive.store'), {
         forceFormData: true,
     });
@@ -135,6 +144,21 @@ const submit = () => {
                     />
                     <small v-if="form.errors.category_id" class="text-rose-600">{{ form.errors.category_id }}</small>
                 </div>
+            </div>
+
+            <div v-if="form.inisiator === 'opd'" class="flex flex-col gap-1.5">
+                <label for="organisasi_id" class="text-sm font-medium text-surface-700">OPD</label>
+                <Select
+                    input-id="organisasi_id"
+                    v-model="form.organisasi_id"
+                    :options="organisasis"
+                    option-label="name"
+                    option-value="id"
+                    placeholder="Pilih OPD"
+                    filter
+                    class="w-full"
+                />
+                <small v-if="form.errors.organisasi_id" class="text-rose-600">{{ form.errors.organisasi_id }}</small>
             </div>
 
             <div class="flex flex-col gap-1.5">

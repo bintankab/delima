@@ -35,6 +35,17 @@ class OrganisasiModel extends Model implements HasMedia
             ->withTimestamps();
     }
 
+    public function primaryAdminOpdUserId(): ?int
+    {
+        $id = $this->users()
+            ->whereHas('roles', fn ($query) => $query->where('name', 'admin-opd')->where('guard_name', 'web'))
+            ->orderByPivotDesc('is_primary')
+            ->orderBy('users.id')
+            ->value('users.id');
+
+        return $id === null ? null : (int) $id;
+    }
+
     public function risets(): HasMany
     {
         return $this->hasMany(RisetModel::class, 'organisasi_id');

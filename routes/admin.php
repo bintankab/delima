@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\FaqController;
 use App\Http\Controllers\Admin\InnovationArchiveController;
 use App\Http\Controllers\Admin\InnovationCategoryController;
 use App\Http\Controllers\Admin\InnovationController;
@@ -10,7 +11,6 @@ use App\Http\Controllers\Admin\MediaLibraryController;
 use App\Http\Controllers\Admin\MenuController;
 use App\Http\Controllers\Admin\OrganisasiController;
 use App\Http\Controllers\Admin\PageController;
-use App\Http\Controllers\Admin\PlaceholderController;
 use App\Http\Controllers\Admin\PostController;
 use App\Http\Controllers\Admin\RisetArchiveController;
 use App\Http\Controllers\Admin\RisetCategoryController;
@@ -81,6 +81,11 @@ Route::middleware(['auth', 'role:super-admin|admin-opd|reviewer'])
             ->except(['show'])
             ->middleware('role:super-admin');
 
+        Route::redirect('faqs/index', '/admin/faqs');
+        Route::resource('faqs', FaqController::class)
+            ->except(['show'])
+            ->middleware('role:super-admin');
+
         Route::resource('post-categories', CategoryController::class)
             ->except(['show'])
             ->parameters(['post-categories' => 'category'])
@@ -102,19 +107,6 @@ Route::middleware(['auth', 'role:super-admin|admin-opd|reviewer'])
 
         Route::get('innovations', [InnovationController::class, 'index'])->name('innovations.index');
         Route::get('innovations/{innovation}', [InnovationController::class, 'show'])->name('innovations.show');
-
-        // Placeholder routes — kerangka navigasi untuk fitur yang akan
-        // dibangun bertahap (CRUD penuh menyusul per modul).
-        $placeholders = [
-            'faqs.index' => 'FAQ',
-        ];
-
-        foreach ($placeholders as $name => $title) {
-            Route::get(
-                '/'.str_replace('.', '/', $name),
-                fn () => app(PlaceholderController::class)->show($title)
-            )->name($name);
-        }
     });
 
 Route::middleware(['auth', 'role:super-admin|reviewer'])

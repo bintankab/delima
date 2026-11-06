@@ -6,6 +6,7 @@ use App\Enums\JenisInisiator;
 use App\Enums\PageLayout;
 use App\Http\Requests\Admin\LibraryDocumentRequest;
 use App\Models\CategoryModel;
+use App\Models\FaqModel;
 use App\Models\InnovationModel;
 use App\Models\LibraryDocumentModel;
 use App\Models\OrganisasiModel;
@@ -491,6 +492,40 @@ class PublicController extends Controller
         $libraryDocument->increment('downloads_count');
 
         return redirect($file->getUrl());
+    }
+
+    public function faq(): Response
+    {
+        $groups = [];
+
+        FaqModel::query()
+            ->orderBy('order')
+            ->orderBy('question')
+            ->get(['id', 'question', 'answer', 'category'])
+            ->each(function (FaqModel $faq) use (&$groups): void {
+                $key = $faq->category ?? '';
+
+                if (! isset($groups[$key])) {
+                    $groups[$key] = [
+                        'category' => $faq->category,
+                        'items' => [],
+                    ];
+                }
+
+                $groups[$key]['items'][] = [
+                    'id' => $faq->id,
+                    'question' => $faq->question,
+                    'answer' => $faq->answer,
+                ];
+            });
+
+        return Inertia::render('Public/Faqs/Index', [
+            'meta' => [
+                'title' => 'FAQ',
+                'description' => 'Pertanyaan yang sering diajukan seputar Delima Kabupaten Bintan.',
+            ],
+            'groups' => array_values($groups),
+        ]);
     }
 
     private function libraryDocumentTypeLabel(string $type): string

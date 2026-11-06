@@ -7,6 +7,7 @@ use App\Enums\JenisInovasi;
 use App\Enums\TahapanInovasi;
 use App\Models\InnovationCategoryModel;
 use App\Models\InnovationModel;
+use App\Models\OrganisasiModel;
 use App\Models\UserModel;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -61,7 +62,7 @@ class InnovationArchiveTest extends TestCase
 
         $this->actingAs($admin)
             ->post(route('admin.innovations.archive.store'), [
-                'inisiator' => JenisInisiator::OPD->value,
+                'inisiator' => JenisInisiator::Bupati->value,
                 'category_id' => $category->id,
                 'title' => 'Aplikasi Layanan Terpadu 2021',
                 'jenis_inovasi' => JenisInovasi::Teknologi->value,
@@ -80,7 +81,7 @@ class InnovationArchiveTest extends TestCase
         $this->assertDatabaseHas('innovations', [
             'title' => 'Aplikasi Layanan Terpadu 2021',
             'slug' => 'aplikasi-layanan-terpadu-2021',
-            'inisiator' => JenisInisiator::OPD->value,
+            'inisiator' => JenisInisiator::Bupati->value,
             'category_id' => $category->id,
             'user_id' => $admin->id,
             'jenis_inovasi' => JenisInovasi::Teknologi->value,
@@ -93,6 +94,132 @@ class InnovationArchiveTest extends TestCase
 
         $this->assertNotNull($innovation);
         $this->assertSame('2021-06-15', $innovation->implementation_at?->toDateString());
+    }
+
+    public function test_archive_form_lists_organisasis_by_name(): void
+    {
+        $later = OrganisasiModel::factory()->create(['name' => 'Dinas Pendidikan']);
+        $first = OrganisasiModel::factory()->create(['name' => 'Badan Kepegawaian']);
+
+        $this->actingAs($this->userWithRole('super-admin'))
+            ->get(route('admin.innovations.archive.create'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Admin/Innovations/A-Innovations-ArchiveForm')
+                ->where('organisasis.0.id', $first->id)
+                ->where('organisasis.0.name', 'Badan Kepegawaian')
+                ->where('organisasis.1.id', $later->id)
+                ->where('organisasis.1.name', 'Dinas Pendidikan'));
+    }
+
+    public function test_opd_archive_is_owned_by_the_primary_admin_opd(): void
+    {
+        $organisasi = OrganisasiModel::factory()->create();
+        $category = InnovationCategoryModel::factory()->create();
+        $asn = $this->userWithRole('asn');
+        $secondaryAdmin = $this->userWithRole('admin-opd');
+        $primaryAdmin = $this->userWithRole('admin-opd');
+        $organisasi->users()->attach($asn->id, ['is_primary' => true]);
+        $organisasi->users()->attach($secondaryAdmin->id, ['is_primary' => false]);
+        $organisasi->users()->attach($primaryAdmin->id, ['is_primary' => true]);
+
+        $this->actingAs($this->userWithRole('super-admin'))
+            ->post(route('admin.innovations.archive.store'), [
+                'inisiator' => JenisInisiator::OPD->value,
+                'organisasi_id' => $organisasi->id,
+                'category_id' => $category->id,
+                'title' => 'Layanan OPD 2021',
+                'jenis_inovasi' => JenisInovasi::Digital->value,
+                'tahapan' => TahapanInovasi::Implementasi->value,
+                'description' => 'Ringkasan arsip OPD.',
+                'tahun' => 2021,
+                'implementation_at' => '2021-08-01',
+                'user_id' => $secondaryAdmin->id,
+            ])
+            ->assertRedirect(route('admin.innovations.index'));
+
+        $this->assertDatabaseHas('innovations', [
+            'title' => 'Layanan OPD 2021',
+            'inisiator' => JenisInisiator::OPD->value,
+            'user_id' => $primaryAdmin->id,
+        ]);
+    }
+
+    public function test_opd_archive_requires_an_organisasi(): void
+    {
+        $category = InnovationCategoryModel::factory()->create();
+
+        $this->actingAs($this->userWithRole('super-admin'))
+            ->from(route('admin.innovations.archive.create'))
+            ->post(route('admin.innovations.archive.store'), [
+                'inisiator' => JenisInisiator::OPD->value,
+                'category_id' => $category->id,
+                'title' => 'Layanan Tanpa OPD',
+                'jenis_inovasi' => JenisInovasi::Digital->value,
+                'tahapan' => TahapanInovasi::Implementasi->value,
+                'description' => 'Ringkasan.',
+                'tahun' => 2021,
+                'implementation_at' => '2021-08-01',
+            ])
+            ->assertRedirect(route('admin.innovations.archive.create'))
+            ->assertSessionHasErrors([
+                'organisasi_id' => 'OPD wajib dipilih.',
+            ]);
+
+        $this->assertDatabaseCount('innovations', 0);
+    }
+
+    public function test_opd_archive_rejects_an_unknown_organisasi(): void
+    {
+        $category = InnovationCategoryModel::factory()->create();
+
+        $this->actingAs($this->userWithRole('super-admin'))
+            ->from(route('admin.innovations.archive.create'))
+            ->post(route('admin.innovations.archive.store'), [
+                'inisiator' => JenisInisiator::OPD->value,
+                'organisasi_id' => 999999,
+                'category_id' => $category->id,
+                'title' => 'Layanan OPD Hilang',
+                'jenis_inovasi' => JenisInovasi::Digital->value,
+                'tahapan' => TahapanInovasi::Implementasi->value,
+                'description' => 'Ringkasan.',
+                'tahun' => 2021,
+                'implementation_at' => '2021-08-01',
+            ])
+            ->assertRedirect(route('admin.innovations.archive.create'))
+            ->assertSessionHasErrors([
+                'organisasi_id' => 'OPD yang dipilih tidak ditemukan.',
+            ]);
+
+        $this->assertDatabaseCount('innovations', 0);
+    }
+
+    public function test_opd_archive_rejects_an_organisasi_without_an_admin_opd(): void
+    {
+        $organisasi = OrganisasiModel::factory()->create();
+        $category = InnovationCategoryModel::factory()->create();
+        $asn = $this->userWithRole('asn');
+        $organisasi->users()->attach($asn->id, ['is_primary' => true]);
+
+        $this->actingAs($this->userWithRole('super-admin'))
+            ->from(route('admin.innovations.archive.create'))
+            ->post(route('admin.innovations.archive.store'), [
+                'inisiator' => JenisInisiator::OPD->value,
+                'organisasi_id' => $organisasi->id,
+                'category_id' => $category->id,
+                'title' => 'Layanan Tanpa Admin',
+                'jenis_inovasi' => JenisInovasi::Digital->value,
+                'tahapan' => TahapanInovasi::Implementasi->value,
+                'description' => 'Ringkasan.',
+                'tahun' => 2021,
+                'implementation_at' => '2021-08-01',
+            ])
+            ->assertRedirect(route('admin.innovations.archive.create'))
+            ->assertSessionHasErrors([
+                'organisasi_id' => 'OPD yang dipilih belum memiliki admin OPD.',
+            ]);
+
+        $this->assertDatabaseCount('innovations', 0);
     }
 
     public function test_super_admin_can_attach_cover_and_documents(): void

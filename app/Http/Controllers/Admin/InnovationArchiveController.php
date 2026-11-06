@@ -9,6 +9,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\InnovationArchiveRequest;
 use App\Models\InnovationCategoryModel;
 use App\Models\InnovationModel;
+use App\Models\OrganisasiModel;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
@@ -22,6 +23,7 @@ class InnovationArchiveController extends Controller
         return Inertia::render('Admin/Innovations/A-Innovations-ArchiveForm', [
             'meta' => ['title' => 'Input Arsip Inovasi Lama'],
             'inisiatorOptions' => JenisInisiator::options(),
+            'organisasis' => $this->organisasiOptions(),
             'categories' => $this->categoryOptions(),
             'jenisOptions' => JenisInovasi::options(),
             'tahapanOptions' => TahapanInovasi::options(),
@@ -50,7 +52,7 @@ class InnovationArchiveController extends Controller
         $innovation = InnovationModel::query()->create([
             ...$validated,
             'slug' => InnovationModel::uniqueSlug($validated['title']),
-            'user_id' => Auth::id(),
+            'user_id' => $this->archiveOwnerId($request),
             'status' => 'published',
             'origin' => 'archive',
         ]);
@@ -66,6 +68,32 @@ class InnovationArchiveController extends Controller
         return redirect()
             ->route('admin.innovations.index')
             ->with('success', 'Arsip inovasi berhasil ditambahkan.');
+    }
+
+    private function archiveOwnerId(InnovationArchiveRequest $request): int
+    {
+        if ($request->validated('inisiator') !== JenisInisiator::OPD->value) {
+            return (int) Auth::id();
+        }
+
+        return (int) OrganisasiModel::query()
+            ->findOrFail($request->integer('organisasi_id'))
+            ->primaryAdminOpdUserId();
+    }
+
+    /**
+     * @return list<array{id: int, name: string}>
+     */
+    private function organisasiOptions(): array
+    {
+        return OrganisasiModel::query()
+            ->orderBy('name')
+            ->get(['id', 'name'])
+            ->map(fn (OrganisasiModel $organisasi): array => [
+                'id' => $organisasi->id,
+                'name' => $organisasi->name,
+            ])
+            ->all();
     }
 
     /**

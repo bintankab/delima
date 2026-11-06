@@ -19,6 +19,7 @@ Route::get('/riset/{riset:slug}/dokumen/{media}', [PublicController::class, 'ris
 Route::get('/inovasi', [PublicController::class, 'inovasi'])->name('inovasi');
 Route::get('/inovasi/{innovation:slug}', [PublicController::class, 'inovasiShow'])->name('inovasi.show');
 Route::get('/inovasi/{innovation:slug}/dokumen/{media}', [PublicController::class, 'inovasiDocument'])->name('inovasi.document');
+Route::get('/faq', [PublicController::class, 'faq'])->name('faq');
 Route::get('/pustaka', [PublicController::class, 'pustaka'])->name('pustaka');
 Route::get('/pustaka/{libraryDocument:slug}', [PublicController::class, 'pustakaShow'])->name('pustaka.show');
 Route::get('/pustaka/{libraryDocument}/unduh', [PublicController::class, 'pustakaDownload'])->name('pustaka.download');
