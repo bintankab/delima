@@ -58,10 +58,10 @@ const onPage = (event) => {
 </script>
 
 <template>
-    <section class="bg-indigo-700 text-white">
+    <section class="bg-neutral-900 border-b border-neutral-800 text-white">
         <div class="max-w-6xl mx-auto px-4 py-12">
-            <h1 class="text-2xl font-bold">Riset</h1>
-            <p class="mt-2 text-indigo-100 max-w-2xl">
+            <h1 class="text-2xl font-bold text-[#FFD700]">Riset</h1>
+            <p class="mt-2 text-neutral-300 max-w-2xl">
                 Dokumentasi hasil penelitian dan kajian daerah Kabupaten Bintan.
             </p>
         </div>
@@ -69,16 +69,16 @@ const onPage = (event) => {
 
     <section class="max-w-6xl mx-auto px-4 py-10">
         <form
-            class="bg-white rounded-xl border border-surface-200 p-5 mb-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end"
+            class="bg-neutral-900 rounded-xl border border-neutral-800 p-5 mb-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end"
             @submit.prevent="applyFilters"
         >
             <div class="flex flex-col gap-1.5 lg:col-span-2">
-                <label for="search" class="text-sm font-medium text-surface-700">Judul</label>
+                <label for="search" class="text-sm font-medium text-neutral-300">Judul</label>
                 <InputText id="search" v-model="search" placeholder="Cari judul riset" class="w-full" />
             </div>
 
             <div class="flex flex-col gap-1.5">
-                <label for="tahun" class="text-sm font-medium text-surface-700">Tahun</label>
+                <label for="tahun" class="text-sm font-medium text-neutral-300">Tahun</label>
                 <Select
                     input-id="tahun"
                     v-model="tahun"
@@ -90,7 +90,7 @@ const onPage = (event) => {
             </div>
 
             <div class="flex flex-col gap-1.5">
-                <label for="organisasi_id" class="text-sm font-medium text-surface-700">Organisasi</label>
+                <label for="organisasi_id" class="text-sm font-medium text-neutral-300">Organisasi</label>
                 <Select
                     input-id="organisasi_id"
                     v-model="organisasiId"
@@ -123,9 +123,9 @@ const onPage = (event) => {
                 v-for="riset in risets.data"
                 :key="riset.id"
                 :href="route('riset.show', riset.slug)"
-                class="bg-white rounded-xl border border-surface-200 overflow-hidden flex flex-col hover:border-indigo-300 hover:shadow-md transition"
+                class="bg-neutral-900 rounded-xl border border-neutral-800 overflow-hidden flex flex-col hover:border-[#FFD700]/50 hover:shadow-md transition"
             >
-                <div class="aspect-[4/3] bg-surface-100 overflow-hidden">
+                <div class="aspect-[4/3] bg-neutral-800 overflow-hidden">
                     <img
                         :src="riset.cover || '/images/placeholder-cover.svg'"
                         :alt="riset.title"
@@ -133,14 +133,14 @@ const onPage = (event) => {
                     />
                 </div>
                 <div class="p-4 flex flex-col gap-2 flex-1">
-                    <div class="flex items-center gap-2 text-xs text-surface-500">
+                    <div class="flex items-center gap-2 text-xs text-neutral-500">
                         <span v-if="riset.category">{{ riset.category }}</span>
                         <span v-if="riset.category">&middot;</span>
                         <span>{{ riset.tahun }}</span>
                     </div>
-                    <h2 class="font-semibold text-surface-900 leading-snug">{{ riset.title }}</h2>
-                    <p class="text-sm text-surface-600 flex-1">{{ riset.abstrak }}</p>
-                    <p v-if="riset.organisasi" class="text-xs text-surface-400 mt-1">{{ riset.organisasi }}</p>
+                    <h2 class="font-semibold text-white leading-snug">{{ riset.title }}</h2>
+                    <p class="text-sm text-neutral-400 flex-1">{{ riset.abstrak }}</p>
+                    <p v-if="riset.organisasi" class="text-xs text-neutral-500 mt-1">{{ riset.organisasi }}</p>
                 </div>
             </Link>
 

@@ -14,10 +14,10 @@ defineProps({
 
 <template>
     <div>
-        <section class="bg-indigo-700 text-white">
+        <section class="bg-neutral-900 border-b border-neutral-800 text-white">
             <div class="max-w-6xl mx-auto px-4 py-12">
-                <h1 class="text-2xl font-bold">FAQ</h1>
-                <p class="mt-2 text-indigo-100 max-w-2xl">
+                <h1 class="text-2xl font-bold text-[#FFD700]">FAQ</h1>
+                <p class="mt-2 text-neutral-300 max-w-2xl">
                     Pertanyaan yang sering diajukan seputar Delima Kabupaten Bintan.
                 </p>
             </div>
@@ -34,11 +34,11 @@ defineProps({
                         {{ group.category ?? 'Umum' }}
                     </h2>
 
-                    <Accordion multiple class="bg-white rounded-xl border border-surface-200 overflow-hidden">
+                    <Accordion multiple class="bg-neutral-900 rounded-xl border border-neutral-800 overflow-hidden">
                         <AccordionPanel v-for="item in group.items" :key="item.id" :value="String(item.id)">
                             <AccordionHeader>{{ item.question }}</AccordionHeader>
                             <AccordionContent>
-                                <p class="m-0 whitespace-pre-line text-surface-700">{{ item.answer }}</p>
+                                <p class="m-0 whitespace-pre-line text-neutral-300">{{ item.answer }}</p>
                             </AccordionContent>
                         </AccordionPanel>
                     </Accordion>

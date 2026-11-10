@@ -55,19 +55,19 @@ const isInternal = (item) => Boolean(item.url?.startsWith('/'))
             v-if="item.children?.length"
             class="absolute left-0 top-full z-20 hidden min-w-48 pt-2 group-hover:block group-focus-within:block"
           >
-            <div class="rounded-lg bg-white py-2 text-surface-800 shadow-lg">
+            <div class="rounded-lg bg-black border border-neutral-800 py-2 text-white shadow-lg">
               <template v-for="child in item.children" :key="`${child.label}-${child.url}`">
                 <Link
                   v-if="isInternal(child)"
                   :href="child.url"
-                  class="block px-4 py-2 hover:bg-surface-100"
+                  class="block px-4 py-2 hover:bg-neutral-800 hover:text-[#FFD700]"
                 >
                   {{ child.label }}
                 </Link>
                 <a
                   v-else
                   :href="child.url"
-                  class="block px-4 py-2 hover:bg-surface-100"
+                  class="block px-4 py-2 hover:bg-neutral-800 hover:text-[#FFD700]"
                   target="_blank"
                   rel="noopener noreferrer"
                 >

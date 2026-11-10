@@ -86,8 +86,8 @@ onUnmounted(stop);
 <template>
     <div>
         <section v-if="latestPosts.length" class="max-w-6xl mx-auto px-4 py-8">
-            <div class="bg-white rounded-2xl border border-surface-200 p-4 sm:p-6">
-                <div v-if="current" class="relative rounded-2xl overflow-hidden min-h-[320px] sm:min-h-[460px] bg-surface-800">
+            <div class="bg-neutral-900 rounded-2xl border border-neutral-800 p-4 sm:p-6">
+                <div v-if="current" class="relative rounded-2xl overflow-hidden min-h-[320px] sm:min-h-[460px] bg-neutral-800">
                     <Transition name="post-fade">
                         <div :key="current.id" class="absolute inset-0 cursor-pointer" @click="openPost(current.slug)">
                             <img
@@ -137,18 +137,18 @@ onUnmounted(stop);
                     <article
                         v-for="(item, index) in stories"
                         :key="item.id"
-                        class="break-inside-avoid mb-8 border-b border-dashed border-surface-200 pb-6 cursor-pointer"
+                        class="break-inside-avoid mb-8 border-b border-dashed border-neutral-800 pb-6 cursor-pointer"
                         @click="openPost(item.slug)"
                     >
-                        <p class="text-[11px] font-medium tracking-wide uppercase text-surface-400">
+                        <p class="text-[11px] font-medium tracking-wide uppercase text-neutral-500">
                             {{ formatDate(item.published_at) }}
                         </p>
 
                         <div v-if="cardStyle(item, index) === 'thumb'" class="flex gap-3 mt-2">
                             <img :src="item.cover" :alt="item.title" class="w-24 h-20 rounded-lg object-cover shrink-0" />
                             <div class="min-w-0">
-                                <h2 class="font-semibold text-surface-900 leading-snug">{{ item.title }}</h2>
-                                <p v-if="item.excerpt" class="text-sm text-surface-500 mt-1 line-clamp-3">{{ item.excerpt }}</p>
+                                <h2 class="font-semibold text-white leading-snug">{{ item.title }}</h2>
+                                <p v-if="item.excerpt" class="text-sm text-neutral-500 mt-1 line-clamp-3">{{ item.excerpt }}</p>
                             </div>
                         </div>
 
@@ -159,11 +159,11 @@ onUnmounted(stop);
                                 :alt="item.title"
                                 class="w-full h-44 rounded-xl object-cover mt-3"
                             />
-                            <h2 class="font-semibold text-surface-900 leading-snug mt-2">{{ item.title }}</h2>
-                            <p v-if="item.excerpt" class="text-sm text-surface-500 mt-2 line-clamp-4">{{ item.excerpt }}</p>
+                            <h2 class="font-semibold text-white leading-snug mt-2">{{ item.title }}</h2>
+                            <p v-if="item.excerpt" class="text-sm text-neutral-500 mt-2 line-clamp-4">{{ item.excerpt }}</p>
                         </template>
 
-                        <p class="text-sm font-medium text-indigo-600 mt-3 inline-flex items-center gap-1">
+                        <p class="text-sm font-medium text-[#FFD700] mt-3 inline-flex items-center gap-1">
                             Baca selengkapnya
                             <i class="pi pi-arrow-right text-xs" />
                         </p>
@@ -177,16 +177,16 @@ onUnmounted(stop);
         </section>
 
         <section class="max-w-6xl mx-auto px-4 py-12">
-            <h2 class="text-lg font-semibold text-white mb-4">Top Inovasi</h2>
+            <h2 class="text-lg font-semibold text-[#FFD700] mb-4">Top Inovasi</h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Link
                     v-for="item in topInnovations"
                     :key="item.id"
                     :href="`/etalase/${item.slug}`"
-                    class="bg-white rounded-xl border border-surface-200 p-4 hover:border-indigo-300"
+                    class="bg-neutral-900 rounded-xl border border-neutral-800 p-4 hover:border-[#FFD700]/50"
                 >
-                    <h3 class="font-medium text-surface-900">{{ item.title }}</h3>
-                    <p class="text-sm text-surface-500 mt-1">Tahun {{ item.tahun }}</p>
+                    <h3 class="font-medium text-white">{{ item.title }}</h3>
+                    <p class="text-sm text-neutral-500 mt-1">Tahun {{ item.tahun }}</p>
                 </Link>
                 <p v-if="!topInnovations.length" class="text-white/70 text-sm">Belum ada inovasi unggulan.</p>
             </div>

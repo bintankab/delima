@@ -17,20 +17,20 @@ defineProps({
         </header>
 
         <div v-if="slides.length" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            <figure v-for="(slide, index) in slides" :key="index" class="overflow-hidden rounded-2xl border border-surface-200 bg-white">
+            <figure v-for="(slide, index) in slides" :key="index" class="overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-900">
                 <img :src="slide.url" :alt="slide.caption || page.title" class="h-52 w-full object-cover" />
-                <figcaption v-if="slide.caption" class="px-4 py-3 text-sm text-surface-600">{{ slide.caption }}</figcaption>
+                <figcaption v-if="slide.caption" class="px-4 py-3 text-sm text-neutral-400">{{ slide.caption }}</figcaption>
             </figure>
         </div>
 
         <div v-if="page.fields?.cards?.length" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <section v-for="(card, index) in page.fields.cards" :key="index" class="rounded-2xl border border-surface-200 bg-white p-5">
+            <section v-for="(card, index) in page.fields.cards" :key="index" class="rounded-2xl border border-neutral-800 bg-neutral-900 p-5">
                 <img v-if="card.url" :src="card.thumb || card.url" :alt="card.title" class="mb-4 h-40 w-full rounded-xl object-cover" />
-                <h2 class="text-xl font-semibold text-surface-900">{{ card.title }}</h2>
-                <p v-if="card.body" class="mt-2 text-surface-600">{{ card.body }}</p>
+                <h2 class="text-xl font-semibold text-white">{{ card.title }}</h2>
+                <p v-if="card.body" class="mt-2 text-neutral-400">{{ card.body }}</p>
             </section>
         </div>
 
-        <div class="rich-text text-base bg-white rounded-2xl border border-surface-200 p-6" v-html="page.content" />
+        <div class="rich-text text-base text-neutral-200 bg-neutral-900 rounded-2xl border border-neutral-800 p-6" v-html="page.content" />
     </article>
 </template>
