@@ -54,9 +54,9 @@ const shareWhatsapp = () => {
             <h1 class="text-xl sm:text-3xl font-bold mt-3 text-[#FFD700]">{{ document.title }}</h1>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 bg-neutral-900 rounded-2xl border border-neutral-800 p-5 sm:p-8">
-            <div class="lg:col-span-2 flex flex-col gap-6">
-                <p v-if="document.description" class="text-base text-neutral-200 whitespace-pre-line">{{ document.description }}</p>
+        <div class="grid min-w-0 grid-cols-1 lg:grid-cols-3 gap-8 bg-neutral-900 rounded-2xl border border-neutral-800 p-5 sm:p-8">
+            <div class="lg:col-span-2 min-w-0 flex flex-col gap-6">
+                <p v-if="document.description" class="min-w-0 break-words text-base text-neutral-200 whitespace-pre-line">{{ document.description }}</p>
                 <p v-else class="text-sm text-neutral-500">Belum ada deskripsi untuk dokumen ini.</p>
 
                 <div v-if="document.file">

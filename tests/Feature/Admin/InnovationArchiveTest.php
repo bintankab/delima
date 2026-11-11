@@ -67,7 +67,7 @@ class InnovationArchiveTest extends TestCase
                 'title' => 'Aplikasi Layanan Terpadu 2021',
                 'jenis_inovasi' => JenisInovasi::Teknologi->value,
                 'tahapan' => TahapanInovasi::Implementasi->value,
-                'description' => 'Ringkasan arsip.',
+                'description' => $this->words(200),
                 'latar_belakang' => 'Konteks daerah.',
                 'tahun' => 2021,
                 'implementation_at' => '2021-06-15',
@@ -131,7 +131,7 @@ class InnovationArchiveTest extends TestCase
                 'title' => 'Layanan OPD 2021',
                 'jenis_inovasi' => JenisInovasi::Digital->value,
                 'tahapan' => TahapanInovasi::Implementasi->value,
-                'description' => 'Ringkasan arsip OPD.',
+                'description' => $this->words(200),
                 'tahun' => 2021,
                 'implementation_at' => '2021-08-01',
                 'user_id' => $secondaryAdmin->id,
@@ -157,7 +157,7 @@ class InnovationArchiveTest extends TestCase
                 'title' => 'Layanan Tanpa OPD',
                 'jenis_inovasi' => JenisInovasi::Digital->value,
                 'tahapan' => TahapanInovasi::Implementasi->value,
-                'description' => 'Ringkasan.',
+                'description' => $this->words(200),
                 'tahun' => 2021,
                 'implementation_at' => '2021-08-01',
             ])
@@ -182,7 +182,7 @@ class InnovationArchiveTest extends TestCase
                 'title' => 'Layanan OPD Hilang',
                 'jenis_inovasi' => JenisInovasi::Digital->value,
                 'tahapan' => TahapanInovasi::Implementasi->value,
-                'description' => 'Ringkasan.',
+                'description' => $this->words(200),
                 'tahun' => 2021,
                 'implementation_at' => '2021-08-01',
             ])
@@ -210,7 +210,7 @@ class InnovationArchiveTest extends TestCase
                 'title' => 'Layanan Tanpa Admin',
                 'jenis_inovasi' => JenisInovasi::Digital->value,
                 'tahapan' => TahapanInovasi::Implementasi->value,
-                'description' => 'Ringkasan.',
+                'description' => $this->words(200),
                 'tahun' => 2021,
                 'implementation_at' => '2021-08-01',
             ])
@@ -235,7 +235,7 @@ class InnovationArchiveTest extends TestCase
                 'title' => 'Sistem Antrean Digital',
                 'jenis_inovasi' => JenisInovasi::Digital->value,
                 'tahapan' => TahapanInovasi::Implementasi->value,
-                'description' => 'Ringkasan berkas.',
+                'description' => $this->words(200),
                 'tahun' => 2022,
                 'implementation_at' => '2022-03-01',
                 'cover' => UploadedFile::fake()->image('cover.jpg'),
@@ -251,6 +251,28 @@ class InnovationArchiveTest extends TestCase
         $this->assertCount(1, $innovation->getMedia('cover'));
         $this->assertCount(1, $innovation->getMedia('documents'));
         $this->assertSame('laporan.pdf', $innovation->getFirstMedia('documents')?->file_name);
+    }
+
+    public function test_archive_description_shorter_than_200_words_is_rejected(): void
+    {
+        $category = InnovationCategoryModel::factory()->create();
+
+        $this->actingAs($this->userWithRole('super-admin'))
+            ->from(route('admin.innovations.archive.create'))
+            ->post(route('admin.innovations.archive.store'), [
+                'inisiator' => JenisInisiator::Bupati->value,
+                'category_id' => $category->id,
+                'title' => 'Arsip Pendek',
+                'jenis_inovasi' => JenisInovasi::Digital->value,
+                'tahapan' => TahapanInovasi::Implementasi->value,
+                'description' => '<p>'.implode('</p><p>', array_fill(0, 199, 'kata')).'</p>',
+                'tahun' => 2021,
+                'implementation_at' => '2021-06-15',
+            ])
+            ->assertRedirect(route('admin.innovations.archive.create'))
+            ->assertSessionHasErrors(['description' => 'Deskripsi minimal 200 kata.']);
+
+        $this->assertDatabaseCount('innovations', 0);
     }
 
     public function test_empty_archive_payload_is_rejected(): void
@@ -285,7 +307,7 @@ class InnovationArchiveTest extends TestCase
                 'title' => 'Inovasi Lama',
                 'jenis_inovasi' => JenisInovasi::NonDigital->value,
                 'tahapan' => TahapanInovasi::Inisiasi->value,
-                'description' => 'Ringkasan.',
+                'description' => $this->words(200),
                 'tahun' => 2020,
                 'implementation_at' => '2021-06-15',
             ])

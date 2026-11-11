@@ -1,6 +1,7 @@
 <script setup>
 import { computed, watch } from 'vue';
 import { router } from '@inertiajs/vue3';
+import { countWords } from '@/Composables/countWords';
 import { useAutoClearForm } from '@/Composables/useAutoClearForm';
 import Button from 'primevue/button';
 import DatePicker from 'primevue/datepicker';
@@ -50,6 +51,10 @@ watch(() => form.inisiator, (value) => {
         form.organisasi_id = null;
     }
 });
+
+const minimumDescriptionWords = 200;
+
+const descriptionWordCount = computed(() => countWords(form.description));
 
 const formatDate = (value) => {
     if (!(value instanceof Date) || Number.isNaN(value.getTime())) {
@@ -106,7 +111,7 @@ const submit = () => {
 </script>
 
 <template>
-    <div class="max-w-3xl bg-white rounded-xl border border-surface-200 p-6">
+    <div class="bg-white rounded-xl border border-surface-200 p-6">
         <div class="mb-5">
             <h1 class="text-xl font-semibold text-surface-900">Input Arsip Inovasi Lama</h1>
             <p class="text-sm text-surface-500 mt-1">
@@ -246,6 +251,9 @@ const submit = () => {
             <div class="flex flex-col gap-1.5">
                 <label for="description" class="text-sm font-medium text-surface-700">Deskripsi</label>
                 <RichTextEditor v-model="form.description" placeholder="Tulis deskripsi inovasi di sini..." height="220px" />
+                <small :class="descriptionWordCount < minimumDescriptionWords ? 'text-rose-600' : 'text-surface-500'">
+                    {{ descriptionWordCount }} / {{ minimumDescriptionWords }} kata
+                </small>
                 <small v-if="form.errors.description" class="text-rose-600">{{ form.errors.description }}</small>
             </div>
 

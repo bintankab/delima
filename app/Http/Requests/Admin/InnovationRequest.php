@@ -6,6 +6,7 @@ use App\Enums\JenisInisiator;
 use App\Enums\JenisInovasi;
 use App\Enums\TahapanInovasi;
 use App\Models\InnovationModel;
+use App\Rules\MinimumWordCount;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -38,7 +39,7 @@ class InnovationRequest extends FormRequest
             'title' => ['required', 'string', 'max:255'],
             'jenis_inovasi' => ['required', Rule::enum(JenisInovasi::class)],
             'tahapan' => ['required', Rule::enum(TahapanInovasi::class)],
-            'description' => ['required', 'string'],
+            'description' => ['bail', 'required', 'string', new MinimumWordCount(200)],
             'latar_belakang' => ['nullable', 'string'],
             'manfaat' => ['nullable', 'string'],
             'link_video' => ['nullable', 'string', 'max:255', 'url'],

@@ -102,7 +102,7 @@ class InnovationMineTest extends TestCase
                 'title' => 'Judul Baru',
                 'jenis_inovasi' => $innovation->jenis_inovasi->value,
                 'tahapan' => $innovation->tahapan->value,
-                'description' => 'Deskripsi baru.',
+                'description' => $this->words(200),
                 'tahun' => 2022,
                 'implementation_at' => '2022-01-10',
             ])

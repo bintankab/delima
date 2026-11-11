@@ -1,6 +1,7 @@
 <script setup>
 import { computed, ref } from 'vue';
 import { router, usePage } from '@inertiajs/vue3';
+import { countWords } from '@/Composables/countWords';
 import { useAutoClearForm } from '@/Composables/useAutoClearForm';
 import Button from 'primevue/button';
 import DatePicker from 'primevue/datepicker';
@@ -130,6 +131,10 @@ const removeExistingDocument = (document) => {
     });
 };
 
+const minimumDescriptionWords = 200;
+
+const descriptionWordCount = computed(() => countWords(form.description));
+
 const documentErrors = computed(() => Object.entries(form.errors)
     .filter(([key]) => key === 'documents' || key.startsWith('documents.'))
     .map(([, message]) => message));
@@ -155,7 +160,7 @@ const submit = () => {
 </script>
 
 <template>
-    <div class="max-w-3xl bg-white rounded-xl border border-surface-200 p-6">
+    <div class="bg-white rounded-xl border border-surface-200 p-6">
         <div class="mb-5">
             <h1 class="text-xl font-semibold text-surface-900">{{ isEditing ? 'Ubah Inovasi' : 'Ajukan Inovasi' }}</h1>
             <p v-if="isEditing" class="text-sm text-surface-500 mt-1">Slug: {{ innovation.slug }}</p>
@@ -279,6 +284,9 @@ const submit = () => {
             <div class="flex flex-col gap-1.5">
                 <label for="description" class="text-sm font-medium text-surface-700">Deskripsi</label>
                 <RichTextEditor v-model="form.description" placeholder="Tulis deskripsi inovasi di sini..." height="220px" />
+                <small :class="descriptionWordCount < minimumDescriptionWords ? 'text-rose-600' : 'text-surface-500'">
+                    {{ descriptionWordCount }} / {{ minimumDescriptionWords }} kata
+                </small>
                 <small v-if="form.errors.description" class="text-rose-600">{{ form.errors.description }}</small>
             </div>
 

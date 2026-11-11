@@ -248,8 +248,8 @@ const copyLink = async () => {
             </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 bg-white rounded-2xl border border-surface-200 p-5 sm:p-8">
-            <div class="lg:col-span-2 flex flex-col gap-6">
+        <div class="grid min-w-0 grid-cols-1 lg:grid-cols-3 gap-8 bg-white rounded-2xl border border-surface-200 p-5 sm:p-8">
+            <div class="lg:col-span-2 min-w-0 flex flex-col gap-6">
                 <div class="rich-text text-base" v-html="innovation.description" />
 
                 <div v-if="innovation.latar_belakang">

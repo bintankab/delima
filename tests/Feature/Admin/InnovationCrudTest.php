@@ -137,7 +137,7 @@ class InnovationCrudTest extends TestCase
                 'title' => 'Judul Baru',
                 'jenis_inovasi' => JenisInovasi::NonDigital->value,
                 'tahapan' => TahapanInovasi::UjiCoba->value,
-                'description' => 'Deskripsi baru.',
+                'description' => $this->words(200),
                 'tahun' => 2022,
                 'testing_at' => '2021-11-01',
                 'implementation_at' => '2022-01-10',

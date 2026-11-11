@@ -13,6 +13,9 @@
     @endphp
 
     <title inertia>{{ $metaTitle }}</title>
+    <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
+    <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}" sizes="32x32">
+    <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}">
     <meta name="description" content="{{ $metaDescription }}">
 
     <meta property="og:type" content="website">

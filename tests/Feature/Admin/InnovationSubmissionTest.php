@@ -31,7 +31,7 @@ class InnovationSubmissionTest extends TestCase
                 'title' => 'Inovasi dari '.$role,
                 'jenis_inovasi' => JenisInovasi::Digital->value,
                 'tahapan' => TahapanInovasi::Inisiasi->value,
-                'description' => 'Ringkasan inovasi.',
+                'description' => $this->words(200),
                 'tahun' => 2024,
                 'implementation_at' => '2024-01-10',
             ]);
@@ -69,7 +69,7 @@ class InnovationSubmissionTest extends TestCase
                 'title' => 'Inovasi Tanpa Inisiator',
                 'jenis_inovasi' => JenisInovasi::Digital->value,
                 'tahapan' => TahapanInovasi::Inisiasi->value,
-                'description' => 'Ringkasan inovasi.',
+                'description' => $this->words(200),
                 'tahun' => 2024,
                 'implementation_at' => '2024-01-10',
             ])
@@ -89,7 +89,7 @@ class InnovationSubmissionTest extends TestCase
                 'title' => 'Inovasi Pilihan Super Admin',
                 'jenis_inovasi' => JenisInovasi::Digital->value,
                 'tahapan' => TahapanInovasi::Inisiasi->value,
-                'description' => 'Ringkasan inovasi.',
+                'description' => $this->words(200),
                 'tahun' => 2024,
                 'implementation_at' => '2024-01-10',
             ])
@@ -99,6 +99,27 @@ class InnovationSubmissionTest extends TestCase
             'title' => 'Inovasi Pilihan Super Admin',
             'inisiator' => JenisInisiator::DPRD->value,
         ]);
+    }
+
+    public function test_description_shorter_than_200_words_is_rejected(): void
+    {
+        $category = InnovationCategoryModel::factory()->create();
+
+        $this->actingAs($this->userWithRole('publik'))
+            ->from(route('admin.innovations.create'))
+            ->post(route('admin.innovations.store'), [
+                'category_id' => $category->id,
+                'title' => 'Inovasi Pendek',
+                'jenis_inovasi' => JenisInovasi::Digital->value,
+                'tahapan' => TahapanInovasi::Inisiasi->value,
+                'description' => '<p>'.implode('</p><p>', array_fill(0, 199, 'kata')).'</p>',
+                'tahun' => 2024,
+                'implementation_at' => '2024-01-10',
+            ])
+            ->assertRedirect(route('admin.innovations.create'))
+            ->assertSessionHasErrors(['description' => 'Deskripsi minimal 200 kata.']);
+
+        $this->assertDatabaseCount('innovations', 0);
     }
 
     public function test_reviewer_cannot_submit_an_innovation(): void
@@ -124,7 +145,7 @@ class InnovationSubmissionTest extends TestCase
                 'title' => 'Inovasi dari Masyarakat',
                 'jenis_inovasi' => JenisInovasi::Digital->value,
                 'tahapan' => TahapanInovasi::Inisiasi->value,
-                'description' => 'Ringkasan inovasi.',
+                'description' => $this->words(200),
                 'tahun' => 2024,
                 'implementation_at' => '2024-01-10',
             ])

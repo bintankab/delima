@@ -26,7 +26,7 @@ class InnovationFactory extends Factory
             'inisiator' => fake()->randomElement(JenisInisiator::cases()),
             'title' => fake()->sentence(6),
             'slug' => fake()->unique()->slug(4),
-            'description' => fake()->paragraphs(3, true),
+            'description' => fake()->words(200, true),
             'jenis_inovasi' => fake()->randomElement(JenisInovasi::cases()),
             'tahapan' => fake()->randomElement(TahapanInovasi::cases()),
             'tahun' => fake()->numberBetween(2021, now()->year),

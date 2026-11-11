@@ -24,25 +24,25 @@ const submit = () => {
 
 <template>
     <form class="flex flex-col gap-4" @submit.prevent="submit">
-        <h1 class="text-lg font-semibold text-surface-900">Daftar sebagai Masyarakat</h1>
-        <p class="text-sm text-surface-500">
+        <h1 class="text-lg font-semibold text-white">Daftar sebagai Masyarakat</h1>
+        <p class="text-sm text-neutral-500">
             Setelah mendaftar, Anda perlu memverifikasi email sebelum dapat masuk.
         </p>
 
         <div class="flex flex-col gap-1.5">
-            <label for="name" class="text-sm font-medium text-surface-700">Nama</label>
+            <label for="name" class="text-sm font-medium text-neutral-300">Nama</label>
             <InputText id="name" v-model="form.name" autofocus required class="w-full" />
             <small v-if="form.errors.name" class="text-rose-600">{{ form.errors.name }}</small>
         </div>
 
         <div class="flex flex-col gap-1.5">
-            <label for="email" class="text-sm font-medium text-surface-700">Email</label>
+            <label for="email" class="text-sm font-medium text-neutral-300">Email</label>
             <InputText id="email" v-model="form.email" type="email" required class="w-full" />
             <small v-if="form.errors.email" class="text-rose-600">{{ form.errors.email }}</small>
         </div>
 
         <div class="flex flex-col gap-1.5">
-            <label for="password" class="text-sm font-medium text-surface-700">Kata Sandi</label>
+            <label for="password" class="text-sm font-medium text-neutral-300">Kata Sandi</label>
             <Password
                 id="password"
                 v-model="form.password"
@@ -55,7 +55,7 @@ const submit = () => {
         </div>
 
         <div class="flex flex-col gap-1.5">
-            <label for="password_confirmation" class="text-sm font-medium text-surface-700">Konfirmasi Kata Sandi</label>
+            <label for="password_confirmation" class="text-sm font-medium text-neutral-300">Konfirmasi Kata Sandi</label>
             <Password
                 id="password_confirmation"
                 v-model="form.password_confirmation"
@@ -69,9 +69,9 @@ const submit = () => {
 
         <Button type="submit" label="Daftar" class="w-full" :loading="form.processing" />
 
-        <p class="text-sm text-surface-500 text-center">
+        <p class="text-sm text-neutral-500 text-center">
             Sudah punya akun?
-            <Link :href="route('login')" class="text-indigo-600 font-medium">Masuk</Link>
+            <Link :href="route('login')" class="text-[#FFD700] font-medium">Masuk</Link>
         </p>
     </form>
 </template>

@@ -27,7 +27,7 @@ const submit = () => {
 
 <template>
     <form class="flex flex-col gap-4" @submit.prevent="submit">
-        <h1 class="text-lg font-semibold text-surface-900">Masuk</h1>
+        <h1 class="text-lg font-semibold text-white">Masuk</h1>
 
         <Message v-if="page.props.flash?.success" severity="success" :closable="false">
             {{ page.props.flash.success }}
@@ -38,14 +38,14 @@ const submit = () => {
         </Message>
 
         <div class="flex flex-col gap-1.5">
-            <label for="email" class="text-sm font-medium text-surface-700">Email</label>
+            <label for="email" class="text-sm font-medium text-neutral-300">Email</label>
             <InputText id="email" v-model="form.email" type="email" autofocus required class="w-full" />
         </div>
 
         <div class="flex flex-col gap-1.5">
             <div class="flex items-center justify-between">
-                <label for="password" class="text-sm font-medium text-surface-700">Kata Sandi</label>
-                <Link :href="route('password.request')" class="text-sm text-indigo-600 font-medium">Lupa kata sandi?</Link>
+                <label for="password" class="text-sm font-medium text-neutral-300">Kata Sandi</label>
+                <Link :href="route('password.request')" class="text-sm text-[#FFD700] font-medium">Lupa kata sandi?</Link>
             </div>
             <Password
                 id="password"
@@ -60,14 +60,14 @@ const submit = () => {
 
         <div class="flex items-center gap-2">
             <Checkbox v-model="form.remember" inputId="remember" binary />
-            <label for="remember" class="text-sm text-surface-600">Ingat saya</label>
+            <label for="remember" class="text-sm text-neutral-400">Ingat saya</label>
         </div>
 
         <Button type="submit" label="Masuk" class="w-full" :loading="form.processing" />
 
-        <p class="text-sm text-surface-500 text-center">
+        <p class="text-sm text-neutral-500 text-center">
             Belum punya akun?
-            <Link :href="route('register')" class="text-indigo-600 font-medium">Daftar sebagai masyarakat</Link>
+            <Link :href="route('register')" class="text-[#FFD700] font-medium">Daftar sebagai masyarakat</Link>
         </p>
     </form>
 </template>

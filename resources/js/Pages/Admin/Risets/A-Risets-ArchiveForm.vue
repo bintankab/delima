@@ -99,7 +99,7 @@ const submit = () => {
 </script>
 
 <template>
-    <div class="max-w-3xl bg-white rounded-xl border border-surface-200 p-6">
+    <div class="bg-white rounded-xl border border-surface-200 p-6">
         <div class="mb-5">
             <h1 class="text-xl font-semibold text-surface-900">{{ heading }}</h1>
             <p class="text-sm text-surface-500 mt-1">

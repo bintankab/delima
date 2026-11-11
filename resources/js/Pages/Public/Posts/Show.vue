@@ -67,8 +67,8 @@ const shareWhatsapp = () => {
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_17rem] gap-8 p-5 sm:p-8">
-                <div>
+            <div class="grid min-w-0 grid-cols-1 lg:grid-cols-[minmax(0,1fr)_17rem] gap-8 p-5 sm:p-8">
+                <div class="min-w-0">
                     <p v-if="post.excerpt" class="text-base text-neutral-400 leading-relaxed">{{ post.excerpt }}</p>
                     <div class="rich-text mt-6 text-base text-neutral-200" v-html="post.content" />
 

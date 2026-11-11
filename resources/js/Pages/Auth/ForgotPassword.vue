@@ -21,8 +21,8 @@ const submit = () => {
 
 <template>
     <form class="flex flex-col gap-4" @submit.prevent="submit">
-        <h1 class="text-lg font-semibold text-surface-900">Lupa Kata Sandi</h1>
-        <p class="text-sm text-surface-500">
+        <h1 class="text-lg font-semibold text-white">Lupa Kata Sandi</h1>
+        <p class="text-sm text-neutral-500">
             Masukkan email Anda. Kami akan mengirimkan tautan untuk mengatur ulang kata sandi.
         </p>
 
@@ -31,15 +31,15 @@ const submit = () => {
         </Message>
 
         <div class="flex flex-col gap-1.5">
-            <label for="email" class="text-sm font-medium text-surface-700">Email</label>
+            <label for="email" class="text-sm font-medium text-neutral-300">Email</label>
             <InputText id="email" v-model="form.email" type="email" autofocus required class="w-full" />
             <small v-if="form.errors.email" class="text-rose-600">{{ form.errors.email }}</small>
         </div>
 
         <Button type="submit" label="Kirim Tautan Reset" class="w-full" :loading="form.processing" />
 
-        <p class="text-sm text-surface-500 text-center">
-            <Link :href="route('login')" class="text-indigo-600 font-medium">Kembali ke halaman masuk</Link>
+        <p class="text-sm text-neutral-500 text-center">
+            <Link :href="route('login')" class="text-[#FFD700] font-medium">Kembali ke halaman masuk</Link>
         </p>
     </form>
 </template>

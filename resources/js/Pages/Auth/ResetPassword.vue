@@ -28,16 +28,16 @@ const submit = () => {
 
 <template>
     <form class="flex flex-col gap-4" @submit.prevent="submit">
-        <h1 class="text-lg font-semibold text-surface-900">Atur Ulang Kata Sandi</h1>
+        <h1 class="text-lg font-semibold text-white">Atur Ulang Kata Sandi</h1>
 
         <div class="flex flex-col gap-1.5">
-            <label for="email" class="text-sm font-medium text-surface-700">Email</label>
+            <label for="email" class="text-sm font-medium text-neutral-300">Email</label>
             <InputText id="email" v-model="form.email" type="email" required class="w-full" />
             <small v-if="form.errors.email" class="text-rose-600">{{ form.errors.email }}</small>
         </div>
 
         <div class="flex flex-col gap-1.5">
-            <label for="password" class="text-sm font-medium text-surface-700">Kata Sandi Baru</label>
+            <label for="password" class="text-sm font-medium text-neutral-300">Kata Sandi Baru</label>
             <Password
                 id="password"
                 v-model="form.password"
@@ -50,7 +50,7 @@ const submit = () => {
         </div>
 
         <div class="flex flex-col gap-1.5">
-            <label for="password_confirmation" class="text-sm font-medium text-surface-700">Konfirmasi Kata Sandi</label>
+            <label for="password_confirmation" class="text-sm font-medium text-neutral-300">Konfirmasi Kata Sandi</label>
             <Password
                 id="password_confirmation"
                 v-model="form.password_confirmation"

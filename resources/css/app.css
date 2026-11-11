@@ -58,8 +58,8 @@
     bottom: 0;
     left: 0;
     width: var(--sidebar-width);
-    background: white;
-    border-right: 1px solid var(--p-surface-200, #e2e8f0);
+    background: #494a4d;
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
     overflow-y: auto;
     z-index: 30;
     transition: transform 0.2s ease;
@@ -76,7 +76,7 @@
     font-weight: 700;
     letter-spacing: 0.05em;
     text-transform: uppercase;
-    color: var(--p-surface-400, #94a3b8);
+    color: rgba(255, 255, 255, 0.4);
     padding: 0 0.75rem;
     margin-bottom: 0.4rem;
 }
@@ -87,15 +87,16 @@
     padding: 0.55rem 0.75rem;
     border-radius: 0.5rem;
     font-size: 0.875rem;
-    color: var(--p-surface-700, #334155);
+    color: rgba(255, 255, 255, 0.75);
     transition: background-color 0.15s, color 0.15s;
 }
 .app-menu-item:hover {
-    background: var(--p-surface-100, #f1f5f9);
+    background: rgba(255, 255, 255, 0.08);
+    color: #ffd700;
 }
 .app-menu-item-active {
-    background: var(--p-primary-50, #eef2ff);
-    color: var(--p-primary-700, #4338ca);
+    background: rgba(255, 215, 0, 0.12);
+    color: #ffd700;
     font-weight: 600;
 }
 
@@ -104,6 +105,11 @@
     margin-left: var(--sidebar-width);
     padding: 1.5rem;
     transition: margin-left 0.2s ease;
+}
+
+/* Card konten admin: putih murni terlalu kontras di atas shell abu-gelap, diredupkan sedikit */
+.app-content .bg-white {
+    background-color: #fafafa;
 }
 
 .app-sidebar-mask {
@@ -200,6 +206,8 @@
 
 /* ===== Rich text content rendered from the Quill editor (Admin Form.vue pages) ===== */
 .rich-text {
+    min-width: 0;
+    overflow-wrap: break-word;
     color: var(--p-surface-700, #334155);
     font-size: 0.875rem;
     line-height: 1.6;
@@ -263,9 +271,18 @@
 .rich-text blockquote p:last-child {
     margin-bottom: 0;
 }
-.rich-text img {
+.rich-text img,
+.rich-text video,
+.rich-text iframe,
+.rich-text table {
     max-width: 100%;
+}
+.rich-text img {
     height: auto;
     border-radius: 0.5rem;
     margin: 0.75rem 0;
+}
+.rich-text pre {
+    max-width: 100%;
+    white-space: pre-wrap;
 }
