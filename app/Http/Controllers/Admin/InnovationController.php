@@ -262,6 +262,7 @@ class InnovationController extends Controller
             'inisiatorOptions' => JenisInisiator::options(),
             'inisiator' => $innovation->inisiator?->value,
             'inisiatorLocked' => true,
+            'organisasiName' => $this->organisasiName($innovation),
             'maxYear' => now()->year,
             'updateRoute' => 'admin.innovations.mine.update',
             'showRoute' => 'admin.innovations.mine.show',
@@ -476,7 +477,8 @@ class InnovationController extends Controller
             'tahapanOptions' => TahapanInovasi::options(),
             'inisiatorOptions' => JenisInisiator::options(),
             'inisiator' => $innovation->inisiator?->value,
-            'inisiatorLocked' => false,
+            'inisiatorLocked' => $innovation->inisiator === JenisInisiator::OPD,
+            'organisasiName' => $this->organisasiName($innovation),
             'maxYear' => now()->year,
         ]);
     }
@@ -548,6 +550,18 @@ class InnovationController extends Controller
         return redirect()
             ->route('admin.innovations.index', ['trashed' => true])
             ->with('success', 'Inovasi beserta berkasnya berhasil dihapus permanen.');
+    }
+
+    private function organisasiName(InnovationModel $innovation): ?string
+    {
+        if ($innovation->inisiator !== JenisInisiator::OPD || $innovation->user_id === null) {
+            return null;
+        }
+
+        return $innovation->user?->organisasis()
+            ->orderByPivotDesc('is_primary')
+            ->orderBy('organisasis.name')
+            ->value('organisasis.name');
     }
 
     /**

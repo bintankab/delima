@@ -27,6 +27,7 @@ const props = defineProps({
     inisiatorOptions: { type: Array, required: true },
     inisiator: { type: String, default: null },
     inisiatorLocked: { type: Boolean, default: false },
+    organisasiName: { type: String, default: null },
     maxYear: { type: Number, required: true },
     updateRoute: { type: String, default: 'admin.innovations.update' },
     showRoute: { type: String, default: 'admin.innovations.show' },
@@ -198,6 +199,12 @@ const submit = () => {
                     />
                     <small v-if="form.errors.category_id" class="text-rose-600">{{ form.errors.category_id }}</small>
                 </div>
+            </div>
+
+            <div v-if="isEditing && form.inisiator === 'opd'" class="flex flex-col gap-1.5">
+                <label for="organisasi" class="text-sm font-medium text-surface-700">OPD</label>
+                <InputText id="organisasi" :model-value="organisasiName || '—'" disabled class="w-full" />
+                <small class="text-surface-500">OPD inovasi tidak dapat dipindahkan.</small>
             </div>
 
             <div class="flex flex-col gap-1.5">

@@ -17,7 +17,7 @@ class OrganisasiController extends Controller
         $search = mb_substr($request->string('search')->trim()->toString(), 0, 100);
         $perPage = $this->perPage($request);
         $sort = $this->resolveSort($request, [
-            'name', 'type', 'code', 'contact_person', 'is_active', 'library_documents_count',
+            'name', 'type', 'code', 'contact_person', 'is_active', 'users_count', 'library_documents_count',
         ]);
 
         $organisasis = OrganisasiModel::query()
@@ -42,6 +42,7 @@ class OrganisasiController extends Controller
                 'email' => $organisasi->email,
                 'is_active' => $organisasi->is_active,
                 'logo_thumb' => $organisasi->getFirstMediaUrl('logo', 'thumb') ?: null,
+                'users_count' => $organisasi->users_count,
                 'documents_count' => $organisasi->library_documents_count,
                 'can_delete' => $organisasi->users_count === 0
                     && $organisasi->risets_count === 0

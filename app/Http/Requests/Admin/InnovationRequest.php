@@ -10,6 +10,7 @@ use App\Rules\MinimumWordCount;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class InnovationRequest extends FormRequest
 {
@@ -94,6 +95,30 @@ class InnovationRequest extends FormRequest
             'documents.*.file' => 'Setiap dokumen harus berupa berkas.',
             'documents.*.mimes' => 'Dokumen harus berformat PDF, DOC, atau DOCX.',
             'documents.*.max' => 'Ukuran tiap dokumen maksimal 10 MB.',
+        ];
+    }
+
+    /**
+     * @return array<int, callable(Validator): void>
+     */
+    public function after(): array
+    {
+        return [
+            function (Validator $validator): void {
+                $innovation = $this->route('innovation');
+
+                if (! $innovation instanceof InnovationModel || $innovation->inisiator !== JenisInisiator::OPD) {
+                    return;
+                }
+
+                if ($this->input('inisiator') !== null && $this->input('inisiator') !== JenisInisiator::OPD->value) {
+                    $validator->errors()->add('inisiator', 'Inovasi OPD tidak dapat dipindahkan ke OPD lain.');
+                }
+
+                if ($this->filled('user_id') && (int) $this->input('user_id') !== (int) $innovation->user_id) {
+                    $validator->errors()->add('user_id', 'Inovasi OPD tidak dapat dipindahkan ke OPD lain.');
+                }
+            },
         ];
     }
 }

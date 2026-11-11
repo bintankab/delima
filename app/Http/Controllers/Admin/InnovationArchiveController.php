@@ -10,6 +10,7 @@ use App\Http\Requests\Admin\InnovationArchiveRequest;
 use App\Models\InnovationCategoryModel;
 use App\Models\InnovationModel;
 use App\Models\OrganisasiModel;
+use App\Models\UserModel;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
@@ -72,6 +73,10 @@ class InnovationArchiveController extends Controller
 
     private function archiveOwnerId(InnovationArchiveRequest $request): int
     {
+        if ($request->validated('inisiator') === JenisInisiator::ASN->value) {
+            return (int) $request->validated('user_id');
+        }
+
         if ($request->validated('inisiator') !== JenisInisiator::OPD->value) {
             return (int) Auth::id();
         }
@@ -87,11 +92,19 @@ class InnovationArchiveController extends Controller
     private function organisasiOptions(): array
     {
         return OrganisasiModel::query()
+            ->with(['asnUsers' => fn ($query) => $query->orderBy('name')])
             ->orderBy('name')
             ->get(['id', 'name'])
             ->map(fn (OrganisasiModel $organisasi): array => [
                 'id' => $organisasi->id,
                 'name' => $organisasi->name,
+                'asn_users' => $organisasi->asnUsers
+                    ->map(fn (UserModel $user): array => [
+                        'id' => $user->id,
+                        'name' => $user->name,
+                    ])
+                    ->values()
+                    ->all(),
             ])
             ->all();
     }

@@ -27,10 +27,19 @@ class InnovationArchiveRequest extends FormRequest
         return [
             'inisiator' => ['required', Rule::enum(JenisInisiator::class)],
             'organisasi_id' => [
-                Rule::excludeUnless(fn (): bool => $this->input('inisiator') === JenisInisiator::OPD->value),
+                Rule::excludeUnless(fn (): bool => in_array($this->input('inisiator'), [
+                    JenisInisiator::OPD->value,
+                    JenisInisiator::ASN->value,
+                ], true)),
                 'required',
                 'integer',
                 Rule::exists('organisasis', 'id'),
+            ],
+            'user_id' => [
+                Rule::excludeUnless(fn (): bool => $this->input('inisiator') === JenisInisiator::ASN->value),
+                'required',
+                'integer',
+                Rule::exists('users', 'id'),
             ],
             'category_id' => ['required', 'integer', Rule::exists('innovation_categories', 'id')],
             'title' => ['required', 'string', 'max:255'],
@@ -57,20 +66,38 @@ class InnovationArchiveRequest extends FormRequest
     {
         return [
             function (Validator $validator): void {
-                if ($validator->errors()->hasAny(['inisiator', 'organisasi_id'])) {
+                if ($this->input('inisiator') === JenisInisiator::OPD->value) {
+                    if ($validator->errors()->hasAny(['inisiator', 'organisasi_id'])) {
+                        return;
+                    }
+
+                    $ownerId = OrganisasiModel::query()
+                        ->find($this->integer('organisasi_id'))
+                        ?->primaryAdminOpdUserId();
+
+                    if ($ownerId === null) {
+                        $validator->errors()->add('organisasi_id', 'OPD yang dipilih belum memiliki admin OPD.');
+                    }
+
                     return;
                 }
 
-                if ($this->input('inisiator') !== JenisInisiator::OPD->value) {
+                if ($this->input('inisiator') !== JenisInisiator::ASN->value) {
                     return;
                 }
 
-                $ownerId = OrganisasiModel::query()
+                if ($validator->errors()->hasAny(['inisiator', 'organisasi_id', 'user_id'])) {
+                    return;
+                }
+
+                $belongsToOrganisasi = OrganisasiModel::query()
                     ->find($this->integer('organisasi_id'))
-                    ?->primaryAdminOpdUserId();
+                    ?->asnUsers()
+                    ->whereKey($this->integer('user_id'))
+                    ->exists() ?? false;
 
-                if ($ownerId === null) {
-                    $validator->errors()->add('organisasi_id', 'OPD yang dipilih belum memiliki admin OPD.');
+                if (! $belongsToOrganisasi) {
+                    $validator->errors()->add('user_id', 'ASN yang dipilih tidak terdaftar di organisasi ini.');
                 }
             },
         ];
@@ -87,6 +114,9 @@ class InnovationArchiveRequest extends FormRequest
             'organisasi_id.required' => 'OPD wajib dipilih.',
             'organisasi_id.integer' => 'OPD yang dipilih tidak ditemukan.',
             'organisasi_id.exists' => 'OPD yang dipilih tidak ditemukan.',
+            'user_id.required' => 'ASN wajib dipilih.',
+            'user_id.integer' => 'ASN yang dipilih tidak ditemukan.',
+            'user_id.exists' => 'ASN yang dipilih tidak ditemukan.',
             'category_id.required' => 'Kategori wajib dipilih.',
             'category_id.integer' => 'Kategori yang dipilih tidak ditemukan.',
             'category_id.exists' => 'Kategori yang dipilih tidak ditemukan.',

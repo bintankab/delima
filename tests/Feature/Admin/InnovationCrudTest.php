@@ -7,6 +7,7 @@ use App\Enums\JenisInovasi;
 use App\Enums\TahapanInovasi;
 use App\Models\InnovationCategoryModel;
 use App\Models\InnovationModel;
+use App\Models\OrganisasiModel;
 use App\Models\UserModel;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -127,7 +128,10 @@ class InnovationCrudTest extends TestCase
 
     public function test_super_admin_updates_innovation_fields(): void
     {
-        $innovation = InnovationModel::factory()->create(['title' => 'Judul Lama']);
+        $innovation = InnovationModel::factory()->create([
+            'title' => 'Judul Lama',
+            'inisiator' => JenisInisiator::Bupati,
+        ]);
         $category = InnovationCategoryModel::factory()->create();
 
         $this->actingAs($this->userWithRole('super-admin'))
@@ -153,6 +157,74 @@ class InnovationCrudTest extends TestCase
         $this->assertSame(TahapanInovasi::UjiCoba, $innovation->tahapan);
         $this->assertSame(JenisInisiator::DPRD, $innovation->inisiator);
         $this->assertSame($category->id, $innovation->category_id);
+    }
+
+    public function test_opd_innovation_cannot_be_moved_to_another_inisiator(): void
+    {
+        $organisasi = OrganisasiModel::factory()->create(['name' => 'Dinas Kesehatan']);
+        $owner = $this->userWithRole('admin-opd');
+        $organisasi->users()->attach($owner->id, ['is_primary' => true]);
+        $category = InnovationCategoryModel::factory()->create();
+        $innovation = InnovationModel::factory()->create([
+            'user_id' => $owner->id,
+            'category_id' => $category->id,
+            'inisiator' => JenisInisiator::OPD,
+            'status' => 'submitted',
+        ]);
+
+        $this->actingAs($this->userWithRole('super-admin'))
+            ->get(route('admin.innovations.edit', $innovation))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('inisiatorLocked', true)
+                ->where('organisasiName', 'Dinas Kesehatan'));
+
+        $otherOwner = $this->userWithRole('admin-opd');
+
+        $this->actingAs($this->userWithRole('super-admin'))
+            ->from(route('admin.innovations.edit', $innovation))
+            ->put(route('admin.innovations.update', $innovation), [
+                'inisiator' => JenisInisiator::Bupati->value,
+                'user_id' => $otherOwner->id,
+                'category_id' => $category->id,
+                'title' => 'Judul Dipindah',
+                'jenis_inovasi' => $innovation->jenis_inovasi->value,
+                'tahapan' => $innovation->tahapan->value,
+                'description' => $this->words(200),
+                'tahun' => $innovation->tahun,
+                'implementation_at' => $innovation->implementation_at->toDateString(),
+            ])
+            ->assertRedirect(route('admin.innovations.edit', $innovation))
+            ->assertSessionHasErrors([
+                'inisiator' => 'Inovasi OPD tidak dapat dipindahkan ke OPD lain.',
+                'user_id' => 'Inovasi OPD tidak dapat dipindahkan ke OPD lain.',
+            ]);
+
+        $innovation->refresh();
+
+        $this->assertSame(JenisInisiator::OPD, $innovation->inisiator);
+        $this->assertSame($owner->id, $innovation->user_id);
+        $this->assertNotSame('Judul Dipindah', $innovation->title);
+
+        $this->actingAs($this->userWithRole('super-admin'))
+            ->put(route('admin.innovations.update', $innovation), [
+                'inisiator' => JenisInisiator::OPD->value,
+                'category_id' => $category->id,
+                'title' => 'Judul Tetap di OPD',
+                'jenis_inovasi' => $innovation->jenis_inovasi->value,
+                'tahapan' => $innovation->tahapan->value,
+                'description' => $this->words(200),
+                'tahun' => $innovation->tahun,
+                'implementation_at' => $innovation->implementation_at->toDateString(),
+            ])
+            ->assertRedirect(route('admin.innovations.show', $innovation))
+            ->assertSessionHas('success', 'Inovasi berhasil diperbarui.');
+
+        $innovation->refresh();
+
+        $this->assertSame('Judul Tetap di OPD', $innovation->title);
+        $this->assertSame(JenisInisiator::OPD, $innovation->inisiator);
+        $this->assertSame($owner->id, $innovation->user_id);
     }
 
     public function test_super_admin_can_set_a_google_drive_support_link(): void

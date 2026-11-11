@@ -15,7 +15,7 @@ import RichTextEditor from '@/Components/RichTextEditor.vue';
 
 defineOptions({ layout: AdminLayout });
 
-defineProps({
+const props = defineProps({
     inisiatorOptions: { type: Array, required: true },
     organisasis: { type: Array, required: true },
     categories: { type: Array, required: true },
@@ -30,6 +30,7 @@ const maxDate = new Date();
 const form = useAutoClearForm({
     inisiator: null,
     organisasi_id: null,
+    user_id: null,
     category_id: null,
     title: '',
     jenis_inovasi: null,
@@ -46,10 +47,24 @@ const form = useAutoClearForm({
     documents: [],
 });
 
+const needsOrganisasi = computed(() => ['opd', 'asn'].includes(form.inisiator));
+
+const asnOptions = computed(() => props.organisasis
+    .find((organisasi) => organisasi.id === form.organisasi_id)
+    ?.asn_users ?? []);
+
 watch(() => form.inisiator, (value) => {
-    if (value !== 'opd') {
+    if (!['opd', 'asn'].includes(value)) {
         form.organisasi_id = null;
     }
+
+    if (value !== 'asn') {
+        form.user_id = null;
+    }
+});
+
+watch(() => form.organisasi_id, () => {
+    form.user_id = null;
 });
 
 const minimumDescriptionWords = 200;
@@ -103,7 +118,8 @@ const submit = () => {
         implementation_at: formatDate(data.implementation_at),
         link_video: data.link_video || null,
         link_file_pendukung: data.link_file_pendukung || null,
-        organisasi_id: data.inisiator === 'opd' ? data.organisasi_id : null,
+        organisasi_id: ['opd', 'asn'].includes(data.inisiator) ? data.organisasi_id : null,
+        user_id: data.inisiator === 'asn' ? data.user_id : null,
     })).post(route('admin.innovations.archive.store'), {
         forceFormData: true,
     });
@@ -151,19 +167,40 @@ const submit = () => {
                 </div>
             </div>
 
-            <div v-if="form.inisiator === 'opd'" class="flex flex-col gap-1.5">
-                <label for="organisasi_id" class="text-sm font-medium text-surface-700">OPD</label>
+            <div v-if="needsOrganisasi" class="flex flex-col gap-1.5">
+                <label for="organisasi_id" class="text-sm font-medium text-surface-700">
+                    {{ form.inisiator === 'asn' ? 'Organisasi' : 'OPD' }}
+                </label>
                 <Select
                     input-id="organisasi_id"
                     v-model="form.organisasi_id"
                     :options="organisasis"
                     option-label="name"
                     option-value="id"
-                    placeholder="Pilih OPD"
+                    :placeholder="form.inisiator === 'asn' ? 'Pilih organisasi' : 'Pilih OPD'"
                     filter
                     class="w-full"
                 />
                 <small v-if="form.errors.organisasi_id" class="text-rose-600">{{ form.errors.organisasi_id }}</small>
+            </div>
+
+            <div v-if="form.inisiator === 'asn'" class="flex flex-col gap-1.5">
+                <label for="user_id" class="text-sm font-medium text-surface-700">ASN</label>
+                <Select
+                    input-id="user_id"
+                    v-model="form.user_id"
+                    :options="asnOptions"
+                    option-label="name"
+                    option-value="id"
+                    placeholder="Pilih ASN"
+                    filter
+                    :disabled="!form.organisasi_id"
+                    class="w-full"
+                />
+                <small v-if="form.organisasi_id && asnOptions.length === 0" class="text-surface-500">
+                    Organisasi ini belum memiliki ASN.
+                </small>
+                <small v-if="form.errors.user_id" class="text-rose-600">{{ form.errors.user_id }}</small>
             </div>
 
             <div class="flex flex-col gap-1.5">

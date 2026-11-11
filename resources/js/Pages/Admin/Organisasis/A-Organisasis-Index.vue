@@ -152,6 +152,7 @@ const remove = (organisasi) => {
                         />
                     </template>
                 </Column>
+                <Column field="users_count" header="Jumlah Pengguna" sortable />
                 <Column
                     field="documents_count"
                     sort-field="library_documents_count"

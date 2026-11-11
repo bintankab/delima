@@ -35,6 +35,12 @@ class OrganisasiModel extends Model implements HasMedia
             ->withTimestamps();
     }
 
+    public function asnUsers(): BelongsToMany
+    {
+        return $this->users()
+            ->whereHas('roles', fn ($query) => $query->where('name', 'asn')->where('guard_name', 'web'));
+    }
+
     public function primaryAdminOpdUserId(): ?int
     {
         $id = $this->users()

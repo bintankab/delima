@@ -222,6 +222,129 @@ class InnovationArchiveTest extends TestCase
         $this->assertDatabaseCount('innovations', 0);
     }
 
+    public function test_archive_form_lists_only_asn_users_of_each_organisasi(): void
+    {
+        $organisasi = OrganisasiModel::factory()->create(['name' => 'Dinas Kesehatan']);
+        $asn = $this->userWithRole('asn');
+        $asn->update(['name' => 'Siti ASN']);
+        $admin = $this->userWithRole('admin-opd');
+        $organisasi->users()->attach($asn->id, ['is_primary' => true]);
+        $organisasi->users()->attach($admin->id, ['is_primary' => false]);
+
+        $this->actingAs($this->userWithRole('super-admin'))
+            ->get(route('admin.innovations.archive.create'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('organisasis.0.id', $organisasi->id)
+                ->where('organisasis.0.asn_users', [
+                    ['id' => $asn->id, 'name' => 'Siti ASN'],
+                ]));
+    }
+
+    public function test_asn_archive_is_owned_by_the_selected_asn(): void
+    {
+        $organisasi = OrganisasiModel::factory()->create();
+        $category = InnovationCategoryModel::factory()->create();
+        $asn = $this->userWithRole('asn');
+        $organisasi->users()->attach($asn->id, ['is_primary' => true]);
+
+        $this->actingAs($this->userWithRole('super-admin'))
+            ->post(route('admin.innovations.archive.store'), [
+                'inisiator' => JenisInisiator::ASN->value,
+                'organisasi_id' => $organisasi->id,
+                'user_id' => $asn->id,
+                'category_id' => $category->id,
+                'title' => 'Inovasi ASN 2021',
+                'jenis_inovasi' => JenisInovasi::Digital->value,
+                'tahapan' => TahapanInovasi::Implementasi->value,
+                'description' => $this->words(200),
+                'tahun' => 2021,
+                'implementation_at' => '2021-04-01',
+            ])
+            ->assertRedirect(route('admin.innovations.index'));
+
+        $this->assertDatabaseHas('innovations', [
+            'title' => 'Inovasi ASN 2021',
+            'inisiator' => JenisInisiator::ASN->value,
+            'user_id' => $asn->id,
+            'status' => 'published',
+            'origin' => 'archive',
+        ]);
+    }
+
+    public function test_asn_archive_requires_an_organisasi_and_an_asn(): void
+    {
+        $category = InnovationCategoryModel::factory()->create();
+
+        $this->actingAs($this->userWithRole('super-admin'))
+            ->from(route('admin.innovations.archive.create'))
+            ->post(route('admin.innovations.archive.store'), [
+                'inisiator' => JenisInisiator::ASN->value,
+                'category_id' => $category->id,
+                'title' => 'Inovasi Tanpa ASN',
+                'jenis_inovasi' => JenisInovasi::Digital->value,
+                'tahapan' => TahapanInovasi::Implementasi->value,
+                'description' => $this->words(200),
+                'tahun' => 2021,
+                'implementation_at' => '2021-04-01',
+            ])
+            ->assertRedirect(route('admin.innovations.archive.create'))
+            ->assertSessionHasErrors([
+                'organisasi_id' => 'OPD wajib dipilih.',
+                'user_id' => 'ASN wajib dipilih.',
+            ]);
+
+        $this->assertDatabaseCount('innovations', 0);
+    }
+
+    public function test_asn_archive_rejects_a_user_outside_the_selected_organisasi(): void
+    {
+        $organisasi = OrganisasiModel::factory()->create();
+        $category = InnovationCategoryModel::factory()->create();
+        $outsider = $this->userWithRole('asn');
+        $adminOpd = $this->userWithRole('admin-opd');
+        $organisasi->users()->attach($adminOpd->id, ['is_primary' => true]);
+
+        $this->actingAs($this->userWithRole('super-admin'))
+            ->from(route('admin.innovations.archive.create'))
+            ->post(route('admin.innovations.archive.store'), [
+                'inisiator' => JenisInisiator::ASN->value,
+                'organisasi_id' => $organisasi->id,
+                'user_id' => $outsider->id,
+                'category_id' => $category->id,
+                'title' => 'Inovasi ASN Salah',
+                'jenis_inovasi' => JenisInovasi::Digital->value,
+                'tahapan' => TahapanInovasi::Implementasi->value,
+                'description' => $this->words(200),
+                'tahun' => 2021,
+                'implementation_at' => '2021-04-01',
+            ])
+            ->assertRedirect(route('admin.innovations.archive.create'))
+            ->assertSessionHasErrors([
+                'user_id' => 'ASN yang dipilih tidak terdaftar di organisasi ini.',
+            ]);
+
+        $this->actingAs($this->userWithRole('super-admin'))
+            ->from(route('admin.innovations.archive.create'))
+            ->post(route('admin.innovations.archive.store'), [
+                'inisiator' => JenisInisiator::ASN->value,
+                'organisasi_id' => $organisasi->id,
+                'user_id' => $adminOpd->id,
+                'category_id' => $category->id,
+                'title' => 'Inovasi Bukan ASN',
+                'jenis_inovasi' => JenisInovasi::Digital->value,
+                'tahapan' => TahapanInovasi::Implementasi->value,
+                'description' => $this->words(200),
+                'tahun' => 2021,
+                'implementation_at' => '2021-04-01',
+            ])
+            ->assertSessionHasErrors([
+                'user_id' => 'ASN yang dipilih tidak terdaftar di organisasi ini.',
+            ]);
+
+        $this->assertDatabaseCount('innovations', 0);
+    }
+
     public function test_super_admin_can_attach_cover_and_documents(): void
     {
         Storage::fake('public');
@@ -297,12 +420,17 @@ class InnovationArchiveTest extends TestCase
 
     public function test_year_before_2021_is_rejected(): void
     {
+        $organisasi = OrganisasiModel::factory()->create();
         $category = InnovationCategoryModel::factory()->create();
+        $asn = $this->userWithRole('asn');
+        $organisasi->users()->attach($asn->id, ['is_primary' => true]);
 
         $this->actingAs($this->userWithRole('super-admin'))
             ->from(route('admin.innovations.archive.create'))
             ->post(route('admin.innovations.archive.store'), [
                 'inisiator' => JenisInisiator::ASN->value,
+                'organisasi_id' => $organisasi->id,
+                'user_id' => $asn->id,
                 'category_id' => $category->id,
                 'title' => 'Inovasi Lama',
                 'jenis_inovasi' => JenisInovasi::NonDigital->value,

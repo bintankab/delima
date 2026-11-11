@@ -37,7 +37,8 @@ class OrganisasiControllerTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Admin/Organisasis/A-Organisasis-Index')
                 ->has('organisasis.data', 1)
-                ->where('organisasis.data.0.name', 'Dinas Kesehatan'));
+                ->where('organisasis.data.0.name', 'Dinas Kesehatan')
+                ->where('organisasis.data.0.users_count', 0));
     }
 
     public function test_super_admin_creates_an_organisasi(): void
@@ -117,6 +118,20 @@ class OrganisasiControllerTest extends TestCase
             ->assertSessionHas('success');
 
         $this->assertDatabaseMissing('organisasis', ['id' => $organisasi->id]);
+    }
+
+    public function test_organisasi_index_shows_how_many_users_belong_to_it(): void
+    {
+        $organisasi = OrganisasiModel::factory()->create(['name' => 'Dinas Kesehatan']);
+        $organisasi->users()->attach(UserModel::factory()->create(), ['is_primary' => true]);
+        $organisasi->users()->attach(UserModel::factory()->create(), ['is_primary' => false]);
+
+        $this->actingAs($this->userWithRole('super-admin'))
+            ->get(route('admin.organisasis.index', ['search' => 'Kesehatan']))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('organisasis.data.0.users_count', 2)
+                ->where('organisasis.data.0.can_delete', false));
     }
 
     public function test_organisasi_with_a_user_cannot_be_deleted(): void
