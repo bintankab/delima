@@ -286,3 +286,13 @@
     max-width: 100%;
     white-space: pre-wrap;
 }
+
+/* Public pages render rich-text on a dark card; override the admin (light) defaults above. */
+.rich-text.text-neutral-200 {
+    color: var(--color-neutral-200, #e5e5e5);
+}
+.rich-text.text-neutral-200 h1,
+.rich-text.text-neutral-200 h2,
+.rich-text.text-neutral-200 h3 {
+    color: #fff;
+}

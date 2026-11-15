@@ -1,5 +1,6 @@
 <?php
 
+use App\Support\UploadLimits;
 use Spatie\ImageOptimizer\Optimizers\Avifenc;
 use Spatie\ImageOptimizer\Optimizers\Cwebp;
 use Spatie\ImageOptimizer\Optimizers\Gifsicle;
@@ -50,7 +51,7 @@ return [
      * The maximum file size of an item in bytes.
      * Adding a larger file will result in an exception.
      */
-    'max_file_size' => 1024 * 1024 * 10, // 10MB
+    'max_file_size' => UploadLimits::maxDocumentBytes(),
 
     /*
      * Uploads whose file name contains any of these extensions will be rejected.

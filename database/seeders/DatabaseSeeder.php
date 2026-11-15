@@ -29,6 +29,9 @@ class DatabaseSeeder extends Seeder
         ]);
         $superAdmin->assignRole('super-admin');
 
-        $this->call(PostSeeder::class);
+        $this->call([
+            PostSeeder::class,
+            InnovationSeeder::class,
+        ]);
     }
 }

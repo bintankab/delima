@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Admin;
 
 use App\Models\RisetModel;
+use App\Support\UploadLimits;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -45,7 +46,7 @@ class RisetRequest extends FormRequest
             'published_at' => ['required', 'date', 'after_or_equal:2021-01-01', 'before_or_equal:today'],
             'cover' => ['nullable', 'image', 'mimes:jpeg,jpg,png,webp', 'max:10240'],
             'documents' => ['nullable', 'array'],
-            'documents.*' => ['file', 'mimes:pdf,doc,docx', 'max:10240'],
+            'documents.*' => ['file', 'mimes:pdf,doc,docx', 'max:'.UploadLimits::maxDocumentKilobytes()],
             'remove_document_ids' => ['nullable', 'array'],
             'remove_document_ids.*' => ['integer'],
         ];
@@ -81,7 +82,7 @@ class RisetRequest extends FormRequest
             'documents.array' => 'Dokumen harus berupa daftar berkas.',
             'documents.*.file' => 'Setiap dokumen harus berupa berkas.',
             'documents.*.mimes' => 'Dokumen harus berformat PDF, DOC, atau DOCX.',
-            'documents.*.max' => 'Ukuran tiap dokumen maksimal 10 MB.',
+            'documents.*.max' => 'Ukuran tiap dokumen maksimal '.UploadLimits::maxDocumentMegabytes().' MB.',
         ];
     }
 }

@@ -18,6 +18,7 @@ defineOptions({ layout: AdminLayout });
 
 const confirm = useConfirm();
 const page = usePage();
+const maxDocumentFileSize = computed(() => page.props.maxUploadBytes ?? 10485760);
 
 const props = defineProps({
     innovation: { type: Object, default: null },
@@ -384,7 +385,7 @@ const submit = () => {
                 <FileUpload
                     accept=".pdf,.doc,.docx,application/pdf"
                     :multiple="true"
-                    :max-file-size="10485760"
+                    :max-file-size="maxDocumentFileSize"
                     custom-upload
                     :show-upload-button="false"
                     choose-label="Tambah dokumen"

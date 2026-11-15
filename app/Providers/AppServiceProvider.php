@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Support\UploadLimits;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\ServiceProvider;
 use Symfony\Component\Mailer\Transport\Dsn;
@@ -24,6 +25,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureInsecureSmtpWhenCertIsUntrusted();
+        $this->overrideMediaLibraryMaxFileSize();
     }
 
     /**
@@ -64,5 +66,18 @@ class AppServiceProvider extends ServiceProvider
 
             return $transport;
         });
+    }
+
+    /**
+     * `config/media-library.php` reads `UploadLimits::maxDocumentBytes()`, but
+     * `php artisan config:cache` runs under the CLI SAPI, which has its own
+     * php.ini separate from the PHP-FPM pool serving web requests. Caching
+     * would freeze in the CLI's ini values instead of the pool's. Overriding
+     * here runs on every request under whichever SAPI actually serves it, so
+     * it always reflects the real upload limit regardless of config caching.
+     */
+    private function overrideMediaLibraryMaxFileSize(): void
+    {
+        config(['media-library.max_file_size' => UploadLimits::maxDocumentBytes()]);
     }
 }

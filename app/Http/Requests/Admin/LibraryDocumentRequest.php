@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Support\UploadLimits;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -37,7 +38,7 @@ class LibraryDocumentRequest extends FormRequest
                 'integer',
                 Rule::exists('organisasis', 'id'),
             ],
-            'file' => [$document ? 'nullable' : 'required', 'file', 'mimes:pdf,doc,docx,xls,xlsx', 'max:20480'],
+            'file' => [$document ? 'nullable' : 'required', 'file', 'mimes:pdf,doc,docx,xls,xlsx', 'max:'.UploadLimits::maxDocumentKilobytes()],
         ];
     }
 
@@ -56,7 +57,7 @@ class LibraryDocumentRequest extends FormRequest
             'organisasi_id.prohibited' => 'Admin OPD tidak dapat memilih organisasi lain.',
             'file.required' => 'Berkas dokumen wajib diunggah.',
             'file.mimes' => 'Berkas harus berformat PDF, DOC, DOCX, XLS, atau XLSX.',
-            'file.max' => 'Ukuran berkas maksimal 20 MB.',
+            'file.max' => 'Ukuran berkas maksimal '.UploadLimits::maxDocumentMegabytes().' MB.',
         ];
     }
 }

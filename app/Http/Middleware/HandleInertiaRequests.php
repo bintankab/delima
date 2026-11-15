@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Models\MenuModel;
+use App\Support\UploadLimits;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -53,6 +54,7 @@ class HandleInertiaRequests extends Middleware
 
                 return $menu?->navigation();
             },
+            'maxUploadBytes' => UploadLimits::maxDocumentBytes(),
         ];
     }
 }

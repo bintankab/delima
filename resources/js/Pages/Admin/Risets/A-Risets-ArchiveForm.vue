@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue';
-import { router } from '@inertiajs/vue3';
+import { router, usePage } from '@inertiajs/vue3';
 import { useAutoClearForm } from '@/Composables/useAutoClearForm';
 import Button from 'primevue/button';
 import DatePicker from 'primevue/datepicker';
@@ -30,6 +30,9 @@ const props = defineProps({
     organisasiId: { type: Number, default: null },
     organisasiName: { type: String, default: null },
 });
+
+const page = usePage();
+const maxDocumentFileSize = computed(() => page.props.maxUploadBytes ?? 10485760);
 
 const minDate = new Date(2021, 0, 1);
 const maxDate = new Date();
@@ -226,7 +229,7 @@ const submit = () => {
                 <FileUpload
                     accept=".pdf,.doc,.docx,application/pdf"
                     :multiple="true"
-                    :max-file-size="10485760"
+                    :max-file-size="maxDocumentFileSize"
                     custom-upload
                     :show-upload-button="false"
                     choose-label="Pilih dokumen"

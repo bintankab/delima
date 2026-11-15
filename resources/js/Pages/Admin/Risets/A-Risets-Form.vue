@@ -1,6 +1,6 @@
 <script setup>
 import { computed, ref } from 'vue';
-import { router } from '@inertiajs/vue3';
+import { router, usePage } from '@inertiajs/vue3';
 import { useAutoClearForm } from '@/Composables/useAutoClearForm';
 import Button from 'primevue/button';
 import DatePicker from 'primevue/datepicker';
@@ -16,6 +16,8 @@ import RichTextEditor from '@/Components/RichTextEditor.vue';
 defineOptions({ layout: AdminLayout });
 
 const confirm = useConfirm();
+const page = usePage();
+const maxDocumentFileSize = computed(() => page.props.maxUploadBytes ?? 10485760);
 
 const props = defineProps({
     riset: { type: Object, required: true },
@@ -265,7 +267,7 @@ const submit = () => {
                 <FileUpload
                     accept=".pdf,.doc,.docx,application/pdf"
                     :multiple="true"
-                    :max-file-size="10485760"
+                    :max-file-size="maxDocumentFileSize"
                     custom-upload
                     :show-upload-button="false"
                     choose-label="Tambah dokumen"
