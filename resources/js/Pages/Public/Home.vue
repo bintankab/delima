@@ -182,7 +182,7 @@ onUnmounted(stop);
                 <Link
                     v-for="item in topInnovations"
                     :key="item.id"
-                    :href="`/etalase/${item.slug}`"
+                    :href="route('inovasi.show', item.slug)"
                     class="bg-neutral-900 rounded-xl border border-neutral-800 p-4 hover:border-[#FFD700]/50"
                 >
                     <h3 class="font-medium text-white">{{ item.title }}</h3>
