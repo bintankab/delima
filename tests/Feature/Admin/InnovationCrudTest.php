@@ -423,6 +423,75 @@ class InnovationCrudTest extends TestCase
         ];
     }
 
+    public function test_super_admin_can_mark_and_clear_a_featured_innovation(): void
+    {
+        $innovation = InnovationModel::factory()->create([
+            'is_featured' => false,
+            'inisiator' => JenisInisiator::Bupati,
+        ]);
+        $category = InnovationCategoryModel::factory()->create();
+        $payload = [
+            'inisiator' => JenisInisiator::Bupati->value,
+            'category_id' => $category->id,
+            'title' => $innovation->title,
+            'jenis_inovasi' => $innovation->jenis_inovasi->value,
+            'tahapan' => $innovation->tahapan->value,
+            'description' => $this->words(200),
+            'tahun' => $innovation->tahun,
+            'implementation_at' => $innovation->implementation_at->toDateString(),
+        ];
+
+        $this->actingAs($this->userWithRole('super-admin'))
+            ->get(route('admin.innovations.edit', $innovation))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page->where('innovation.is_featured', false));
+
+        $this->actingAs($this->userWithRole('super-admin'))
+            ->put(route('admin.innovations.update', $innovation), [
+                ...$payload,
+                'is_featured' => true,
+            ])
+            ->assertRedirect(route('admin.innovations.show', $innovation))
+            ->assertSessionHasNoErrors();
+
+        $this->assertTrue($innovation->refresh()->is_featured);
+
+        $this->actingAs($this->userWithRole('super-admin'))
+            ->put(route('admin.innovations.update', $innovation), [
+                ...$payload,
+                'is_featured' => false,
+            ])
+            ->assertRedirect(route('admin.innovations.show', $innovation));
+
+        $this->assertFalse($innovation->refresh()->is_featured);
+    }
+
+    public function test_featured_flag_must_be_boolean(): void
+    {
+        $innovation = InnovationModel::factory()->create(['inisiator' => JenisInisiator::Bupati]);
+        $category = InnovationCategoryModel::factory()->create();
+
+        $this->actingAs($this->userWithRole('super-admin'))
+            ->from(route('admin.innovations.edit', $innovation))
+            ->put(route('admin.innovations.update', $innovation), [
+                'inisiator' => JenisInisiator::Bupati->value,
+                'category_id' => $category->id,
+                'title' => $innovation->title,
+                'jenis_inovasi' => $innovation->jenis_inovasi->value,
+                'tahapan' => $innovation->tahapan->value,
+                'description' => $this->words(200),
+                'tahun' => $innovation->tahun,
+                'implementation_at' => $innovation->implementation_at->toDateString(),
+                'is_featured' => 'unggulan',
+            ])
+            ->assertRedirect(route('admin.innovations.edit', $innovation))
+            ->assertSessionHasErrors([
+                'is_featured' => 'Penanda unggulan tidak valid.',
+            ]);
+
+        $this->assertFalse($innovation->refresh()->is_featured);
+    }
+
     /**
      * @return array<string, array{0: string}>
      */

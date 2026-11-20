@@ -48,6 +48,7 @@ class InnovationArchiveController extends Controller
             'tahun',
             'testing_at',
             'implementation_at',
+            'is_featured',
         ]);
 
         $innovation = InnovationModel::query()->create([

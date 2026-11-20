@@ -50,7 +50,7 @@ const shareWhatsapp = () => {
                 class="absolute inset-0 w-full h-full object-cover"
             />
             <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-            <div class="relative z-10 p-5 sm:p-8 text-white">
+            <div class="on-media relative z-10 p-5 sm:p-8 text-white">
                 <p class="text-xs sm:text-sm font-medium uppercase tracking-wide text-white/80">
                     {{ riset.category ?? 'Riset' }} &middot; {{ riset.read_minutes }} Menit Baca
                 </p>

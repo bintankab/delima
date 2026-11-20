@@ -22,26 +22,35 @@ const openFlipbook = (document) => {
         <li
             v-for="document in documents"
             :key="document.id"
-            class="flex items-center justify-between gap-2 text-sm bg-neutral-800 rounded-lg px-3 py-2"
+            class="flex flex-col gap-2 text-sm bg-neutral-800 rounded-lg px-3 py-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between"
         >
-            <span class="flex items-center gap-2 text-neutral-200 min-w-0">
-                <i class="pi pi-file" />
-                <span class="truncate">{{ document.name }}</span>
-                <span class="text-neutral-500 shrink-0">({{ document.size }})</span>
+            <span class="flex items-center gap-2 text-neutral-200 min-w-0 sm:min-w-48 sm:flex-1">
+                <i class="pi pi-file shrink-0" />
+                <span class="truncate min-w-0">{{ document.name }}</span>
+                <span class="text-neutral-500 shrink-0 whitespace-nowrap">({{ document.size }})</span>
             </span>
-            <span class="flex items-center gap-3 shrink-0">
+            <span class="flex flex-wrap items-center gap-x-3 gap-y-1 shrink-0">
                 <button
                     v-if="isPdf(document)"
                     type="button"
-                    class="text-[#FFD700] font-medium"
+                    class="inline-flex items-center gap-1 whitespace-nowrap text-[#FFD700] font-medium cursor-pointer"
                     @click="openFlipbook(document)"
                 >
                     <i class="pi pi-book" /> Baca
                 </button>
-                <Link v-if="isPdf(document) && document.read_url" :href="document.read_url" class="text-[#FFD700] font-medium">
+                <Link
+                    v-if="isPdf(document) && document.read_url"
+                    :href="document.read_url"
+                    class="inline-flex items-center gap-1 whitespace-nowrap text-[#FFD700] font-medium"
+                >
                     <i class="pi pi-window-maximize" /> Layar penuh
                 </Link>
-                <a :href="document.url" target="_blank" rel="noopener" class="text-[#FFD700] font-medium">
+                <a
+                    :href="document.url"
+                    target="_blank"
+                    rel="noopener"
+                    class="inline-flex items-center gap-1 whitespace-nowrap text-[#FFD700] font-medium"
+                >
                     <i class="pi pi-download" /> Unduh
                 </a>
             </span>

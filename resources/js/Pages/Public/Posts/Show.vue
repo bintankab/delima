@@ -58,7 +58,7 @@ const shareWhatsapp = () => {
                     class="absolute inset-0 w-full h-full object-cover"
                 />
                 <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-black/10" />
-                <div class="relative z-10 p-5 sm:p-8 text-white max-w-3xl">
+                <div class="on-media relative z-10 p-5 sm:p-8 text-white max-w-3xl">
                     <p class="text-xs font-semibold uppercase tracking-wide text-white/80">
                         <template v-if="post.categories?.length">{{ post.categories.map((category) => category.name).join(', ') }} &middot; </template>
                         Berita &middot; {{ post.read_minutes }} menit

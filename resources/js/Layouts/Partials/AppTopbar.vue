@@ -3,6 +3,7 @@ import { Link, router, usePage } from '@inertiajs/vue3';
 import Avatar from 'primevue/avatar';
 import Menu from 'primevue/menu';
 import { ref } from 'vue';
+import ThemeToggle from '@/Components/ThemeToggle.vue';
 import { useLayout } from '@/Composables/useLayout';
 
 const { toggleSidebar, toggleRightPanel } = useLayout();
@@ -29,7 +30,8 @@ const userMenuItems = [
         <div class="flex items-center gap-3">            
             <button
                 type="button"
-                class="topbar-icon-btn hidden lg:inline-flex"
+                class="topbar-icon-btn"
+                aria-label="Menu"
                 @click="toggleSidebar"
             >
                 <i class="pi pi-bars" />
@@ -41,6 +43,7 @@ const userMenuItems = [
         </div>
 
         <div class="flex items-center gap-2">
+            <ThemeToggle />
             <button type="button" class="topbar-icon-btn" aria-label="Buka panel filter" @click="toggleRightPanel">
                 <i class="pi pi-sliders-h" />
             </button>

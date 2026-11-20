@@ -20,7 +20,7 @@
     --topbar-height: 4rem;
     --sidebar-width: 17rem;
     min-height: 100vh;
-    background: #494a4d;
+    background: #f4f4f5;
 }
 
 .app-topbar {
@@ -33,9 +33,9 @@
     align-items: center;
     justify-content: space-between;
     padding-inline: 1rem;
-    background: #000;
-    color: #ffd700;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    background: #fff;
+    color: #171717;
+    border-bottom: 1px solid #e5e5e5;
 }
 
 .topbar-icon-btn {
@@ -45,11 +45,11 @@
     width: 2.5rem;
     height: 2.5rem;
     border-radius: 9999px;
-    color: #ffd700;
+    color: #404040;
     transition: background-color 0.15s;
 }
 .topbar-icon-btn:hover {
-    background: rgba(255, 255, 255, 0.12);
+    background: rgba(0, 0, 0, 0.06);
 }
 
 .app-sidebar {
@@ -58,8 +58,8 @@
     bottom: 0;
     left: 0;
     width: var(--sidebar-width);
-    background: #494a4d;
-    border-right: 1px solid rgba(255, 255, 255, 0.08);
+    background: #fff;
+    border-right: 1px solid #e5e5e5;
     overflow-y: auto;
     z-index: 30;
     transition: transform 0.2s ease;
@@ -76,7 +76,7 @@
     font-weight: 700;
     letter-spacing: 0.05em;
     text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.4);
+    color: #737373;
     padding: 0 0.75rem;
     margin-bottom: 0.4rem;
 }
@@ -87,16 +87,16 @@
     padding: 0.55rem 0.75rem;
     border-radius: 0.5rem;
     font-size: 0.875rem;
-    color: rgba(255, 255, 255, 0.75);
+    color: #404040;
     transition: background-color 0.15s, color 0.15s;
 }
 .app-menu-item:hover {
-    background: rgba(255, 255, 255, 0.08);
-    color: #ffd700;
+    background: #f5f5f5;
+    color: #a16207;
 }
 .app-menu-item-active {
-    background: rgba(255, 215, 0, 0.12);
-    color: #ffd700;
+    background: rgba(161, 98, 7, 0.1);
+    color: #a16207;
     font-weight: 600;
 }
 
@@ -110,6 +110,172 @@
 /* Card konten admin: putih murni terlalu kontras di atas shell abu-gelap, diredupkan sedikit */
 .app-content .bg-white {
     background-color: #fafafa;
+}
+
+/* Admin dark mode. The base rules above are the light theme. */
+html.app-dark .app-shell {
+    background: #141416;
+}
+
+html.app-dark .app-topbar {
+    background: #000;
+    color: #ffd700;
+    border-bottom-color: transparent;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+html.app-dark .topbar-icon-btn {
+    color: #ffd700;
+}
+
+html.app-dark .topbar-icon-btn:hover {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+html.app-dark .app-sidebar {
+    background: #1b1b1e;
+    border-right-color: rgba(255, 255, 255, 0.08);
+}
+
+html.app-dark .app-menu-section-label {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+html.app-dark .app-menu-item {
+    color: rgba(255, 255, 255, 0.75);
+}
+
+html.app-dark .app-menu-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #ffd700;
+}
+
+html.app-dark .app-menu-item-active {
+    background: rgba(255, 215, 0, 0.12);
+    color: #ffd700;
+}
+
+html:not(.app-dark) .app-topbar .text-\[\#FFD700\] {
+    color: #a16207;
+}
+
+html:not(.app-dark) .app-topbar .bg-white\/10 {
+    background-color: rgb(0 0 0 / 0.06);
+}
+
+html:not(.app-dark) .app-topbar .hover\:bg-white\/20:hover {
+    background-color: rgb(0 0 0 / 0.1);
+}
+
+html:not(.app-dark) .app-content .text-white {
+    color: #171717;
+}
+
+html:not(.app-dark) .app-content .text-white\/70,
+html:not(.app-dark) .app-content .text-white\/80 {
+    color: #525252;
+}
+
+html:not(.app-dark) .app-content .on-media,
+html:not(.app-dark) .app-content .on-media .text-white,
+html:not(.app-dark) .app-content .on-media .text-white\/80 {
+    color: #fff;
+}
+
+html:not(.app-dark) .app-content .bg-indigo-600.text-white {
+    color: #fff;
+}
+
+html.app-dark .app-content .bg-white {
+    background-color: #242428;
+}
+
+html.app-dark .app-content .text-surface-900,
+html.app-dark .app-content .text-surface-800,
+html.app-dark .app-rightpanel .text-surface-900 {
+    color: #f4f4f5;
+}
+
+html.app-dark .app-content .text-surface-700,
+html.app-dark .app-content .hover\:text-surface-700:hover {
+    color: #e4e4e7;
+}
+
+html.app-dark .app-content .text-surface-600 {
+    color: #d4d4d8;
+}
+
+html.app-dark .app-content .text-surface-500,
+html.app-dark .app-content .text-surface-400 {
+    color: #a1a1aa;
+}
+
+html.app-dark .app-content .text-indigo-600 {
+    color: #a5b4fc;
+}
+
+html.app-dark .app-content .bg-surface-50,
+html.app-dark .app-content .bg-surface-100,
+html.app-dark .app-content .hover\:bg-surface-100:hover {
+    background-color: #323238;
+}
+
+html.app-dark .app-content .border-surface-100,
+html.app-dark .app-content .border-surface-200,
+html.app-dark .app-content .border-surface-300,
+html.app-dark .app-content .lg\:border-surface-200 {
+    border-color: #3f3f46;
+}
+
+html.app-dark .app-rightpanel {
+    background: #1c1c1f;
+    border-left-color: #3f3f46;
+    color: #f4f4f5;
+}
+
+html.app-dark .app-rightpanel-header {
+    border-bottom-color: #3f3f46;
+}
+
+html.app-dark .app-content .rich-text {
+    color: #e4e4e7;
+}
+
+html.app-dark .app-content .rich-text h1,
+html.app-dark .app-content .rich-text h2,
+html.app-dark .app-content .rich-text h3 {
+    color: #fafafa;
+}
+
+html.app-dark .app-content .rich-text blockquote {
+    background: #323238;
+    color: #e4e4e7;
+}
+
+html.app-dark .app-content .ql-toolbar.ql-snow,
+html.app-dark .app-content .ql-container.ql-snow {
+    border-color: #3f3f46;
+}
+
+html.app-dark .app-content .ql-toolbar.ql-snow {
+    background: #2a2a2e;
+}
+
+html.app-dark .app-content .ql-container.ql-snow {
+    background: #1c1c1f;
+    color: #f4f4f5;
+}
+
+html.app-dark .app-content .ql-snow .ql-stroke {
+    stroke: #e4e4e7;
+}
+
+html.app-dark .app-content .ql-snow .ql-fill {
+    fill: #e4e4e7;
+}
+
+html.app-dark .app-content .ql-snow .ql-picker {
+    color: #e4e4e7;
 }
 
 .app-sidebar-mask {
@@ -287,12 +453,123 @@
     white-space: pre-wrap;
 }
 
-/* Public pages render rich-text on a dark card; override the admin (light) defaults above. */
-.rich-text.text-neutral-200 {
+/* Public pages render rich-text on a dark card; override the admin (light) defaults above.
+   Quill keeps pasted black as an inline color, which stays unreadable on the dark card. */
+.app-dark .rich-text.text-neutral-200 {
     color: var(--color-neutral-200, #e5e5e5);
 }
-.rich-text.text-neutral-200 h1,
-.rich-text.text-neutral-200 h2,
-.rich-text.text-neutral-200 h3 {
+.app-dark .rich-text.text-neutral-200 h1,
+.app-dark .rich-text.text-neutral-200 h2,
+.app-dark .rich-text.text-neutral-200 h3 {
     color: #fff;
+}
+.app-dark .rich-text.text-neutral-200 [style*='color'] {
+    color: inherit !important;
+}
+
+/*
+ * Public light theme. These rules apply only when .app-dark is absent, so the
+ * existing utility colors stay exactly as they are in dark mode.
+ * Text sitting on a photo is marked .on-media and keeps its light color.
+ */
+html:not(.app-dark) .public-theme {
+    color-scheme: light;
+}
+
+html:not(.app-dark) .public-theme.bg-black {
+    background-color: #f5f5f5;
+}
+
+html:not(.app-dark) .public-theme .bg-black,
+html:not(.app-dark) .public-theme .bg-neutral-900 {
+    background-color: #fff;
+}
+
+html:not(.app-dark) .public-theme .bg-neutral-800 {
+    background-color: #f5f5f5;
+}
+
+html:not(.app-dark) .public-theme .bg-surface-900 {
+    background-color: #fafafa;
+}
+
+html:not(.app-dark) .public-theme .bg-surface-950 {
+    background-color: #fff;
+    border-bottom: 1px solid #e5e5e5;
+}
+
+html:not(.app-dark) .public-theme .text-white,
+html:not(.app-dark) .public-theme .hover\:text-white:hover {
+    color: #171717;
+}
+
+html:not(.app-dark) .public-theme .text-white\/80,
+html:not(.app-dark) .public-theme .text-white\/70 {
+    color: #525252;
+}
+
+html:not(.app-dark) .public-theme .on-media.text-white,
+html:not(.app-dark) .public-theme .on-media .text-white,
+html:not(.app-dark) .public-theme .on-media .hover\:text-white:hover {
+    color: #fff;
+}
+
+html:not(.app-dark) .public-theme .on-media .text-white\/80 {
+    color: rgb(255 255 255 / 0.8);
+}
+
+html:not(.app-dark) .public-theme .on-media .text-white\/70 {
+    color: rgb(255 255 255 / 0.7);
+}
+
+html:not(.app-dark) .public-theme .text-neutral-200,
+html:not(.app-dark) .public-theme .text-surface-200 {
+    color: #262626;
+}
+
+html:not(.app-dark) .public-theme .text-neutral-300 {
+    color: #404040;
+}
+
+html:not(.app-dark) .public-theme .text-neutral-400,
+html:not(.app-dark) .public-theme .text-surface-400 {
+    color: #525252;
+}
+
+html:not(.app-dark) .public-theme .text-\[\#FFD700\],
+html:not(.app-dark) .p-dialog .text-\[\#FFD700\] {
+    color: #a16207;
+}
+
+html:not(.app-dark) .public-theme .hover\:text-\[\#FFD700\]:hover,
+html:not(.app-dark) .public-theme .hover\:text-\[\#FFF3B0\]:hover,
+html:not(.app-dark) .p-dialog .hover\:text-\[\#FFD700\]:hover,
+html:not(.app-dark) .p-dialog .hover\:text-\[\#FFF3B0\]:hover {
+    color: #854d0e;
+}
+
+html:not(.app-dark) .public-theme .border-neutral-800,
+html:not(.app-dark) .public-theme .lg\:border-neutral-800 {
+    border-color: #e5e5e5;
+}
+
+html:not(.app-dark) .public-theme .hover\:border-\[\#FFD700\]\/50:hover {
+    border-color: rgb(255 215 0 / 0.5);
+}
+
+html:not(.app-dark) .public-theme .hover\:border-\[\#FFD700\]\/60:hover {
+    border-color: rgb(255 215 0 / 0.6);
+}
+
+html:not(.app-dark) .public-theme .bg-white\/10 {
+    background-color: rgb(0 0 0 / 0.06);
+}
+
+html:not(.app-dark) .public-theme .hover\:bg-white\/20:hover,
+html:not(.app-dark) .public-theme .hover\:bg-neutral-800:hover {
+    background-color: rgb(0 0 0 / 0.08);
+}
+
+html:not(.app-dark) .public-theme > header {
+    border-bottom: 1px solid #e5e5e5;
 }

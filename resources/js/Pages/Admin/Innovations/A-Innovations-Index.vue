@@ -243,7 +243,10 @@ const purge = (innovation) => {
 
                         <div class="flex-1 min-w-0">
                             <div class="text-sm text-surface-500">{{ item.category ?? '—' }}</div>
-                            <div class="text-lg font-semibold text-surface-900 truncate">{{ item.title }}</div>
+                            <div class="flex items-center gap-2 min-w-0">
+                                <div class="text-lg font-semibold text-surface-900 truncate">{{ item.title }}</div>
+                                <Tag v-if="item.is_featured" value="Unggulan" severity="warn" />
+                            </div>
                             <div class="flex flex-wrap items-center gap-2 mt-1 text-xs text-surface-500">
                                 <span>{{ item.jenis_inovasi_label ?? '—' }}</span>
                                 <span>&middot;</span>

@@ -1,6 +1,19 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
+    <script>
+        (function () {
+            var light = false;
+
+            try {
+                light = localStorage.getItem('delima-theme') === 'light';
+            } catch (e) {}
+
+            if (!light) {
+                document.documentElement.classList.add('app-dark');
+            }
+        })();
+    </script>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">

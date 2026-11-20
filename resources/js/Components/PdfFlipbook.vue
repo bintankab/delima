@@ -7,7 +7,9 @@ import Button from 'primevue/button';
 
 // Served as a static public asset (kept in sync via the npm "postinstall" script)
 // because resolving the pdf.js worker through Vite's module graph is unreliable.
-pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
+// The .js extension is required: many servers send .mjs as application/octet-stream,
+// which browsers reject for module workers.
+pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js';
 
 const props = defineProps({
     url: { type: String, required: true },

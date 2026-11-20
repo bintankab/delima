@@ -10,6 +10,7 @@ import InputNumber from 'primevue/inputnumber';
 import InputText from 'primevue/inputtext';
 import ProgressBar from 'primevue/progressbar';
 import Select from 'primevue/select';
+import ToggleSwitch from 'primevue/toggleswitch';
 import { useConfirm } from 'primevue/useconfirm';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import RichTextEditor from '@/Components/RichTextEditor.vue';
@@ -35,6 +36,8 @@ const props = defineProps({
 });
 
 const isEditing = computed(() => props.innovation !== null);
+
+const canFeature = computed(() => isEditing.value && props.updateRoute === 'admin.innovations.update');
 
 const inisiatorLabel = computed(
     () => props.inisiatorOptions.find((option) => option.id === form.inisiator)?.name ?? '—',
@@ -71,6 +74,7 @@ const form = useAutoClearForm({
     tahun: props.innovation?.tahun ?? null,
     testing_at: toDate(props.innovation?.testing_at),
     implementation_at: toDate(props.innovation?.implementation_at),
+    is_featured: props.innovation?.is_featured ?? false,
     cover: null,
     documents: [],
     remove_document_ids: [],
@@ -423,6 +427,13 @@ const submit = () => {
                     </template>
                 </FileUpload>
                 <small v-for="(message, index) in documentErrors" :key="index" class="text-rose-600">{{ message }}</small>
+            </div>
+
+            <div v-if="canFeature" class="flex items-center gap-3">
+                <ToggleSwitch input-id="is_featured" v-model="form.is_featured" />
+                <label for="is_featured" class="text-sm font-medium text-surface-700">Unggulan</label>
+                <span class="text-sm text-surface-500">Tampil di Top Inovasi beranda setelah statusnya Tayang.</span>
+                <small v-if="form.errors.is_featured" class="text-rose-600">{{ form.errors.is_featured }}</small>
             </div>
 
             <div v-if="form.progress" class="flex flex-col gap-1.5">

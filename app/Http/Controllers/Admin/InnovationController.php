@@ -79,6 +79,7 @@ class InnovationController extends Controller
                 'category' => $innovation->category?->name,
                 'testing_at' => $innovation->testing_at?->toDateString(),
                 'implementation_at' => $innovation->implementation_at?->toDateString(),
+                'is_featured' => $innovation->is_featured,
                 'deleted_at' => $innovation->deleted_at?->toDateTimeString(),
                 'editable' => $innovation->user_id === $actor->id && $innovation->status !== 'published',
             ]);
@@ -499,6 +500,7 @@ class InnovationController extends Controller
             'tahun',
             'testing_at',
             'implementation_at',
+            'is_featured',
         ]);
 
         $innovation->update([
@@ -589,6 +591,7 @@ class InnovationController extends Controller
             'origin' => $innovation->origin,
             'testing_at' => $innovation->testing_at?->toDateString(),
             'implementation_at' => $innovation->implementation_at?->toDateString(),
+            'is_featured' => $innovation->is_featured,
             'inisiator' => $innovation->inisiator?->value,
             'inisiator_label' => $innovation->inisiator?->label(),
             'category_id' => $innovation->category_id,

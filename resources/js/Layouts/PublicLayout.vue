@@ -1,14 +1,13 @@
 <script setup>
-import { onBeforeUnmount, onMounted } from 'vue';
 import Toast from 'primevue/toast';
+import { usePublicTheme } from '@/Composables/usePublicTheme';
 import PublicTopbar from './Partials/PublicTopbar.vue';
 
-onMounted(() => document.documentElement.classList.add('app-dark'));
-onBeforeUnmount(() => document.documentElement.classList.remove('app-dark'));
+usePublicTheme();
 </script>
 
 <template>
-    <div class="min-h-screen bg-black flex flex-col">
+    <div class="public-theme min-h-screen bg-black flex flex-col">
         <Toast />
 
         <PublicTopbar />

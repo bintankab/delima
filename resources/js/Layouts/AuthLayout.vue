@@ -1,13 +1,16 @@
 <script setup>
-import { onBeforeUnmount, onMounted } from 'vue';
 import Toast from 'primevue/toast';
+import ThemeToggle from '@/Components/ThemeToggle.vue';
+import { usePublicTheme } from '@/Composables/usePublicTheme';
 
-onMounted(() => document.documentElement.classList.add('app-dark'));
-onBeforeUnmount(() => document.documentElement.classList.remove('app-dark'));
+usePublicTheme();
 </script>
 
 <template>
-    <div class="min-h-screen flex items-center justify-center bg-black px-4">
+    <div class="public-theme relative min-h-screen flex items-center justify-center bg-black px-4">
+        <div class="absolute top-4 right-4">
+            <ThemeToggle />
+        </div>
         <Toast />
         <div class="w-full max-w-md">
             <div class="text-center mb-6">

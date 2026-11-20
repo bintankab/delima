@@ -241,6 +241,34 @@ class InnovationMineTest extends TestCase
         $this->assertDatabaseHas('innovations', ['id' => $innovation->id, 'deleted_at' => null]);
     }
 
+    public function test_a_submitter_cannot_feature_their_own_innovation(): void
+    {
+        $owner = $this->userWithRole('publik');
+        $innovation = InnovationModel::factory()->create([
+            'user_id' => $owner->id,
+            'status' => 'submitted',
+            'is_featured' => false,
+        ]);
+        $category = InnovationCategoryModel::factory()->create();
+
+        $this->actingAs($owner)
+            ->put(route('admin.innovations.mine.update', $innovation), [
+                'category_id' => $category->id,
+                'title' => 'Judul Baru',
+                'jenis_inovasi' => $innovation->jenis_inovasi->value,
+                'tahapan' => $innovation->tahapan->value,
+                'description' => $this->words(200),
+                'tahun' => 2022,
+                'implementation_at' => '2022-01-10',
+                'is_featured' => true,
+            ])
+            ->assertRedirect(route('admin.innovations.mine.show', $innovation));
+
+        $innovation->refresh();
+        $this->assertSame('Judul Baru', $innovation->title);
+        $this->assertFalse($innovation->is_featured);
+    }
+
     /**
      * @return array<string, array{0: string}>
      */

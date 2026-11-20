@@ -65,7 +65,7 @@ const shareWhatsapp = () => {
                 severity="contrast"
                 @click="videoDialogVisible = true"
             />
-            <div class="relative z-10 p-5 sm:p-8 text-white">
+            <div class="on-media relative z-10 p-5 sm:p-8 text-white">
                 <p class="text-xs sm:text-sm font-medium uppercase tracking-wide text-white/80">
                     {{ innovation.category ?? innovation.jenis_inovasi_label ?? 'Inovasi' }} &middot; {{ innovation.read_minutes }} Menit Baca
                 </p>

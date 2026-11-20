@@ -7,7 +7,10 @@ import { onMounted, onUnmounted, watch } from 'vue';
 import AppTopbar from './Partials/AppTopbar.vue';
 import AppSidebar from './Partials/AppSidebar.vue';
 import AppRightPanel from './Partials/AppRightPanel.vue';
+import { usePublicTheme } from '@/Composables/usePublicTheme';
 import { useLayout } from '@/Composables/useLayout';
+
+usePublicTheme();
 
 defineProps({
     title: { type: String, default: '' },

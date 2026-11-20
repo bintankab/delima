@@ -447,6 +447,29 @@ class InnovationArchiveTest extends TestCase
         $this->assertDatabaseCount('innovations', 0);
     }
 
+    public function test_super_admin_can_store_a_featured_archive(): void
+    {
+        $category = InnovationCategoryModel::factory()->create();
+
+        $this->actingAs($this->userWithRole('super-admin'))
+            ->post(route('admin.innovations.archive.store'), [
+                'inisiator' => JenisInisiator::Bupati->value,
+                'category_id' => $category->id,
+                'title' => 'Inovasi Unggulan Arsip',
+                'jenis_inovasi' => JenisInovasi::Teknologi->value,
+                'tahapan' => TahapanInovasi::Implementasi->value,
+                'description' => $this->words(200),
+                'tahun' => 2021,
+                'implementation_at' => '2021-06-15',
+                'is_featured' => true,
+            ])
+            ->assertRedirect(route('admin.innovations.index'));
+
+        $this->assertTrue(
+            InnovationModel::query()->where('title', 'Inovasi Unggulan Arsip')->firstOrFail()->is_featured,
+        );
+    }
+
     /**
      * @return array<string, array{0: string}>
      */

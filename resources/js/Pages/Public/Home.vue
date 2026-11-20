@@ -97,7 +97,7 @@ onUnmounted(stop);
                                 class="absolute inset-0 w-full h-full object-cover"
                             />
                             <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-black/10" />
-                            <div class="relative z-10 h-full min-h-[320px] sm:min-h-[460px] flex flex-col justify-end p-5 sm:p-8 text-white">
+                            <div class="on-media relative z-10 h-full min-h-[320px] sm:min-h-[460px] flex flex-col justify-end p-5 sm:p-8 text-white">
                                 <p class="text-xs font-semibold uppercase tracking-wide text-white/80">Berita Terbaru</p>
                                 <h1 class="text-2xl sm:text-4xl font-bold max-w-2xl mt-2 leading-tight">{{ current.title }}</h1>
                                 <div class="flex items-center gap-3 mt-4">

@@ -222,7 +222,7 @@ const copyLink = async () => {
                 :severity="statusSeverity[riset.status] ?? 'secondary'"
                 class="absolute top-4 right-4 z-10 uppercase text-xs"
             />
-            <div class="relative z-10 p-5 sm:p-8 text-white">
+            <div class="on-media relative z-10 p-5 sm:p-8 text-white">
                 <p class="text-xs sm:text-sm font-medium uppercase tracking-wide text-white/80">
                     {{ riset.category ?? originLabel(riset.origin) }} &middot; {{ riset.read_minutes }} Menit Baca
                 </p>
